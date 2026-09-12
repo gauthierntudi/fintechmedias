@@ -32,7 +32,7 @@ export const AUTH_HERO_POOL: readonly AuthHeroSlide[] = [
     lead: "Le magazine numérique, à lire sur tous vos écrans.",
   },
   {
-    cover: "/legacy/img/s6.jpg",
+    cover: "/legacy/img/s6.jpeg",
     title: "Qu'en dit l'expert",
     lead: "Analyses et paroles d’experts pour éclairer les enjeux du moment.",
   },
