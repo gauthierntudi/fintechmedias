@@ -53,7 +53,9 @@ function FeaturedSlide({ story }: { story: TopStory }) {
             <p className="opt-top__eyebrow">{story.category}</p>
           ) : null}
           <h2 className="opt-top__title">
-            <Link href={href}>{story.titre}</Link>
+            <Link href={href} title={story.titre}>
+              {story.titre}
+            </Link>
           </h2>
           {story.excerpt ? (
             <p className="opt-top__excerpt">{story.excerpt}</p>
