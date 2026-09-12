@@ -16,6 +16,7 @@ import {
 import { VideoPlay } from "@/components/site/video-play";
 import { HlsPlayer } from "@/components/site/hls-player";
 import { ArticleMagazineFloat } from "./article-magazine-float";
+import { ArticleShare } from "@/components/site/article-share";
 import "./article.css";
 import { preconnect, preload } from "react-dom";
 import { BRAND } from "@/lib/brand";
@@ -127,6 +128,8 @@ export default async function ArticlePage({ params }: Props) {
         year: "numeric",
       }).format(new Date(article.publishedAt))
     : null;
+  const shareUrl = `${getSiteUrl()}/article/${encodeURIComponent(article.slug)}`;
+  const shareBar = <ArticleShare url={shareUrl} title={article.title} />;
 
   const head = (
     <header className="opt-article__head">
@@ -147,6 +150,7 @@ export default async function ArticlePage({ params }: Props) {
       {article.excerpt ? (
         <p className="opt-article__excerpt">{article.excerpt}</p>
       ) : null}
+      {shareBar}
     </header>
   );
 
@@ -245,6 +249,8 @@ export default async function ArticlePage({ params }: Props) {
                 />
               )}
           </div>
+
+          {shareBar}
 
           {related.length > 0 ? (
             <section
