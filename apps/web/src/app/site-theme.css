@@ -452,7 +452,6 @@ html[data-theme="dark"] .opt-auth-google__face {
   color: var(--site-ink);
 }
 
-html[data-theme="dark"] .opt-article__crumb,
 html[data-theme="dark"] .opt-article__meta {
   color: var(--site-muted);
 }

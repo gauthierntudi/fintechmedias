@@ -128,20 +128,6 @@ export default async function ArticlePage({ params }: Props) {
       }).format(new Date(article.publishedAt))
     : null;
 
-  const crumb = (
-    <nav className="opt-article__crumb" aria-label="Fil d’Ariane">
-      <Link href="/">Accueil</Link>
-      <span aria-hidden>/</span>
-      {article.category ? (
-        <>
-          <Link href={`/rubrique/${article.category}`}>{categoryLabel}</Link>
-          <span aria-hidden>/</span>
-        </>
-      ) : null}
-      <span>{article.title}</span>
-    </nav>
-  );
-
   const head = (
     <header className="opt-article__head">
       {article.category ? (
@@ -214,12 +200,10 @@ export default async function ArticlePage({ params }: Props) {
           {video ? (
             <>
               {media}
-              {crumb}
               {head}
             </>
           ) : (
             <>
-              {crumb}
               {head}
               {media}
             </>
