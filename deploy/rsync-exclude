@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+.DS_Store
+node_modules
+.pnpm-store
+apps/mobile
+apps/web/.next
+apps/api/dist
+deploy/certbot
+deploy/nginx/local
+docker-compose.override.yml
+docker-compose.override.yaml
+*.log

@@ -288,9 +288,13 @@ cd /opt/magazine
 
 ### CI/CD (GitHub Actions → VPS)
 
-À chaque push sur `main` (ou via **Actions → Deploy production → Run workflow**), le runner SSH se connecte au VPS et exécute `deploy/remote-deploy.sh` : `git reset --hard origin/main`, rebuild `api`/`web`/`worker`, migrations Prisma, recreate nginx.
+À chaque push sur `main` qui touche le web, l’API ou le deploy (ou via **Actions → Deploy production → Run workflow**), le runner :
 
-Le script **ne fait pas** `git clean` : `.env`, `docker-compose.override.yml`, `deploy/certbot/` et `deploy/nginx/local/*.conf` restent sur le VPS.
+1. checkout `main`
+2. `rsync` vers `/opt/magazine` (sans `.env`, certs, `apps/mobile`, `node_modules`)
+3. SSH : `deploy/remote-deploy.sh` — rebuild `api`/`web`/`worker`, migrations Prisma, recreate nginx
+
+Pas de `git pull` sur le VPS : aucune clé GitHub n’est nécessaire sur le serveur. Le `.env`, `deploy/certbot/` et `deploy/nginx/local/*.conf` restent uniquement sur le VPS (`deploy/rsync-exclude`).
 
 #### 1. Clé SSH pour GitHub Actions → VPS
 
@@ -301,18 +305,9 @@ La clé déjà utilisée pour ce serveur :
 ssh-copy-id -i ~/.ssh/opt1mum_deploy.pub ubuntu@51.254.214.47
 ```
 
-#### 2. Accès Git non interactif sur le VPS (repo privé)
+L’utilisateur `ubuntu` doit pouvoir lancer Docker (`sudo usermod -aG docker ubuntu`, puis nouvelle session).
 
-`~/.ssh/config` du VPS pointe `github.com` vers la clé deploy (ex. `~/.ssh/mission_outil_deploy`). Origin SSH :
-
-```bash
-cd /opt/magazine
-git remote set-url origin git@github.com:gauthierntudi/entrevue.git
-git fetch origin main
-chmod +x deploy/remote-deploy.sh
-```
-
-#### 3. Secrets GitHub (repo → Settings → Secrets → Actions)
+#### 2. Secrets GitHub (repo → Settings → Secrets → Actions)
 
 | Secret | Valeur |
 |--------|--------|
@@ -321,11 +316,13 @@ chmod +x deploy/remote-deploy.sh
 | `VPS_SSH_KEY` | contenu de `~/.ssh/opt1mum_deploy` (clé **privée**) |
 | `VPS_PORT` | `22` (optionnel) |
 
-#### 4. Test
+Si `VPS_HOST` pointe encore vers l’ancien IP, le workflow SSH sur la mauvaise machine.
 
-Actions → **Deploy production** → **Run workflow**, ou push sur `main`.
+#### 3. Test
 
-Ne jamais committer `.env` ni la clé privée. Le `.env` et `docker-compose.override.yml` restent uniquement sur le VPS.
+Actions → **Deploy production** → **Run workflow**, ou push sur `main` (hors `apps/mobile` / docs seuls).
+
+Ne jamais committer `.env` ni la clé privée.
 
 
 ## 7. Workers BullMQ

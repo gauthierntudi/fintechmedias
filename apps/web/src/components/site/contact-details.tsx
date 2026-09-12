@@ -12,9 +12,9 @@ export function ContactDetails({
   className?: string;
   iconSize?: number;
 }) {
-  const [address, setAddress] = useState(BRAND.address);
-  const [email, setEmail] = useState(BRAND.email);
-  const [phone, setPhone] = useState(BRAND.phone);
+  const [address, setAddress] = useState<string>(BRAND.address);
+  const [email, setEmail] = useState<string>(BRAND.email);
+  const [phone, setPhone] = useState<string>(BRAND.phone);
 
   useEffect(() => {
     let cancelled = false;

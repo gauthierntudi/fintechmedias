@@ -10,5 +10,6 @@ Fichiers :
 - `nginx/default.http.conf` — bootstrap HTTP (Let’s Encrypt, avant les certificats)
 - `.env.example` — modèle des variables
 - `bootstrap-vps.sh` — premier run (Docker, UFW, Certbot)
-- `remote-deploy.sh` — mises à jour (`git pull` + rebuild)
+- `rsync-exclude` / `rsync-to-vps.sh` — sync GitHub Actions → VPS
+- `remote-deploy.sh` — rebuild Compose + migrations (après rsync)
 - Certbot volumes : `certbot/conf`, `certbot/www` (créés au premier SSL)
