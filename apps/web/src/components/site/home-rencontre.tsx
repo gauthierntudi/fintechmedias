@@ -70,7 +70,9 @@ export function HomeRencontre({
             </Link>
             <p className="opt-renc__cat">{featured.category}</p>
             <h3 className="opt-renc__featured-title">
-              <Link href={articleHref(featured)}>{featured.titre}</Link>
+              <Link href={articleHref(featured)} title={featured.titre}>
+                {featured.titre}
+              </Link>
             </h3>
             {featured.excerpt ? (
               <p className="opt-renc__excerpt">{featured.excerpt}</p>
@@ -91,7 +93,9 @@ export function HomeRencontre({
                 <div className="opt-renc__item-body">
                   <p className="opt-renc__cat">{story.category}</p>
                   <h3 className="opt-renc__item-title">
-                    <Link href={articleHref(story)}>{story.titre}</Link>
+                    <Link href={articleHref(story)} title={story.titre}>
+                      {story.titre}
+                    </Link>
                   </h3>
                   <Meta story={story} />
                   <Link href={articleHref(story)} className="opt-renc__read">
