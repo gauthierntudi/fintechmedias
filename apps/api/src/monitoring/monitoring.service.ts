@@ -10,7 +10,7 @@ import {
 } from '../magazines/pages/magazine-pages.queue';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { createR2ClientFromEnv, headR2Object } from '../storage/r2';
+import { createR2ClientFromEnv, headR2Object, probeR2Bucket } from '../storage/r2';
 import {
   MONITORING_ALERT_COOLDOWN_KEY,
   MONITORING_ALERT_COOLDOWN_SEC,
@@ -311,33 +311,23 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
       };
     }
     try {
-      const probe = await this.prisma.magazine.findFirst({
-        where: {
-          OR: [
-            { coverKey: { not: null } },
-            { downloadKey: { not: null } },
-          ],
-        },
-        select: { coverKey: true, downloadKey: true },
-        orderBy: { updatedAt: 'desc' },
-      });
-      const key = probe?.coverKey || probe?.downloadKey;
-      if (!key) {
+      const listed = await probeR2Bucket(r2);
+      if (!listed.key) {
         return {
           id: 'r2',
           label: 'R2 (API)',
-          status: 'degraded',
+          status: 'up',
           latencyMs: Date.now() - t0,
-          detail: 'Config OK — aucun objet probe',
+          detail: `bucket ${r2.bucket} — vide (aucun média)`,
         };
       }
-      const meta = await headR2Object(r2, key);
+      const meta = await headR2Object(r2, listed.key);
       return {
         id: 'r2',
         label: 'R2 (API)',
         status: meta ? 'up' : 'down',
         latencyMs: Date.now() - t0,
-        detail: meta ? `bucket ${r2.bucket}` : `Objet introuvable: ${key}`,
+        detail: meta ? `bucket ${r2.bucket}` : `Objet introuvable: ${listed.key}`,
       };
     } catch (err) {
       return {
@@ -371,7 +361,7 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
   private async checkCdn(): Promise<ServiceCheck> {
     const r2 = createR2ClientFromEnv();
     const publicUrl = r2?.publicUrl?.replace(/\/$/, '') ?? '';
-    if (!publicUrl) {
+    if (!r2 || !publicUrl) {
       return {
         id: 'cdn',
         label: 'CDN R2',
@@ -381,22 +371,28 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
       };
     }
 
-    const probe = await this.prisma.magazine.findFirst({
-      where: { coverKey: { not: null } },
-      select: { coverKey: true },
-      orderBy: { updatedAt: 'desc' },
-    });
-    if (!probe?.coverKey) {
+    try {
+      const listed = await probeR2Bucket(r2);
+      if (!listed.key) {
+        return {
+          id: 'cdn',
+          label: 'CDN R2',
+          status: 'up',
+          latencyMs: null,
+          detail: 'Aucun média publié — CDN non testé',
+        };
+      }
+      const url = `${publicUrl}/${listed.key.replace(/^\//, '')}`;
+      return this.httpCheck('cdn', 'CDN R2', url, [200]);
+    } catch (err) {
       return {
         id: 'cdn',
         label: 'CDN R2',
-        status: 'degraded',
+        status: 'down',
         latencyMs: null,
-        detail: 'Aucune cover pour probe CDN',
+        detail: err instanceof Error ? err.message.slice(0, 160) : 'error',
       };
     }
-    const url = `${publicUrl}/${probe.coverKey.replace(/^\//, '')}`;
-    return this.httpCheck('cdn', 'CDN R2', url, [200]);
   }
 
   private async checkWorker(): Promise<ServiceCheck> {

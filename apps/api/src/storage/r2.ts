@@ -350,6 +350,19 @@ export async function r2ObjectExists(
   return meta != null;
 }
 
+/** Liste 1 objet : prouve credentials + bucket, sans exiger un magazine. */
+export async function probeR2Bucket(
+  r2: R2Config,
+): Promise<{ key: string | null }> {
+  const res = await r2.client.send(
+    new ListObjectsV2Command({
+      Bucket: r2.bucket,
+      MaxKeys: 1,
+    }),
+  );
+  return { key: res.Contents?.[0]?.Key ?? null };
+}
+
 export async function listR2Keys(
   r2: R2Config,
   prefix: string,
