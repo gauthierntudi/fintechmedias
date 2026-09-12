@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-
 # ── Rust PDF→WebP rasterizer (PDFium) ─────────────────────────────
 FROM rust:1.88-bookworm AS rust-build
 WORKDIR /src

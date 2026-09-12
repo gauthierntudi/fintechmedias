@@ -35,7 +35,19 @@ fi
 chmod +x deploy/remote-deploy.sh deploy/bootstrap-vps.sh deploy/rsync-to-vps.sh
 
 echo "==> docker compose build (api, web, worker)"
-compose build api web worker
+build_ok=0
+for attempt in 1 2 3; do
+  if compose build api web worker; then
+    build_ok=1
+    break
+  fi
+  echo "WARN — compose build échec (essai ${attempt}/3), nouvelle tentative dans 8s"
+  sleep 8
+done
+if [[ "$build_ok" -ne 1 ]]; then
+  echo "ERREUR : docker compose build a échoué après 3 essais"
+  exit 1
+fi
 
 echo "==> docker compose up (sans recréer postgres/redis)"
 compose up -d --no-deps --force-recreate api web worker
