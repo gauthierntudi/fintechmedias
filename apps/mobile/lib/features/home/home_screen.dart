@@ -81,7 +81,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final async = ref.watch(homeProvider);
     final user = ref.watch(sessionProvider);
     final shortTab = _tabs.index == _tabLabels.length - 1;
-    final tabs = StudrcFilterTabs(controller: _tabs, labels: _tabLabels);
+    final tabs = EntrevueFilterTabs(controller: _tabs, labels: _tabLabels);
 
     ref.listen(shortsFeedProvider, (prev, next) {
       final items = next.valueOrNull?.items;
@@ -100,7 +100,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               bottom: false,
               child: Column(
                 children: [
-                  StudrcMasthead(
+                  EntrevueMasthead(
                     onSearch: () => context.push('/recherche'),
                     onNotify: () => context.push(
                       user == null ? '/connexion' : '/notifications',
@@ -127,10 +127,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     final feed = data.feed;
                     final une = _unique([...feed.featured, ...feed.topGrid]);
                     final byRubrique = [
-                      feed.stuNews,
-                      feed.stuData,
-                      feed.stuStories,
-                      feed.stuTalk,
+                      for (final r in kRubriques) feed.forSlug(r.slug),
                     ];
                     return TabBarView(
                       controller: _tabs,
@@ -201,14 +198,12 @@ class _UnePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rails = kRubriques.map((r) {
-      final items = switch (r.slug) {
-        'stu-news' => feed.stuNews,
-        'stu-data' => feed.stuData,
-        'stu-stories' => feed.stuStories,
-        'stu-talk' => feed.stuTalk,
-        _ => const <ArticleCard>[],
-      };
-      return (slug: r.slug, label: r.label, tone: r.tone, items: items);
+      return (
+        slug: r.slug,
+        label: r.label,
+        tone: r.tone,
+        items: feed.forSlug(r.slug),
+      );
     });
 
     return RefreshIndicator(
@@ -523,14 +518,14 @@ class _StuMagRail extends StatelessWidget {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFE1045C),
+                      color: Color(0xFFD63026),
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Stu Mag',
+                      kMagazineName,
                       style: AppTheme.displayText(
                         size: 16,
                         weight: FontWeight.w800,

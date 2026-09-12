@@ -15,7 +15,7 @@ class SplashView extends StatelessWidget {
         child: Center(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 48),
-            child: StudrcLogo(height: 88),
+            child: EntrevueLogo(height: 88),
           ),
         ),
       ),

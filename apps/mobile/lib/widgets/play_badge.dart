@@ -23,7 +23,7 @@ class PlayBadge extends StatelessWidget {
             ),
           ],
         ),
-        child: const Icon(LucideIcons.play, color: Colors.black, size: 22),
+        child: const Icon(LucideIcons.play, color: Colors.white, size: 22),
       ),
     );
   }

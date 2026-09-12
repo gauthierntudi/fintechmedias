@@ -8,7 +8,7 @@ class ArticleCard {
     this.category,
     this.categoryLabel = '',
     this.categoryTone = 'teal',
-    this.authorName = 'STUDRC',
+    this.authorName = 'ENTREVUE',
     this.dateLabel = '',
     this.videoHlsUrl,
     this.videoPosterUrl,
@@ -74,7 +74,7 @@ class ArticleCard {
       categoryLabel: '${json['categoryLabel'] ?? json['category'] ?? ''}',
       categoryTone: '${json['categoryTone'] ?? 'teal'}',
       authorName:
-          '${json['authorName'] ?? json['author']?['name'] ?? 'STUDRC'}',
+          '${json['authorName'] ?? json['author']?['name'] ?? 'ENTREVUE'}',
       dateLabel: '${json['dateLabel'] ?? ''}',
       videoHlsUrl: json['videoHlsUrl'] as String?,
       videoPosterUrl: json['videoPosterUrl'] as String?,
@@ -170,18 +170,31 @@ class HomeFeed {
   const HomeFeed({
     this.featured = const [],
     this.topGrid = const [],
-    this.stuNews = const [],
-    this.stuData = const [],
-    this.stuStories = const [],
-    this.stuTalk = const [],
+    this.expert = const [],
+    this.rencontreAvec = const [],
+    this.entreprendre = const [],
+    this.ecosystemePme = const [],
+    this.femme = const [],
   });
 
   final List<ArticleCard> featured;
   final List<ArticleCard> topGrid;
-  final List<ArticleCard> stuNews;
-  final List<ArticleCard> stuData;
-  final List<ArticleCard> stuStories;
-  final List<ArticleCard> stuTalk;
+  final List<ArticleCard> expert;
+  final List<ArticleCard> rencontreAvec;
+  final List<ArticleCard> entreprendre;
+  final List<ArticleCard> ecosystemePme;
+  final List<ArticleCard> femme;
+
+  List<ArticleCard> forSlug(String slug) {
+    return switch (slug) {
+      'qu-en-dit-l-expert' => expert,
+      'rencontre-avec' => rencontreAvec,
+      'entreprendre' => entreprendre,
+      'ecosysteme-pme' => ecosystemePme,
+      'femme' => femme,
+      _ => const <ArticleCard>[],
+    };
+  }
 
   factory HomeFeed.fromJson(Map<String, dynamic> json) {
     List<ArticleCard> list(String key) =>
@@ -193,10 +206,11 @@ class HomeFeed {
     return HomeFeed(
       featured: list('featured'),
       topGrid: list('topGrid'),
-      stuNews: list('stuNews'),
-      stuData: list('stuData'),
-      stuStories: list('stuStories'),
-      stuTalk: list('stuTalk'),
+      expert: list('expert'),
+      rencontreAvec: list('rencontreAvec'),
+      entreprendre: list('entreprendre'),
+      ecosystemePme: list('ecosystemePme'),
+      femme: list('femme'),
     );
   }
 }

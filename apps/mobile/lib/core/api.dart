@@ -417,27 +417,6 @@ class ApiClient {
         },
       );
 
-  Future<Map<String, dynamic>> stripePurchase(String magazineId) async {
-    final res = await _dio.post<Map<String, dynamic>>(
-      '/payments/stripe/purchase',
-      data: {'magazineId': magazineId},
-    );
-    return _map(res.data);
-  }
-
-  Future<void> confirmStripe({
-    required String paymentId,
-    String? paymentIntentId,
-  }) async {
-    await _dio.post(
-      '/payments/stripe/confirm',
-      data: {
-        'paymentId': paymentId,
-        if (paymentIntentId case final pi?) 'paymentIntentId': pi,
-      },
-    );
-  }
-
   Future<Map<String, dynamic>> flexpaiePurchase({
     required String magazineId,
     required String phone,

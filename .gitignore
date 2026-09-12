@@ -8,6 +8,7 @@ deploy/.env
 
 # Dependencies & build
 node_modules/
+.pnpm-store/
 dist/
 .next/
 out/

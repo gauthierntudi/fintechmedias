@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/api.dart';
 import '../../core/models.dart';
@@ -52,50 +51,6 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     if (mag?.priceCents == null) return '';
     final amount = (mag!.priceCents! / 100).toStringAsFixed(2);
     return '$amount ${mag.currency}';
-  }
-
-  Future<void> _payStripe() async {
-    final api = ref.read(apiClientProvider);
-    setState(() {
-      _busy = true;
-      _error = null;
-      _status = null;
-    });
-    try {
-      if (ref.read(sessionProvider) == null) {
-        if (mounted) context.push('/connexion');
-        return;
-      }
-      final created = await api.stripePurchase(widget.magazineId);
-      final clientSecret = '${created['clientSecret'] ?? ''}';
-      final publishable = created['publishableKey'] as String?;
-      final paymentId = '${created['paymentId'] ?? ''}';
-      if (clientSecret.isEmpty) {
-        throw Exception('Paiement carte indisponible pour le moment.');
-      }
-      if (publishable != null && publishable.isNotEmpty) {
-        Stripe.publishableKey = publishable;
-        await Stripe.instance.applySettings();
-      }
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: clientSecret,
-          merchantDisplayName: 'STUDRC',
-          style: ThemeMode.system,
-        ),
-      );
-      await Stripe.instance.presentPaymentSheet();
-      if (paymentId.isNotEmpty) {
-        await api.confirmStripe(paymentId: paymentId);
-      }
-      if (mounted) context.go('/magazine/${widget.magazineId}');
-    } on StripeException catch (e) {
-      setState(() => _error = e.error.localizedMessage ?? 'Paiement annulé');
-    } catch (e) {
-      setState(() => _error = api.apiError(e));
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
   }
 
   Future<void> _payFlexpaie() async {
@@ -189,12 +144,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                   Text(_status!, textAlign: TextAlign.center),
                 ],
                 const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: _busy ? null : _payStripe,
-                  child: const Text('Payer par carte'),
-                ),
-                const SizedBox(height: 20),
-                const Text('Ou Mobile Money (FlexPaie)'),
+                const Text('Paiement Mobile Money (FlexPaie)'),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _phone,
@@ -204,7 +154,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                OutlinedButton(
+                FilledButton(
                   onPressed: _busy ? null : _payFlexpaie,
                   child: const Text('Payer par Mobile Money'),
                 ),

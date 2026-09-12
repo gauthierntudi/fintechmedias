@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-class StudrcFilterTabs extends StatelessWidget {
-  const StudrcFilterTabs({
+class EntrevueFilterTabs extends StatelessWidget {
+  const EntrevueFilterTabs({
     super.key,
     required this.controller,
     required this.labels,

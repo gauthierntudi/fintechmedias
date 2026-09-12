@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/api.dart';
+import '../../core/constants.dart';
 import '../../core/models.dart';
 import '../../theme/app_theme.dart';
 
@@ -67,7 +68,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   Widget build(BuildContext context) {
     final meta = ref.watch(magazineMetaProvider(widget.magazineId));
     final session = _session;
-    final title = session?.title ?? meta.valueOrNull?.title ?? 'STU MAG';
+    final title = session?.title ?? meta.valueOrNull?.title ?? kMagazineName;
     final pages = session?.pages ?? const <MagazinePage>[];
     final pageLabel = pages.isEmpty ? '' : '${_index + 1} / ${pages.length}';
 
@@ -211,7 +212,7 @@ class _PreviewBar extends StatelessWidget {
                 ),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppTheme.gold,
-                  foregroundColor: AppTheme.navy,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 10,
@@ -275,7 +276,7 @@ class _Locked extends StatelessWidget {
                 onPressed: () => context.push('/acheter/$magazineId'),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppTheme.gold,
-                  foregroundColor: AppTheme.navy,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(28),
                   ),

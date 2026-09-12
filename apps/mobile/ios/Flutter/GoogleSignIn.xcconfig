@@ -1,6 +1,6 @@
 // Clients OAuth Google (pas un secret). Remplir après création
 // dans Google Cloud Console :
-// - iOS : bundle com.studrc.studrc
+// - iOS : bundle com.entrevue.entrevue
 // - Web : même GOOGLE_CLIENT_ID que l’API
 // GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.{prefix-ios}
 

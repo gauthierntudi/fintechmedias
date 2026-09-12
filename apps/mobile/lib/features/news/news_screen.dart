@@ -61,7 +61,7 @@ class _NewsScreenState extends ConsumerState<NewsScreen>
   Widget build(BuildContext context) {
     final user = ref.watch(sessionProvider);
     final shortTab = _tabs.index == kNewsRubriques.length;
-    final tabs = StudrcFilterTabs(controller: _tabs, labels: _newsTabLabels);
+    final tabs = EntrevueFilterTabs(controller: _tabs, labels: _newsTabLabels);
 
     ref.listen(shortsFeedProvider, (prev, next) {
       final items = next.valueOrNull?.items;
@@ -80,7 +80,7 @@ class _NewsScreenState extends ConsumerState<NewsScreen>
               bottom: false,
               child: Column(
                 children: [
-                  StudrcMasthead(
+                  EntrevueMasthead(
                     onSearch: () => context.push('/recherche'),
                     onNotify: () => context.push(
                       user == null ? '/connexion' : '/notifications',
@@ -166,7 +166,11 @@ class _NewsFeedPage extends ConsumerWidget {
               : _EditorialNewsList(
                   items: feed.items,
                   showMeta: slug.isEmpty,
-                  showExcerpt: slug == 'stu-news' || slug == 'stu-data',
+                  showExcerpt: slug == 'entreprendre' ||
+                      slug == 'ecosysteme-pme' ||
+                      slug == 'femme' ||
+                      slug == 'stu-news' ||
+                      slug == 'stu-data',
                 ),
         );
       },

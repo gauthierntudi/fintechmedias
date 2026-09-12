@@ -13,7 +13,7 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: _StudrcTabBar(
+      bottomNavigationBar: _EntrevueTabBar(
         index: navigationShell.currentIndex,
         onSelect: (i) {
           HapticFeedback.selectionClick();
@@ -62,8 +62,8 @@ const _tabs = <_TabItem>[
   ),
 ];
 
-class _StudrcTabBar extends StatelessWidget {
-  const _StudrcTabBar({required this.index, required this.onSelect});
+class _EntrevueTabBar extends StatelessWidget {
+  const _EntrevueTabBar({required this.index, required this.onSelect});
 
   final int index;
   final ValueChanged<int> onSelect;

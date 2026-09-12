@@ -17,7 +17,7 @@ Future<void> main() async {
       overrides: [
         onboardingProvider.overrideWith((ref) => onboarding),
       ],
-      child: const StudrcApp(),
+      child: const EntrevueApp(),
     ),
   );
   FlutterNativeSplash.remove();

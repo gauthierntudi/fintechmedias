@@ -129,7 +129,7 @@ class _MagHero extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const StudrcLogo(height: 20, color: Colors.white),
+                  const EntrevueLogo(height: 20, color: Colors.white),
                   const Spacer(),
                   Text(
                     'Nouveau numéro',
@@ -172,7 +172,7 @@ class _MagHero extends StatelessWidget {
                       onPressed: () => context.push('/magazine/${magazine.id}'),
                       style: FilledButton.styleFrom(
                         backgroundColor: AppTheme.gold,
-                        foregroundColor: AppTheme.navy,
+                        foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(28),
                         ),

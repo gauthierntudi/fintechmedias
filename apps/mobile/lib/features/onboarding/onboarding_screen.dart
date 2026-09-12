@@ -21,7 +21,7 @@ class OnboardingPageData {
 
 const _pages = <OnboardingPageData>[
   OnboardingPageData(
-    title: 'Bienvenue sur STUDRC',
+    title: 'Bienvenue sur ENTREVUE',
     body:
         'La plateforme média et observatoire qui éclaire le système éducatif de la République démocratique du Congo.',
     image: 'assets/onboarding/1.jpg',
@@ -113,7 +113,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 padding: EdgeInsets.fromLTRB(20, padding.top + 8, 8, 0),
                 child: Row(
                   children: [
-                    const StudrcLogo(height: 42),
+                    const EntrevueLogo(height: 42),
                     const Spacer(),
                     if (!_last)
                       TextButton(
@@ -180,11 +180,11 @@ class _EdgeScrims extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0x9900132B),
-              Color(0x0000132B),
-              Color(0x0000132B),
-              Color(0xE600132B),
-              Color(0xF200132B),
+              Color(0x99111111),
+              Color(0x00111111),
+              Color(0x00111111),
+              Color(0xE6111111),
+              Color(0xF2111111),
             ],
             stops: [0, 0.18, 0.42, 0.72, 1],
           ),
@@ -262,7 +262,7 @@ class _OverlayCopy extends StatelessWidget {
               onPressed: onNext,
               style: FilledButton.styleFrom(
                 backgroundColor: AppTheme.gold,
-                foregroundColor: AppTheme.navy,
+                foregroundColor: Colors.white,
                 textStyle: AppTheme.sansText(
                   size: 16,
                   weight: FontWeight.w700,

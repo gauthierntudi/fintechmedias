@@ -9,8 +9,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../theme/app_theme.dart';
 
 /// Lecteur HLS style YouTube (barre, ±10 s, double-tap, plein écran).
-class StudrcVideoPlayer extends StatefulWidget {
-  const StudrcVideoPlayer({
+class EntrevueVideoPlayer extends StatefulWidget {
+  const EntrevueVideoPlayer({
     super.key,
     required this.src,
     this.poster,
@@ -50,10 +50,10 @@ class StudrcVideoPlayer extends StatefulWidget {
   final VoidCallback? onToggleFullscreen;
 
   @override
-  State<StudrcVideoPlayer> createState() => _StudrcVideoPlayerState();
+  State<EntrevueVideoPlayer> createState() => _EntrevueVideoPlayerState();
 }
 
-class _StudrcVideoPlayerState extends State<StudrcVideoPlayer> {
+class _EntrevueVideoPlayerState extends State<EntrevueVideoPlayer> {
   late final bool _ownsPlayer = widget.player == null;
   late final Player _player = widget.player ?? Player();
   late final VideoController _controller =
@@ -63,8 +63,7 @@ class _StudrcVideoPlayerState extends State<StudrcVideoPlayer> {
   bool _hasVideoFrame = false;
   bool _muted = false;
 
-  Color get _ink =>
-      widget.accent == AppTheme.gold ? AppTheme.navy : Colors.white;
+  Color get _ink => Colors.white;
 
   bool get _showPoster => !_hasVideoFrame;
 

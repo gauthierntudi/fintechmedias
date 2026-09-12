@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Official STUDRC lockup, white on a transparent background.
-class StudrcLogo extends StatelessWidget {
-  const StudrcLogo({
+/// Official ENTREVUE lockup. [color] only chooses white vs black artwork.
+class EntrevueLogo extends StatelessWidget {
+  const EntrevueLogo({
     super.key,
     this.height = 40,
     this.color = Colors.white,
@@ -11,16 +11,18 @@ class StudrcLogo extends StatelessWidget {
   final double height;
   final Color color;
 
+  static const _whiteAsset = 'assets/brand/logo-Lentrevue-blanc.png';
+  static const _blackAsset = 'assets/brand/logo-Lentrevue-mail.png';
+
   @override
   Widget build(BuildContext context) {
+    final onDark = color.computeLuminance() >= 0.5;
     return Image.asset(
-      'assets/brand/studrc-logo-white.png',
+      onDark ? _whiteAsset : _blackAsset,
       height: height,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.high,
-      color: color,
-      colorBlendMode: BlendMode.srcIn,
-      semanticLabel: 'STUDRC',
+      semanticLabel: 'ENTREVUE',
     );
   }
 }

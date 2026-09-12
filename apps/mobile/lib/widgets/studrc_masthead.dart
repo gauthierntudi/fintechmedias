@@ -3,8 +3,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../theme/app_theme.dart';
 import 'studrc_logo.dart';
 
-class StudrcMasthead extends StatelessWidget {
-  const StudrcMasthead({
+class EntrevueMasthead extends StatelessWidget {
+  const EntrevueMasthead({
     super.key,
     required this.onSearch,
     required this.onNotify,
@@ -33,7 +33,7 @@ class StudrcMasthead extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: Center(child: StudrcLogo(height: 26, color: ink)),
+              child: Center(child: EntrevueLogo(height: 26, color: ink)),
             ),
             SizedBox(
               width: 48,

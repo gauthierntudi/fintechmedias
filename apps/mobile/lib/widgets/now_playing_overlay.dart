@@ -258,7 +258,7 @@ class _NowPlayingStageState extends ConsumerState<_NowPlayingStage>
     final topInset = MediaQuery.paddingOf(context).top;
     final expanded = _expandedRect(size);
     final mini = _miniRect(size, tabClearance);
-    final player = StudrcVideoPlayer(
+    final player = EntrevueVideoPlayer(
       key: _surfaceKey,
       src: session.src,
       poster: session.poster,

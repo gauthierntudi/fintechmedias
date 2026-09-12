@@ -33,10 +33,10 @@ class _SignedOut extends StatelessWidget {
       child: Column(
         children: [
           const Spacer(),
-          StudrcLogo(height: 28, color: ink),
+          EntrevueLogo(height: 28, color: ink),
           const SizedBox(height: 20),
           Text(
-            'Votre espace STUDRC',
+            'Votre espace ENTREVUE',
             textAlign: TextAlign.center,
             style: AppTheme.displayText(
               size: 24,

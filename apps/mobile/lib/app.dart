@@ -6,16 +6,16 @@ import 'features/splash/splash_view.dart';
 import 'theme/app_theme.dart';
 import 'widgets/now_playing_overlay.dart';
 
-class StudrcApp extends ConsumerStatefulWidget {
-  const StudrcApp({super.key, this.showSplash = true});
+class EntrevueApp extends ConsumerStatefulWidget {
+  const EntrevueApp({super.key, this.showSplash = true});
 
   final bool showSplash;
 
   @override
-  ConsumerState<StudrcApp> createState() => _StudrcAppState();
+  ConsumerState<EntrevueApp> createState() => _EntrevueAppState();
 }
 
-class _StudrcAppState extends ConsumerState<StudrcApp> {
+class _EntrevueAppState extends ConsumerState<EntrevueApp> {
   late bool _splash = widget.showSplash;
 
   @override
@@ -35,7 +35,7 @@ class _StudrcAppState extends ConsumerState<StudrcApp> {
   Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
     return MaterialApp.router(
-      title: 'STUDRC',
+      title: 'ENTREVUE',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),

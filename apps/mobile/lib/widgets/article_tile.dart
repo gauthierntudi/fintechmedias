@@ -198,9 +198,7 @@ class FeaturedCard extends StatelessWidget {
                               size: 11,
                               weight: FontWeight.w800,
                               letterSpacing: 0,
-                              color: tone == AppTheme.gold
-                                  ? AppTheme.navy
-                                  : Colors.white,
+                              color: Colors.white,
                             ),
                           ),
                         ),

@@ -1,7 +1,7 @@
-# STUDRC mobile
+# ENTREVUE mobile
 
-App Flutter (Android + iOS) branchée sur **l’API en ligne** `https://api.studrc.com/api`.
-Le site [studrc.com](https://studrc.com) est déjà en production : pas besoin de lancer l’API locale pour tester le lecteur public.
+App Flutter (Android + iOS) branchée sur **l’API en ligne** `https://api.entrevue.com/api`.
+Le site [entrevue.com](https://entrevue.com) est déjà en production : pas besoin de lancer l’API locale pour tester le lecteur public.
 
 ```bash
 cd apps/mobile
@@ -9,13 +9,13 @@ flutter pub get
 flutter run
 ```
 
-`flutter run` sans argument utilise déjà `https://api.studrc.com/api`.
+`flutter run` sans argument utilise déjà `https://api.entrevue.com/api`.
 
 Pour forcer une autre API :
 
 ```bash
 # Production (défaut)
-flutter run --dart-define=API_BASE_URL=https://api.studrc.com/api
+flutter run --dart-define=API_BASE_URL=https://api.entrevue.com/api
 
 # API locale uniquement si vous développez le backend
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3001/api   # émulateur Android
@@ -24,8 +24,8 @@ flutter run --dart-define=API_BASE_URL=http://127.0.0.1:3001/api  # iOS / deskto
 
 **Faits prod (août 2026)**
 
-- Santé : `GET https://api.studrc.com/api/health`
-- Médias : `https://cdn.studrc.com`
+- Santé : `GET https://api.entrevue.com/api/health`
+- Médias : `https://cdn.entrevue.com`
 - Accueil / rubriques / articles / HLS : disponibles sans compte
 - Login / register : Turnstile obligatoire (`CAPTCHA` actif)
 - Jetons mobile (`accessToken` / `refreshToken` dans le JSON) : déployer le correctif auth pour que le compte fonctionne

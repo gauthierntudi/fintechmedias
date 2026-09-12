@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studrc/app.dart';
-import 'package:studrc/core/onboarding.dart';
+import 'package:entrevue/app.dart';
+import 'package:entrevue/core/onboarding.dart';
 
 void main() {
   testWidgets('returning user sees the tab shell', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: StudrcApp(showSplash: false)),
+      const ProviderScope(child: EntrevueApp(showSplash: false)),
     );
     expect(find.text('Accueil'), findsOneWidget);
     await tester.pump(const Duration(seconds: 21));
@@ -18,11 +18,11 @@ void main() {
         overrides: [
           onboardingProvider.overrideWith((ref) => OnboardingController(false)),
         ],
-        child: const StudrcApp(showSplash: false),
+        child: const EntrevueApp(showSplash: false),
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Bienvenue sur STUDRC'), findsOneWidget);
+    expect(find.text('Bienvenue sur ENTREVUE'), findsOneWidget);
     expect(find.text('Passer'), findsOneWidget);
     expect(find.text('Continuer'), findsOneWidget);
   });
@@ -33,7 +33,7 @@ void main() {
         overrides: [
           onboardingProvider.overrideWith((ref) => OnboardingController(false)),
         ],
-        child: const StudrcApp(showSplash: false),
+        child: const EntrevueApp(showSplash: false),
       ),
     );
     await tester.pumpAndSettle();

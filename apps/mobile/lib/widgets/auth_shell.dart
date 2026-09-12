@@ -156,7 +156,7 @@ class _AuthBackdrop extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0xB80565AB), Color(0xCC0565AB), Color(0xE600132B)],
+              colors: [Color(0xB8D63026), Color(0xCCD63026), Color(0xE6111111)],
               stops: [0, 0.55, 1],
             ),
           ),
@@ -283,7 +283,7 @@ class AuthPrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final bg = dark ? AppTheme.gold : AppTheme.navy;
-    final fg = dark ? AppTheme.navy : Colors.white;
+    final fg = Colors.white;
 
     return SizedBox(
       width: double.infinity,

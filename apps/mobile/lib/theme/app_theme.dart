@@ -7,11 +7,9 @@ class AppTheme {
   static const red = Color(kBrandRed);
   static const blue = Color(kBrandBlue);
 
-  /// UI / corps — même stack que le site.
-  static const sans = 'PlusJakartaSans';
-
-  /// Titres / display — même stack que le site.
-  static const display = 'Archivo';
+  /// Identité typo ENTREVUE — corps et titres.
+  static const sans = 'FamiljenGrotesk';
+  static const display = 'FamiljenGrotesk';
 
   static TextStyle displayText({
     double size = 22,
@@ -66,7 +64,7 @@ class AppTheme {
       brightness: Brightness.dark,
       primary: gold,
       secondary: gold,
-      surface: const Color(0xFF06203F),
+      surface: const Color(0xFF1A1A1A),
       error: red,
     );
     return _theme(scheme, navy, ink);
@@ -134,7 +132,7 @@ class AppTheme {
   }
 
   static TextTheme _textTheme(TextTheme base, Color onSurface) {
-    TextStyle archivo(double size, FontWeight weight, double height) {
+    TextStyle headline(double size, FontWeight weight, double height) {
       return displayText(
         size: size,
         weight: weight,
@@ -143,7 +141,7 @@ class AppTheme {
       );
     }
 
-    TextStyle jakarta(double size, FontWeight weight, double height) {
+    TextStyle body(double size, FontWeight weight, double height) {
       return sansText(
         size: size,
         weight: weight,
@@ -153,21 +151,21 @@ class AppTheme {
     }
 
     return base.copyWith(
-      displayLarge: archivo(32, FontWeight.w800, 1.15),
-      displayMedium: archivo(28, FontWeight.w800, 1.15),
-      displaySmall: archivo(24, FontWeight.w700, 1.2),
-      headlineLarge: archivo(26, FontWeight.w800, 1.2),
-      headlineMedium: archivo(22, FontWeight.w700, 1.2),
-      headlineSmall: archivo(18, FontWeight.w700, 1.25),
-      titleLarge: archivo(17, FontWeight.w700, 1.25),
-      titleMedium: jakarta(15, FontWeight.w600, 1.35),
-      titleSmall: jakarta(13, FontWeight.w600, 1.3),
-      bodyLarge: jakarta(16, FontWeight.w400, 1.5),
-      bodyMedium: jakarta(14, FontWeight.w400, 1.45),
-      bodySmall: jakarta(12, FontWeight.w400, 1.4),
-      labelLarge: jakarta(14, FontWeight.w600, 1.2),
-      labelMedium: jakarta(12, FontWeight.w600, 1.2),
-      labelSmall: jakarta(11, FontWeight.w700, 1.2).copyWith(
+      displayLarge: headline(32, FontWeight.w700, 1.15),
+      displayMedium: headline(28, FontWeight.w700, 1.15),
+      displaySmall: headline(24, FontWeight.w700, 1.2),
+      headlineLarge: headline(26, FontWeight.w700, 1.2),
+      headlineMedium: headline(22, FontWeight.w700, 1.2),
+      headlineSmall: headline(18, FontWeight.w700, 1.25),
+      titleLarge: headline(17, FontWeight.w700, 1.25),
+      titleMedium: body(15, FontWeight.w600, 1.35),
+      titleSmall: body(13, FontWeight.w600, 1.3),
+      bodyLarge: body(16, FontWeight.w400, 1.5),
+      bodyMedium: body(14, FontWeight.w400, 1.45),
+      bodySmall: body(12, FontWeight.w400, 1.4),
+      labelLarge: body(14, FontWeight.w600, 1.2),
+      labelMedium: body(12, FontWeight.w600, 1.2),
+      labelSmall: body(11, FontWeight.w700, 1.2).copyWith(
         letterSpacing: 0.35,
       ),
     );
@@ -184,9 +182,9 @@ class AppTheme {
       case 'teal':
         return navy;
       case 'dark':
-        return const Color(0xFFE1045C);
+        return red;
       default:
-        return blue;
+        return red;
     }
   }
 }

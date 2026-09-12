@@ -36,7 +36,11 @@ class RubriqueScreen extends ConsumerWidget {
           if (feed.items.isEmpty) {
             return const Center(child: Text('Pas encore d’articles.'));
           }
-          final chapo = slug == 'stu-news' || slug == 'stu-data';
+          final chapo = slug == 'entreprendre' ||
+              slug == 'ecosysteme-pme' ||
+              slug == 'femme' ||
+              slug == 'stu-news' ||
+              slug == 'stu-data';
           return ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
             itemCount: feed.items.length,

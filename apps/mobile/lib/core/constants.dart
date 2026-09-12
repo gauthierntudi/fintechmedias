@@ -1,11 +1,11 @@
 /// API de production par défaut (le site est déjà en ligne).
 const kApiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'https://api.studrc.com/api',
+  defaultValue: 'https://api.entrevue.com/api',
 );
 
-const kCdnBaseUrl = 'https://cdn.studrc.com';
-const kSiteUrl = 'https://studrc.com';
+const kCdnBaseUrl = 'https://cdn.entrevue.com';
+const kSiteUrl = 'https://entrevue.com';
 
 const kTurnstileSiteKey = String.fromEnvironment('TURNSTILE_SITE_KEY');
 
@@ -15,16 +15,22 @@ const kGoogleServerClientId = String.fromEnvironment('GOOGLE_CLIENT_ID');
 /// Client OAuth iOS (Info.plist / GIDClientID), optionnel au runtime.
 const kGoogleIosClientId = String.fromEnvironment('GOOGLE_IOS_CLIENT_ID');
 
-const kBrandNavy = 0xFF00132B;
-const kBrandGold = 0xFFFDBD01;
+const kBrandBlack = 0xFF111111;
 const kBrandRed = 0xFFD63026;
-const kBrandBlue = 0xFF0565AB;
+const kBrandWhite = 0xFFFFFFFF;
+/** Alias — anciens tokens navy / or / bleu. */
+const kBrandNavy = kBrandBlack;
+const kBrandGold = kBrandRed;
+const kBrandBlue = kBrandBlack;
+
+const kMagazineName = "L'Entrevue";
 
 const kRubriques = <({String slug, String label, String tone})>[
-  (slug: 'stu-news', label: 'Stu News', tone: 'red'),
-  (slug: 'stu-data', label: 'Stu Data', tone: 'blue'),
-  (slug: 'stu-stories', label: 'Stu Stories', tone: 'gold'),
-  (slug: 'stu-talk', label: 'Stu Talk', tone: 'teal'),
+  (slug: 'qu-en-dit-l-expert', label: "Qu'en dit l'expert", tone: 'teal'),
+  (slug: 'rencontre-avec', label: 'Rencontre Avec', tone: 'gold'),
+  (slug: 'entreprendre', label: 'Entreprendre', tone: 'red'),
+  (slug: 'ecosysteme-pme', label: 'Écosystème PME', tone: 'blue'),
+  (slug: 'femme', label: 'Femme', tone: 'dark'),
 ];
 
 const kNewsRubriques = <({String slug, String label, String tone})>[
@@ -32,7 +38,6 @@ const kNewsRubriques = <({String slug, String label, String tone})>[
   (slug: 'stu-short', label: 'Shorts', tone: 'gold'),
 ];
 
-/// Title case for rubrique names (`STU NEWS` → `Stu News`).
 String capitalizeLabel(String value) {
   final parts = value.trim().split(RegExp(r'[\s_-]+'));
   return [
@@ -48,11 +53,16 @@ String toneFromCategory(String? category, [String? label]) {
   );
 
   const aliases = <String, String>{
+    'qu-en-dit-l-expert': 'teal',
+    'rencontre-avec': 'gold',
+    'entreprendre': 'red',
+    'ecosysteme-pme': 'blue',
+    'femme': 'dark',
+    'stu-short': 'gold',
+    'stu-talk': 'teal',
+    'stu-stories': 'gold',
     'stu-news': 'red',
     'stu-data': 'blue',
-    'stu-stories': 'gold',
-    'stu-talk': 'teal',
-    'stu-short': 'gold',
     'stu-mag': 'dark',
     'edito': 'red',
     'start-up': 'red',
@@ -81,7 +91,10 @@ String toneFromCategory(String? category, [String? label]) {
 
 bool isPortraitRubrique(String? slug) {
   final key = slug?.trim().toLowerCase() ?? '';
-  return key == 'stu-stories' || key == 'stu-talk';
+  return key == 'rencontre-avec' ||
+      key == 'qu-en-dit-l-expert' ||
+      key == 'stu-stories' ||
+      key == 'stu-talk';
 }
 
 bool isShortRubrique(String? category, [String? label]) {
@@ -98,7 +111,11 @@ bool isVideoRubrique(String? category, [String? label]) {
   bool match(String? value) {
     if (value == null) return false;
     final key = value.trim().toLowerCase();
-    return key == 'stu-stories' ||
+    return key == 'rencontre-avec' ||
+        key == 'rencontre avec' ||
+        key == 'qu-en-dit-l-expert' ||
+        key == "qu'en dit l'expert" ||
+        key == 'stu-stories' ||
         key == 'stu stories' ||
         key == 'stu-talk' ||
         key == 'stu talk' ||

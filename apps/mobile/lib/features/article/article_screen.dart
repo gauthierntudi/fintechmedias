@@ -912,7 +912,7 @@ class _ArticleHero extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'STUDRC',
+                      'ENTREVUE',
                       style: AppTheme.sansText(
                         size: 13,
                         weight: FontWeight.w600,
