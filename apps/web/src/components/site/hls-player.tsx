@@ -27,7 +27,7 @@ type Props = {
   src: string;
   poster?: string | null;
   title?: string;
-  /** STU STORIES = or, STU TALK = rouge */
+  /** Rencontre Avec = or, Qu'en dit l'expert = rouge */
   accent?: "gold" | "red";
   durationSec?: number | null;
 };

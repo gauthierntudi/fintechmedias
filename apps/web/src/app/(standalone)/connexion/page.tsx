@@ -17,6 +17,7 @@ import {
   resetTurnstile,
 } from "@/components/site/turnstile-widget";
 import { isTurnstileRequired } from "@/lib/captcha";
+import { BRAND } from "@/lib/brand";
 
 const schema = z.object({
   email: z.string().email("Adresse e-mail invalide"),
@@ -66,7 +67,7 @@ function LoginForm() {
   return (
     <AuthPanel
       title="Connectez-vous"
-      subtitle="Accédez à votre compte STUDRC"
+      subtitle={`Accédez à votre compte ${BRAND.name}`}
       badge="S'inscrire"
       badgeHref={`/inscription?next=${encodeURIComponent(next)}`}
       footer={
@@ -173,7 +174,7 @@ export default function LoginPage() {
       fallback={
         <AuthPanel
           title="Connectez-vous"
-          subtitle="Accédez à votre compte STUDRC"
+          subtitle={`Accédez à votre compte ${BRAND.name}`}
           footer={null}
         >
           <p className="auth-error">Chargement…</p>

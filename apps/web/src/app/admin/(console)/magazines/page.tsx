@@ -20,9 +20,10 @@ import {
   type MagazineAccessType,
   type MagazinePagesStatus,
 } from "@/lib/api";
+import { BRAND } from "@/lib/brand";
 const TAKE = 10;
-const DEFAULT_BG = "#00132b";
-const DEFAULT_ACCENT = "#0565ab";
+const DEFAULT_BG = "#111111";
+const DEFAULT_ACCENT = "#e42320";
 
 type MagForm = {
   title: string;
@@ -674,7 +675,7 @@ function AdminMagazinesPageInner() {
               color: normalizeHex(value.accentColor, DEFAULT_ACCENT),
             }}
           >
-            <strong>STUDRC</strong>
+            <strong>{BRAND.name}</strong>
             <em style={{ color: "#fff" }}>Fond + accent</em>
           </div>
         </div>

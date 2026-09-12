@@ -3,7 +3,7 @@ export type CategoryTone = 'red' | 'blue' | 'gold' | 'teal' | 'dark';
 export type CategoryMeta = {
   label: string;
   tone: CategoryTone;
-  /** Anciennes rubriques Opt1mum encore présentes en base. */
+  /** Anciennes rubriques encore présentes en base. */
   aliases?: string[];
   /** Visible seulement dans l’app mobile (pas le site). */
   mobileOnly?: boolean;
@@ -12,28 +12,33 @@ export type CategoryMeta = {
 export const SHORT_CATEGORY_SLUG = 'stu-short';
 
 export const CATEGORY_META: Record<string, CategoryMeta> = {
-  'stu-news': {
-    label: 'STU NEWS',
-    tone: 'red',
-    aliases: ['edito', 'start-up', 'vus-sur-le-net', 'zoom'],
-  },
-  'stu-data': {
-    label: 'STU DATA',
-    tone: 'blue',
-    aliases: ['decryptages', 'decryptage'],
-  },
-  'stu-stories': {
-    label: 'STU STORIES',
-    tone: 'gold',
-    aliases: ['inspirationnel', 'game-changers', 'game-changer'],
-  },
-  'stu-talk': {
-    label: 'STU TALK',
+  'qu-en-dit-l-expert': {
+    label: "Qu'en dit l'expert",
     tone: 'teal',
-    aliases: ['grandes-entrevues', 'grande-entrevue', 'entrevue-croisee'],
+    aliases: [
+      'stu-talk',
+      'grandes-entrevues',
+      'grande-entrevue',
+      'entrevue-croisee',
+    ],
   },
-  'stu-mag': {
-    label: 'STU MAG',
+  'rencontre-avec': {
+    label: 'Rencontre Avec',
+    tone: 'gold',
+    aliases: ['stu-stories', 'inspirationnel', 'game-changers', 'game-changer'],
+  },
+  entreprendre: {
+    label: 'Entreprendre',
+    tone: 'red',
+    aliases: ['stu-news', 'edito', 'start-up', 'vus-sur-le-net', 'zoom'],
+  },
+  'ecosysteme-pme': {
+    label: 'Écosystème PME',
+    tone: 'blue',
+    aliases: ['stu-data', 'decryptages', 'decryptage'],
+  },
+  femme: {
+    label: 'Femme',
     tone: 'dark',
   },
   [SHORT_CATEGORY_SLUG]: {
@@ -87,14 +92,15 @@ export function isMobileOnlyCategory(raw: string | null | undefined): boolean {
 }
 
 export const VIDEO_CATEGORY_SLUGS = [
-  'stu-talk',
-  'stu-stories',
+  'qu-en-dit-l-expert',
+  'rencontre-avec',
   SHORT_CATEGORY_SLUG,
 ] as const;
 
 export function isVideoCategory(raw: string | null | undefined): boolean {
   const slug = resolveCategorySlug(raw ?? '');
   return (
-    slug === 'stu-talk' || slug === 'stu-stories' || slug === SHORT_CATEGORY_SLUG
+    slug != null &&
+    (VIDEO_CATEGORY_SLUGS as readonly string[]).includes(slug)
   );
 }

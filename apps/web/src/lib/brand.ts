@@ -1,27 +1,35 @@
-/** Identité publique STUDRC — source unique pour le site, l’admin et les e-mails. */
+/** Identité publique — source unique pour le site, l’admin et les e-mails. */
 
 export const BRAND = {
-  name: "STUDRC",
-  legalName: "STUDRC",
-  tagline:
-    "La plateforme média et observatoire qui éclaire le système éducatif de la République Démocratique du Congo.",
-  taglineShort:
-    "Information, données, histoires et voix de ceux qui transforment l’école chaque jour.",
-  description:
-    "STUDRC éclaire le système éducatif de la RDC à travers l’information, les données, les histoires et les voix de ceux qui transforment l’école chaque jour.",
-  domain: "studrc.com",
-  siteUrl: "https://studrc.com",
-  email: "contact@studrc.com",
-  infoEmail: "info@studrc.com",
+  /** Nom affiché sur la plateforme. */
+  name: "L'Entrevue",
+  /** Nom sans article (mentions légales, staff). */
+  shortName: "Entrevue",
+  legalName: "Entrevue",
+  /** Titre du magazine (kiosque). */
+  magazineName: "L'Entrevue",
+  tagline: "Autour de l’entrepreneuriat",
+  taglineShort: "Autour de l’entrepreneuriat",
+  description: "L'Entrevue — Autour de l’entrepreneuriat.",
+  domain: "lentrevuemag.com",
+  siteUrl: "https://lentrevuemag.com",
+  email: "contact@lentrevuemag.com",
+  infoEmail: "info@lentrevuemag.com",
   phone: "+243 813 212 772",
   address: "8 Avenue Kalemie, Kinshasa-Gombe",
-  logo: "/brand/studrc-logo.png",
-  icon: "/brand/flaticon.png",
+  /** Logo noir — fonds clairs */
+  logo: "/brand/logo-Lentrevue-mail.png",
+  /** Logo — fonds sombres (header dark, footer) */
+  logoOnDark: "/brand/logo-Lentrevue.png",
+  icon: "/brand/favicon.jpg",
   colors: {
-    blue: "#0565ab",
-    red: "#d63026",
-    gold: "#fdbd01",
-    navy: "#00132b",
+    black: "#111111",
+    red: "#e42320",
+    white: "#ffffff",
+    /** Alias — anciens tokens navy / bleu / or. */
+    navy: "#111111",
+    blue: "#111111",
+    gold: "#e42320",
   },
 } as const;
 

@@ -46,7 +46,7 @@ const pdfBytesCache = new Map<string, Promise<Uint8Array>>();
 
 /** CDN cross-origin → chemins same-origin (nginx /cdn-media ou /api/media-proxy). */
 const PDF_PROXY_HOSTS = new Set([
-  "cdn.studrc.com",
+  "cdn.entrevue.com",
   "cdn.opt1mum.com",
   "cdn.egouv.online",
 ]);

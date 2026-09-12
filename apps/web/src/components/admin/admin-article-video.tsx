@@ -155,8 +155,10 @@ export function AdminArticleVideo({
         <p className="admin-dash__muted">Envoi R2 : {progress} %</p>
       ) : null}
       <p className="admin-dash__muted" style={{ margin: 0 }}>
-        {category === "stu-stories" ? "STU STORIES" : "STU TALK"} — HLS
-        adaptatif (1080 / 720 / 480 / 360) via le CDN.
+        {category === "stu-short"
+          ? "Format vertical 9:16 recommandé. "
+          : ""}
+        HLS adaptatif (1080 / 720 / 480 / 360) via le CDN.
       </p>
       <AdminProgressModal
         open={busy && percent != null}

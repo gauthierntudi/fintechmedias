@@ -17,6 +17,7 @@ import {
   resetTurnstile,
 } from "@/components/site/turnstile-widget";
 import { isTurnstileRequired } from "@/lib/captcha";
+import { BRAND } from "@/lib/brand";
 
 const schema = z.object({
   name: z.string().min(2, "Nom trop court"),
@@ -71,8 +72,10 @@ function RegisterForm() {
 
   return (
     <AuthPanel
+      kicker={BRAND.magazineName}
       title="Créez votre compte"
-      subtitle="Rejoignez STUDRC et accédez à tous les contenus"
+      subtitle="Suivez le magazine, les portraits et les enquêtes autour de l’entrepreneuriat."
+      brandKicker={BRAND.tagline}
       badge="Se connecter"
       badgeHref="/connexion"
       footer={
@@ -203,8 +206,9 @@ export default function RegisterPage() {
     <Suspense
       fallback={
         <AuthPanel
+          kicker={BRAND.magazineName}
           title="Créez votre compte"
-          subtitle="Rejoignez STUDRC"
+          subtitle="Suivez le magazine, les portraits et les enquêtes autour de l’entrepreneuriat."
           footer={null}
         >
           <p className="auth-error">Chargement…</p>

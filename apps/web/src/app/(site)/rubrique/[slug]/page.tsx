@@ -65,7 +65,7 @@ export default async function RubriquePage({ params }: Props) {
           <div className="opt-rubrique__empty">
             <p>
               {isVideo
-                ? "Pas encore de vidéos dans cette rubrique."
+                ? "Pas encore de publications dans cette rubrique."
                 : "Pas encore d’articles dans cette rubrique."}
             </p>
             <Link href="/">Retour à l’accueil</Link>

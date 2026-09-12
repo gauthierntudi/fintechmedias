@@ -7,20 +7,12 @@ function Bone({ className = "" }: { className?: string }) {
 function TopSkel() {
   return (
     <section className="opt-home-skel__top" aria-hidden>
-      <div className="opt-home-skel__top-inner">
-        <div className="opt-home-skel__featured">
-          <Bone className="opt-home-skel__featured-media" />
-          <div className="opt-home-skel__featured-body">
-            <Bone className="opt-home-skel__line opt-home-skel__line--lg" />
-            <Bone className="opt-home-skel__line" />
-            <Bone className="opt-home-skel__line opt-home-skel__line--sm" />
-            <Bone className="opt-home-skel__line opt-home-skel__line--meta" />
-          </div>
-        </div>
-        <div className="opt-home-skel__top-grid">
-          {Array.from({ length: 4 }, (_, i) => (
-            <Bone key={i} className="opt-home-skel__card" />
-          ))}
+      <div className="opt-home-skel__hero">
+        <div className="opt-home-skel__hero-copy">
+          <Bone className="opt-home-skel__line opt-home-skel__line--meta" />
+          <Bone className="opt-home-skel__line opt-home-skel__line--lg" />
+          <Bone className="opt-home-skel__line opt-home-skel__line--lg" />
+          <Bone className="opt-home-skel__line" />
         </div>
       </div>
     </section>

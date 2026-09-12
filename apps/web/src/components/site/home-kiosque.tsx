@@ -6,15 +6,10 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { A11y, FreeMode } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
-import {
-  DEMO_INSPIRATIONNEL_FEATURED,
-  DEMO_INSPIRATIONNEL_GRID,
-} from "@/lib/legacy-demo";
+import { DEMO_DOSSIERS } from "@/lib/legacy-demo";
 import { articleHref } from "@/lib/home-articles";
 import { CoverImage } from "@/components/site/cover-image";
-import { VideoPlay } from "@/components/site/video-play";
-import { StoryHoverPreview } from "@/components/site/story-hover-preview";
-import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
+import { RUBRIQUE_BY_SLUG } from "@/lib/rubriques";
 
 import "swiper/css";
 import "swiper/css/free-mode";
@@ -32,18 +27,17 @@ export type HomeStoriesItem = {
   videoPosterUrl?: string | null;
 };
 
-const DEMO_ITEMS: HomeStoriesItem[] = [
-  DEMO_INSPIRATIONNEL_FEATURED,
-  ...DEMO_INSPIRATIONNEL_GRID,
-].map((s) => ({
+const RUBRIQUE = RUBRIQUE_BY_SLUG["ecosysteme-pme"];
+
+const DEMO_ITEMS: HomeStoriesItem[] = DEMO_DOSSIERS.map((s) => ({
   id: s.id,
   slug: s.slug,
   titre: s.titre,
   cover: s.cover,
-  dateLabel: s.dateLabel,
+  dateLabel: "",
 }));
 
-/** Carrousel STU STORIES — miniatures vidéo. */
+/** Carrousel Écosystème PME. */
 export function HomeKiosque({
   items: incoming,
 }: {
@@ -65,21 +59,17 @@ export function HomeKiosque({
         <header className="opt-kiosque__head">
           <div className="opt-kiosque__head-text">
             <h2 id="opt-kiosque-title" className="opt-kiosque__title">
-              <Link href="/rubrique/stu-stories" className="opt-kiosque__logo-link">
-                STU STORIES
+              <Link href={RUBRIQUE.href} className="opt-kiosque__logo-link">
+                {RUBRIQUE.label}
               </Link>
             </h2>
-            <p className="opt-kiosque__lead">
-              Des visages, des parcours, des écoles et des initiatives qui
-              inspirent — les histoires de ceux qui transforment l’école chaque
-              jour.
-            </p>
+            <p className="opt-kiosque__lead">{RUBRIQUE.blurb}</p>
           </div>
           <div className="opt-kiosque__head-actions">
             <div
               className="opt-kiosque__nav"
               role="group"
-              aria-label="Parcourir STU STORIES"
+              aria-label={`Parcourir ${RUBRIQUE.label}`}
             >
               <button
                 type="button"
@@ -100,8 +90,8 @@ export function HomeKiosque({
                 <ChevronRight size={20} strokeWidth={2} aria-hidden />
               </button>
             </div>
-            <Link href="/rubrique/stu-stories" className="opt-kiosque__all">
-              Toutes les stories
+            <Link href={RUBRIQUE.href} className="opt-kiosque__all">
+              Tous les articles
               <ArrowRight size={18} strokeWidth={2} aria-hidden />
             </Link>
           </div>
@@ -149,18 +139,11 @@ export function HomeKiosque({
                   className="opt-kiosque__card"
                   draggable={false}
                 >
-                  <div className="opt-kiosque__cover-wrap opt-kiosque__cover-wrap--video">
+                  <div className="opt-kiosque__cover-wrap">
                     <CoverImage
                       src={story.cover || FALLBACK_COVER}
-                      className="opt-kiosque__cover opt-kiosque__cover--video"
+                      className="opt-kiosque__cover"
                     />
-                    {story.videoHlsUrl ? (
-                      <StoryHoverPreview
-                        src={story.videoHlsUrl}
-                        poster={story.videoPosterUrl || story.cover}
-                      />
-                    ) : null}
-                    <VideoPlay size={22} />
                   </div>
                   <div className="opt-kiosque__meta">
                     <div className="opt-kiosque__meta-top">
@@ -172,23 +155,6 @@ export function HomeKiosque({
               </SwiperSlide>
             ))}
           </Swiper>
-        </div>
-
-        <div className="opt-kiosque__cta">
-          <Link
-            href="/rubrique/stu-stories"
-            className="opt-kiosque__btn opt-kiosque__btn--dark"
-          >
-            Voir toutes les vidéos
-          </Link>
-          {SUBSCRIPTIONS_ENABLED ? (
-            <Link
-              href="/abonnement"
-              className="opt-kiosque__btn opt-kiosque__btn--teal"
-            >
-              S&apos;abonner
-            </Link>
-          ) : null}
         </div>
       </div>
     </section>

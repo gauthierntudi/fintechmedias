@@ -37,7 +37,6 @@ function formatDate(iso: string): string {
 }
 
 function providerLabel(provider: PublicPayment["provider"]): string {
-  if (provider === "STRIPE") return "Carte bancaire";
   if (provider === "FLEXPAIE") return "Mobile Money";
   return "Paiement";
 }
@@ -61,15 +60,13 @@ function contrastOn(hex: string): string {
   return L < 0.45 ? "#ffffff" : "#062a2b";
 }
 
-const DEFAULT_THEME = { bgColor: "#00132b", accentColor: "#0565ab" };
+const DEFAULT_THEME = { bgColor: "#111111", accentColor: "#e42320" };
 
 function RetourInner() {
   const router = useRouter();
   const params = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const paymentId = params.get("payment");
-  const sessionId = params.get("session_id");
-  const paymentIntentId = params.get("payment_intent");
 
   const [payment, setPayment] = useState<PublicPayment | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -96,14 +93,7 @@ function RetourInner() {
     let cancelled = false;
     void (async () => {
       try {
-        let p: PublicPayment;
-        if (paymentIntentId) {
-          p = await paymentsApi.confirmStripe(paymentId, { paymentIntentId });
-        } else if (sessionId) {
-          p = await paymentsApi.confirmStripe(paymentId, { sessionId });
-        } else {
-          p = await paymentsApi.get(paymentId);
-        }
+        const p = await paymentsApi.get(paymentId);
         if (cancelled) return;
         setPayment(p);
         if (p.status === "SUCCESS") setPhase("ok");
@@ -119,7 +109,7 @@ function RetourInner() {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, user, paymentId, sessionId, paymentIntentId, router, params]);
+  }, [authLoading, user, paymentId, router, params]);
 
   useEffect(() => {
     if (phase !== "pending" || !paymentId) return;
@@ -308,7 +298,7 @@ export default function AchatRetourPage() {
   return (
     <Suspense
       fallback={
-        <div className="opt-kq opt-achat-retour" style={{ background: "#00132b" }}>
+        <div className="opt-kq opt-achat-retour" style={{ background: "#111111" }}>
           <div className="opt-kq__loading">
             <p>Chargement…</p>
           </div>

@@ -61,8 +61,6 @@ function formatWhen(iso: string): string {
 
 function providerLabel(provider: string): string {
   switch (provider) {
-    case "STRIPE":
-      return "Carte (Stripe)";
     case "FLEXPAIE":
       return "Mobile Money";
     case "LEGACY":
@@ -483,7 +481,6 @@ export default function AdminPaymentsPage() {
             aria-label="Moyen de paiement"
           >
             <option value="">Tous</option>
-            <option value="STRIPE">Carte (Stripe)</option>
             <option value="FLEXPAIE">Mobile Money</option>
             <option value="LEGACY">Legacy</option>
           </select>

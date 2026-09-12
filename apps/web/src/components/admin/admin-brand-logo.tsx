@@ -31,7 +31,9 @@ export function AdminBrandLogo({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={BRAND.logo}
+        src={
+          variant === "white" ? BRAND.logoOnDark : BRAND.logo
+        }
         alt={BRAND.name}
         width={width}
         height={height}

@@ -6,9 +6,9 @@
   --opt-h-line: #e6e6e6;
   --opt-h-soft: #f2f2f2;
   --opt-h-bg: #fff;
-  --opt-h-red: var(--studrc-red, #d63026);
-  --opt-h-cta: var(--studrc-gold, #fdbd01);
-  --opt-h-cta-hover: #e5ab00;
+  --opt-h-red: var(--entrevue-red, #e42320);
+  --opt-h-cta: var(--entrevue-red, #e42320);
+  --opt-h-cta-hover: #c21e1b;
   --opt-h-font: var(--opt-font-sans);
   --opt-h-display: var(--opt-font-display);
 
@@ -82,7 +82,7 @@
   display: flex;
   align-items: center;
   background: var(--opt-h-soft);
-  border-radius: 999px;
+  border-radius: 0;
   padding: 0.15rem 0.35rem 0.15rem 0.9rem;
   min-width: 0;
   max-width: 220px;
@@ -123,7 +123,7 @@
   color: #8a8a8a;
   width: 34px;
   height: 34px;
-  border-radius: 999px;
+  border-radius: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -143,7 +143,7 @@
 }
 
 .opt-header__brand img {
-  height: 52px;
+  height: 42px;
   width: auto;
   display: block;
   object-fit: contain;
@@ -185,7 +185,7 @@
   padding: 0 0.28rem;
   border: 2px solid #fff;
   border-radius: 999px;
-  background: #d63026;
+  background: #e42320;
   color: #fff;
   font-size: 0.62rem;
   font-weight: 800;
@@ -240,7 +240,7 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: var(--opt-h-ink, #00132b);
+  color: var(--opt-h-ink, #111111);
   font-family: inherit;
   font-size: 0.9rem;
   font-weight: 600;
@@ -258,7 +258,7 @@
   height: 1.2rem;
   padding: 0 0.35rem;
   border-radius: 999px;
-  background: #d63026;
+  background: #e42320;
   color: #fff;
   font-size: 0.68rem;
   font-weight: 750;
@@ -271,7 +271,7 @@
 }
 
 .opt-header__dropdown-logout {
-  color: #d63026 !important;
+  color: #e42320 !important;
 }
 
 .opt-header__action:hover {
@@ -286,7 +286,7 @@
   padding: 0.55rem 1.15rem;
   border-radius: 999px;
   background: var(--opt-h-cta);
-  color: var(--studrc-navy, #00132b);
+  color: #fff;
   font-weight: 700;
   font-size: 0.92rem;
   white-space: nowrap;
@@ -295,7 +295,7 @@
 
 .opt-header__cta:hover {
   background: var(--opt-h-cta-hover);
-  color: var(--opt-h-ink);
+  color: #fff;
 }
 
 .opt-header__nav {
@@ -355,7 +355,7 @@
 }
 
 .opt-header__featured {
-  color: #febe03 !important;
+  color: var(--entrevue-red, #e42320) !important;
 }
 
 /* Drawer menu */
@@ -364,7 +364,7 @@
   --opt-h-muted: var(--site-muted, #6b6b6b);
   --opt-h-line: var(--site-line, #e6e6e6);
   --opt-h-soft: var(--site-bg-soft, #f2f2f2);
-  --opt-h-red: var(--studrc-red, #d63026);
+  --opt-h-red: var(--entrevue-red, #e42320);
   --opt-h-display: var(--opt-font-display);
 
   position: fixed;
@@ -454,7 +454,7 @@
   display: flex;
   align-items: center;
   background: var(--opt-h-soft);
-  border-radius: 999px;
+  border-radius: 0;
   padding: 0.2rem 0.35rem 0.2rem 1rem;
   margin: 0;
 }
@@ -539,7 +539,7 @@
 }
 
 .opt-menu__profile:hover {
-  border-color: color-mix(in srgb, #0565ab 45%, var(--opt-h-line));
+  border-color: color-mix(in srgb, #e42320 45%, var(--opt-h-line));
 }
 
 .opt-menu__profile-avatar {
@@ -594,7 +594,7 @@
   width: 100%;
   min-height: 2.85rem;
   padding: 0.75rem 1rem;
-  border-radius: 12px;
+  border-radius: 0;
   font-family: inherit;
   font-weight: 750;
   font-size: 0.95rem;
@@ -619,13 +619,13 @@
 }
 
 .opt-menu__btn--ghost {
-  background: #febe00;
-  color: var(--studrc-navy, #00132b);
+  background: #e42320;
+  color: #fff;
 }
 
 .opt-menu__btn--ghost:hover {
-  background: #e5ab00;
-  color: var(--studrc-navy, #00132b);
+  background: #c21e1b;
+  color: #fff;
 }
 
 .opt-menu__btn--outline {
@@ -684,7 +684,7 @@
 
 .opt-menu__row--danger {
   color: #fff;
-  background: #d63026;
+  background: #e42320;
   margin-top: 0.35rem;
 }
 
@@ -707,7 +707,7 @@
   height: 1.35rem;
   padding: 0 0.35rem;
   border-radius: 999px;
-  background: #d63026;
+  background: #e42320;
   color: #fff !important;
   font-size: 0.68rem;
   font-weight: 800;
@@ -758,7 +758,7 @@
 
 .opt-search-live__item:hover,
 .opt-search-live__item.is-active {
-  background: color-mix(in srgb, #d63026 6%, #f6f6f6);
+  background: color-mix(in srgb, #e42320 6%, #f6f6f6);
 }
 
 .opt-search-live__cover {
@@ -831,13 +831,13 @@
   font: inherit;
   font-size: 0.84rem;
   font-weight: 700;
-  color: #d63026;
+  color: #e42320;
   cursor: pointer;
 }
 
 .opt-search-live__more:hover,
 .opt-search-live__more.is-active {
-  background: color-mix(in srgb, #d63026 8%, #fff);
+  background: color-mix(in srgb, #e42320 8%, #fff);
 }
 
 @media (max-width: 991px) {
@@ -869,7 +869,7 @@
   }
 
   .opt-header__brand img {
-    height: 44px;
+    height: 36px;
   }
 
   .opt-header__nav {

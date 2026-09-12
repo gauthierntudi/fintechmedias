@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 /** CDN autorisés pour le proxy lecture PDF (évite CORS navigateur → R2). */
 const ALLOWED_HOSTS = new Set([
-  "cdn.studrc.com",
+  "cdn.lentrevuemag.com",
+  "cdn.entrevue.com",
   "cdn.opt1mum.com",
   "cdn.egouv.online",
 ]);

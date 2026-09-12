@@ -1,7 +1,7 @@
 .opt-lecture {
-  --opt-navy: #00132b;
-  --opt-red: #d63026;
-  --opt-teal: #0565ab;
+  --opt-navy: #111111;
+  --opt-red: #e42320;
+  --opt-teal: #e42320;
   --opt-muted: var(--site-muted, #6b6b6b);
 
   --lecture-bg: var(--site-bg-soft, #f4f5f7);
@@ -38,18 +38,18 @@
 
 html[data-theme="dark"] .opt-lecture {
   --opt-muted: var(--site-muted, #9aa3b2);
-  --lecture-bg: var(--site-bg, #00132b);
-  --lecture-stage: var(--site-bg, #00132b);
+  --lecture-bg: var(--site-bg, #111111);
+  --lecture-stage: var(--site-bg, #111111);
   --lecture-ink: var(--site-ink, #f2f4f7);
-  --lecture-line: var(--site-line, #1a3a5c);
-  --lecture-card: var(--site-card, #06203f);
-  --lecture-bar-bg: var(--site-bg, #00132b);
+  --lecture-line: var(--site-line, #2a2a2a);
+  --lecture-card: var(--site-card, #1a1a1a);
+  --lecture-bar-bg: var(--site-bg, #111111);
   --lecture-bar-ink: var(--site-ink, #f2f4f7);
   --lecture-bar-muted: var(--site-muted, #9aa3b2);
   --lecture-chip-bg: color-mix(in srgb, #fff 14%, transparent);
-  --lecture-tool-bg: var(--site-card, #06203f);
+  --lecture-tool-bg: var(--site-card, #1a1a1a);
   --lecture-tool-ink: var(--site-ink, #f2f4f7);
-  --lecture-tool-border: var(--site-line, #1a3a5c);
+  --lecture-tool-border: var(--site-line, #2a2a2a);
   --lecture-ctrl-bg: rgba(8, 16, 30, 0.88);
   --lecture-ctrl-ink: #fff;
   --lecture-ctrl-border: rgba(255, 255, 255, 0.1);
@@ -205,10 +205,6 @@ body:has(.opt-lecture) {
   height: 2.75rem;
   width: auto;
   object-fit: contain;
-}
-
-html[data-theme="dark"] .opt-lecture__brand img {
-  filter: brightness(0) invert(1);
 }
 
 .opt-lecture__tools {
@@ -599,7 +595,7 @@ html[data-theme="dark"] .opt-lecture__brand img {
 .opt-flip__page--cta {
   padding: 0 !important;
   overflow: hidden !important;
-  background: var(--cta-bg, #00132b);
+  background: var(--cta-bg, #111111);
   color: var(--cta-ink, #fff);
 }
 
@@ -622,7 +618,7 @@ html[data-theme="dark"] .opt-lecture__brand img {
   padding: 8% 7%;
   text-align: center;
   color: var(--cta-ink, #fff);
-  background: var(--cta-bg, #00132b);
+  background: var(--cta-bg, #111111);
 }
 
 .opt-flip__cta-eyebrow {
@@ -696,7 +692,7 @@ html[data-theme="dark"] .opt-lecture__brand img {
   place-items: center;
   width: 100%;
   aspect-ratio: 3 / 4;
-  background: var(--cta-bg, #00132b);
+  background: var(--cta-bg, #111111);
   color: var(--cta-accent, var(--opt-teal));
   font-size: 0.62rem;
   font-weight: 800;

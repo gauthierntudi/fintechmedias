@@ -4,7 +4,7 @@
  * Files :
  * - magazine-pages-urgent : lecture / aperçu
  * - magazine-pages        : upload + backfill
- * - article-video         : STU TALK / STU STORIES
+ * - article-video         : rubriques vidéo (expert, rencontre, short)
  */
 import { config as loadEnv } from 'dotenv';
 import { resolve } from 'path';
@@ -128,7 +128,7 @@ async function bootstrap() {
 
   // eslint-disable-next-line no-console
   console.log(
-    `STUDRC worker started — pages urgent×${urgentConcurrency} + bulk×${bulkConcurrency} · video×${videoConcurrency}`,
+    `ENTREVUE worker started — pages urgent×${urgentConcurrency} + bulk×${bulkConcurrency} · video×${videoConcurrency}`,
   );
 
   const shutdown = async (signal: string) => {

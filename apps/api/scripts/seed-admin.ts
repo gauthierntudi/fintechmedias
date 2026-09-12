@@ -9,7 +9,7 @@ config({ path: resolve(process.cwd(), '../../.env'), override: true });
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = (process.env.ADMIN_EMAIL ?? 'admin@studrc.com')
+  const email = (process.env.ADMIN_EMAIL ?? 'admin@entrevue.com')
     .trim()
     .toLowerCase();
   const password = process.env.ADMIN_PASSWORD ?? 'ChangeMeAdmin123!';

@@ -16,6 +16,8 @@ import {
   type MagazineReadSession,
 } from "@/lib/api";
 import { ThemeToggle } from "@/components/site/theme-toggle";
+import { BrandLogo } from "@/components/site/brand-logo";
+import { BRAND } from "@/lib/brand";
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
 import { contrastOn } from "./flip-preview-cta";
 import { PdfFlipViewer } from "./pdf-flip-viewer";
@@ -271,8 +273,8 @@ function LectureContent() {
   const previewMode = Boolean(session.preview || isPreview);
   const maxPages = session.maxPages ?? (previewMode ? 15 : null);
   const backHref = `/kiosque?magazine=${encodeURIComponent(session.id)}`;
-  const accent = session.theme?.accentColor ?? "#0565ab";
-  const magazineBg = session.theme?.bgColor ?? "#00132b";
+  const accent = session.theme?.accentColor ?? "#e42320";
+  const magazineBg = session.theme?.bgColor ?? "#111111";
   const lectureVars = {
     ["--cta-bg"]: magazineBg,
     ["--cta-ink"]: contrastOn(magazineBg),
@@ -308,9 +310,8 @@ function LectureContent() {
           </div>
         </div>
 
-        <Link href="/" className="opt-lecture__brand" aria-label="STUDRC — Accueil">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/studrc-logo.png" alt="STUDRC" />
+        <Link href="/" className="opt-lecture__brand" aria-label={`${BRAND.name} — Accueil`}>
+          <BrandLogo height={44} />
         </Link>
 
         <div className="opt-lecture__tools">

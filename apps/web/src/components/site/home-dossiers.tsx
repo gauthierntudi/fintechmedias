@@ -6,18 +6,18 @@ import "./home-dossiers.css";
 
 type DossierItem = (typeof DEMO_DOSSIERS)[number];
 
-/** STU DATA — analyses et cartographies */
+/** Écosystème PME */
 export function HomeDossiers({
   decryptages = DEMO_DOSSIERS,
 }: {
   decryptages?: DossierItem[];
 } = {}) {
   return (
-    <section className="opt-dossiers" aria-label="STU DATA">
+    <section className="opt-dossiers" aria-label="Écosystème PME">
       <div className="opt-dossiers__inner">
         <header className="opt-dossiers__head">
           <h2 className="opt-dossiers__title">
-            <Link href="/rubrique/stu-data">STU DATA</Link>
+            <Link href="/rubrique/ecosysteme-pme">Écosystème PME</Link>
           </h2>
         </header>
 
@@ -29,7 +29,7 @@ export function HomeDossiers({
                 <div className="opt-dossiers__shade" aria-hidden />
                 <div className="opt-dossiers__overlay">
                   <div className="opt-dossiers__tags">
-                    <span className="opt-dossiers__badge">STU DATA</span>
+                    <span className="opt-dossiers__badge">Écosystème PME</span>
                   </div>
                   <h3 className="opt-dossiers__card-title">{item.titre}</h3>
                 </div>

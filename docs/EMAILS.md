@@ -8,17 +8,17 @@ Pas de SMTP classique. Envoi via API Resend depuis NestJS, idéalement passé pa
 
 ```bash
 RESEND_API_KEY=re_...
-MAIL_FROM=STUDRC <noreply@studrc.com>
+MAIL_FROM=ENTREVUE <noreply@entrevue.com>
 ```
 
 ## Setup Resend (checklist)
 
 1. [ ] Compte Resend + créer une API key
-2. [ ] Ajouter le domaine `studrc.com` dans Resend
+2. [ ] Ajouter le domaine `entrevue.com` dans Resend
 3. [ ] Configurer les DNS (SPF, DKIM, éventuellement DMARC) selon Resend
 4. [ ] Attendre la vérification du domaine
 5. [ ] Coller `RESEND_API_KEY` dans `v2/.env`
-6. [ ] Expéditeur : adresse d’un domaine vérifié (`noreply@studrc.com`)
+6. [ ] Expéditeur : adresse d’un domaine vérifié (`noreply@entrevue.com`)
 
 Sans domaine vérifié, Resend limite souvent l’envoi (ex. uniquement vers ton email de compte).
 
@@ -28,7 +28,7 @@ Sans domaine vérifié, Resend limite souvent l’envoi (ex. uniquement vers ton
 |-------|-------------|
 | Confirmation d’inscription | Register |
 | Reset password | Demande de réinit |
-| Confirmation paiement / facture | Webhook Stripe ou callback FlexPaie `SUCCESS` — **implémenté** (`MailService.sendPaymentConfirmation`) |
+| Confirmation paiement / facture | Callback FlexPaie `SUCCESS` — **implémenté** (`MailService.sendPaymentConfirmation`) |
 | Abonnement activé / expiré | Jobs subscriptions |
 | Contact / admin | Formulaire contact (P2) |
 
@@ -51,7 +51,7 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 await resend.emails.send({
-  from: process.env.MAIL_FROM!, // STUDRC <noreply@studrc.com>
+  from: process.env.MAIL_FROM!, // ENTREVUE <noreply@entrevue.com>
   to: user.email,
   subject: '...',
   html: '...', // ou React Email plus tard

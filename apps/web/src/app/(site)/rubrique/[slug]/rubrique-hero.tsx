@@ -6,7 +6,7 @@ import { Pagination, A11y } from "swiper/modules";
 import type { PublicArticleCard } from "@/lib/api";
 import { CoverImage } from "@/components/site/cover-image";
 import { VideoPlay } from "@/components/site/video-play";
-import { isVideoRubrique } from "@/lib/rubriques";
+import { isVideoArticle } from "@/lib/rubriques";
 
 import "swiper/css";
 import "swiper/css/pagination";
@@ -27,7 +27,7 @@ type Props = {
   video?: boolean;
 };
 
-export function RubriqueHeroCarousel({ items, video }: Props) {
+export function RubriqueHeroCarousel({ items }: Props) {
   if (items.length === 0) return null;
 
   const showPagination = items.length > 4;
@@ -84,8 +84,7 @@ export function RubriqueHeroCarousel({ items, video }: Props) {
                   <span className="opt-rubrique__ph" aria-hidden />
                 )}
               </span>
-              {video ||
-              isVideoRubrique(item.category, item.categoryLabel) ? (
+              {isVideoArticle(item) ? (
                 <VideoPlay size={22} />
               ) : null}
               <span className="opt-rubrique__hero-shade" aria-hidden />

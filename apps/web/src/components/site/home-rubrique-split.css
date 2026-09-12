@@ -4,10 +4,10 @@
   --opt-rs-ink: #111111;
   --opt-rs-muted: #6b6b6b;
   --opt-rs-line: #e6e6e6;
-  --opt-rs-accent: #c4d600;
-  --opt-rs-panel: #0565ab;
-  --opt-rs-tag: #ea580c;
-  --opt-rs-red: #d63026;
+  --opt-rs-accent: #e42320;
+  --opt-rs-panel: #e42320;
+  --opt-rs-tag: #e42320;
+  --opt-rs-red: #e42320;
 
   margin-top: 2.5rem;
   padding-top: 0.25rem;
@@ -46,23 +46,23 @@
 }
 
 .opt-rsplit__title.opt-rsplit__title--red {
-  color: #0462a9;
+  color: #e42320;
 }
 
 .opt-rsplit__title.opt-rsplit__title--blue {
-  color: #febb00;
+  color: #111111;
 }
 
 .opt-rsplit__title.opt-rsplit__title--gold {
-  color: #ff0c00;
+  color: #e42320;
 }
 
 .opt-rsplit__title.opt-rsplit__title--teal {
-  color: #022144;
+  color: #111111;
 }
 
 .opt-rsplit__title.opt-rsplit__title--dark {
-  color: #e1045c;
+  color: #111111;
 }
 
 .opt-rsplit__dot {
@@ -297,7 +297,7 @@
   left: 0.45rem;
   z-index: 2;
   padding: 0.16rem 0.38rem;
-  background: #e1045c;
+  background: #e42320;
   color: #fff;
   font-family: var(--opt-font-sans);
   font-size: 0.56rem;
@@ -313,7 +313,7 @@
   left: 0.45rem;
   z-index: 2;
   padding: 0.16rem 0.38rem;
-  background: #00132b;
+  background: #111111;
   color: #fff;
   font-family: var(--opt-font-sans);
   font-size: 0.62rem;
@@ -328,7 +328,7 @@
   right: 0.45rem;
   z-index: 2;
   padding: 0.16rem 0.38rem;
-  background: #d63026;
+  background: #e42320;
   color: #fff;
   font-family: var(--opt-font-sans);
   font-size: 0.58rem;

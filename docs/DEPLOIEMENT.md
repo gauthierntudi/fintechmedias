@@ -1,6 +1,6 @@
-# Déploiement — DigitalOcean Droplet + Docker Compose
+# Déploiement — VPS OVH + Docker Compose
 
-Cible retenue : **contrôle maximal** via Droplet(s) Dockerisés, avec **PostgreSQL** et **Redis managés** DigitalOcean, médias sur **Cloudflare R2**.
+Cible : VPS **51.254.214.47**, stack Docker (nginx / web / api / worker / Postgres / Redis), médias sur **Cloudflare R2**.
 
 ## 1. Architecture d’hébergement
 
@@ -9,31 +9,32 @@ Cible retenue : **contrôle maximal** via Droplet(s) Dockerisés, avec **Postgre
                            │
               ┌────────────┴────────────┐
               ▼                         ▼
-     studrc.com                    api.studrc.com
+     lentrevuemag.com              api.lentrevuemag.com
               │                         │
               └────────────┬────────────┘
                            ▼
-              Droplet Ubuntu 24.04
+              VPS OVH 51.254.214.47
               ┌─────────────────────┐
               │  nginx (:80/:443)   │
               │  web   (Next :3000) │
               │  api   (Nest :3001) │
               │  worker (BullMQ)    │
+              │  Postgres + Redis   │
               └──────────┬──────────┘
                          │
-         ┌───────────────┼───────────────┐
-         ▼               ▼               ▼
-  Managed Postgres  Managed Redis   Cloudflare R2
+                         ▼
+                   Cloudflare R2
+                   cdn.lentrevuemag.com
 ```
 
 ### Pourquoi cette découpe
 
 | Composant | Emplacement | Raison |
 |-----------|-------------|--------|
-| `web` / `api` / `worker` / `nginx` | Droplet Docker | Contrôle, coûts prévisibles, workers PDF |
-| PostgreSQL | Managed DB | Backups, updates, pas de charge disque app |
-| Redis | Managed Redis | Persistance files BullMQ + HA simple |
-| PDF / images / covers | R2 | Stockage objet cheap + CDN, hors Droplet |
+| `web` / `api` / `worker` / `nginx` | VPS Docker | Contrôle, coûts prévisibles, workers PDF |
+| PostgreSQL | Compose sur le VPS | Simple pour un seul serveur ; backups `pg_dump` |
+| Redis | Compose sur le VPS | Cache API + files BullMQ |
+| PDF / images / covers | R2 | Stockage objet cheap + CDN, hors VPS |
 
 ## 2. Dimensionnement initial
 
@@ -67,13 +68,13 @@ Firewall Droplet (Cloud Firewall DO) :
 - 1 bucket prod (+ 1 staging optionnel)
 - Clés API limitées au bucket
 - CORS autorisant les domaines web
-- **Lecture PDF (viewer)** : en prod, nginx sert `/cdn-media/*` en proxy stream vers `cdn.studrc.com` (évite CORS + timeout Next sur gros PDF). Repli : `/api/media-proxy`.
-- **Uploads PDF admin (presigned)** : le navigateur envoie le fichier en `PUT` direct vers R2. CORS bucket obligatoire (`GET`, `PUT`, `HEAD`) pour `APP_URL` / `https://studrc.com` / localhost. Configurer avec :
+- **Lecture PDF (viewer)** : en prod, nginx sert `/cdn-media/*` en proxy stream vers `cdn.lentrevuemag.com` (évite CORS + timeout Next sur gros PDF). Repli : `/api/media-proxy`.
+- **Uploads PDF admin (presigned)** : le navigateur envoie le fichier en `PUT` direct vers R2. CORS bucket obligatoire (`GET`, `PUT`, `HEAD`) pour `APP_URL` / `https://lentrevuemag.com` / localhost. Configurer avec :
   ```bash
-  pnpm --filter @studrc/api configure:r2-cors
+  pnpm --filter @entrevue/api configure:r2-cors
   ```
-  Origins supplémentaires : `R2_CORS_ORIGINS=https://www.studrc.com`
-- **Custom domain** (ex. `cdn.studrc.com`) : à lier au bucket dans Cloudflare R2 → Settings → Custom Domains. Sans enregistrement DNS, le navigateur renvoie `ERR_NAME_NOT_RESOLVED` (ce n’est pas un problème CORS). En attendant : `AVATAR_USE_CDN=false` sert les photos via `/legacy/profil`.
+  Origins supplémentaires : `R2_CORS_ORIGINS=https://www.lentrevuemag.com`
+- **Custom domain** (`cdn.lentrevuemag.com`) : à lier au bucket dans Cloudflare R2 → Settings → Custom Domains. Sans enregistrement DNS, le navigateur renvoie `ERR_NAME_NOT_RESOLVED` (ce n’est pas un problème CORS). En attendant : `AVATAR_USE_CDN=false` sert les photos via `/legacy/profil`.
 
 ## 3. Services Docker (cible)
 
@@ -113,10 +114,10 @@ Le viewer flip utilise les images si `pagesStatus=READY` (ou pages déjà upload
 Les pages WebP sont servies via **proxy API** (`GET /api/magazines/:id/pages/:n`, aperçu 1–15 public, au-delà cookie JWT + droits). Le navigateur ne voit plus les URLs R2. Le CDN `cdn…/pages/` doit rester bloqué (WAF).
 
 - Relancer un numéro : `POST /api/admin/magazines/:id/pages/reprocess`
-- Backfill bulk : `pnpm --filter @studrc/api enqueue:magazine-pages` (option `--limit=10`)
+- Backfill bulk : `pnpm --filter @entrevue/api enqueue:magazine-pages` (option `--limit=10`)
 - Prérequis : `REDIS_URL` + service Compose `worker` up
 
-### Vidéo STU TALK / STU STORIES (HLS)
+### Vidéo (HLS)
 
 Admin upload MP4 (presign R2) → file BullMQ `article-video` → FFmpeg HLS (1080/720/480/360 selon la source) + miniature → `videos/{id}/hls/master.m3u8` public via `R2_PUBLIC_URL`. Lecture front : **hls.js** (Safari : HLS natif). Concurrence : `ARTICLE_VIDEO_CONCURRENCY=1`. FFmpeg est dans l’image API/worker.
 
@@ -132,8 +133,10 @@ Page Admin → **Monitoring** (`/admin/monitoring`) : pastilles API / Postgres /
 | `web` | `apps/web` Dockerfile | Next.js |
 | `api` | `apps/api` Dockerfile | NestJS HTTP |
 | `worker` | même image `api` | `node dist/worker.js` |
+| `postgres` | `postgres:16-alpine` | Base (compose data) |
+| `redis` | `redis:7-alpine` | Cache + files BullMQ |
 
-**Ne pas** lancer Postgres/Redis en Compose sur le Droplet prod : utiliser les managed DO.
+Postgres et Redis tournent **sur le VPS** via `docker-compose.data.yml` (volumes internes, pas de ports publics). Pour un managed externe, omettre ce fichier et pointer `DATABASE_URL` / `REDIS_URL`.
 
 ### Exemple Compose (référence)
 
@@ -182,8 +185,8 @@ services:
 
 ### Routage Nginx
 
-- `studrc.com` / `www.studrc.com` → `web:3000`
-- `api.studrc.com` → `api:3001`
+- `lentrevuemag.com` / `www.lentrevuemag.com` → `web:3000`
+- `api.lentrevuemag.com` → `api:3001`
 
 TLS : Certbot (Let’s Encrypt) ou certificats Cloudflare (Full Strict).
 
@@ -194,34 +197,28 @@ Fichier sur le Droplet : `/opt/magazine/v2/.env` (jamais commitré).
 ```bash
 # Apps
 NODE_ENV=production
-APP_URL=https://studrc.com
-API_URL=https://api.studrc.com
-NEXT_PUBLIC_API_URL=https://api.studrc.com
+APP_URL=https://lentrevuemag.com
+API_URL=https://api.lentrevuemag.com
+NEXT_PUBLIC_API_URL=https://api.lentrevuemag.com
 
 # Auth
 JWT_ACCESS_SECRET=
 JWT_REFRESH_SECRET=
-COOKIE_DOMAIN=.studrc.com
+COOKIE_DOMAIN=.lentrevuemag.com
 
-# Database (Managed Postgres)
-DATABASE_URL=postgresql://user:pass@host:25060/magazine?sslmode=require
+# Database (Postgres Docker sur le VPS)
+DATABASE_URL=postgresql://entrevue:pass@postgres:5432/entrevue
 
-# Redis (Managed)
-REDIS_URL=rediss://default:pass@host:25061
+# Redis (Docker sur le VPS)
+REDIS_URL=redis://redis:6379
 
 # Cloudflare R2
 R2_ACCOUNT_ID=
 R2_ACCESS_KEY_ID=
 R2_SECRET_ACCESS_KEY=
-R2_BUCKET=studrc
+R2_BUCKET=entrevue
 R2_ENDPOINT=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
-R2_PUBLIC_URL=https://cdn.studrc.com
-
-# Stripe (carte) — LIVE
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_PUBLISHABLE_KEY=pk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
+R2_PUBLIC_URL=https://cdn.lentrevuemag.com
 
 # FlexPaie (mobile)
 FLEXPAIE_MERCHANT=
@@ -229,27 +226,25 @@ FLEXPAIE_TOKEN=
 FLEXPAIE_MOBILE_API_URL=https://backend.flexpay.cd/api/rest/v1/paymentService
 FLEXPAIE_CARD_API_URL=https://cardpayment.flexpay.cd/v1.1/pay
 FLEXPAIE_CHECK_API_URL=https://backend.flexpay.cd/api/rest/v1/check
-FLEXPAIE_CALLBACK_URL=https://api.studrc.com/payments/flexpaie/callback
+FLEXPAIE_CALLBACK_URL=https://api.lentrevuemag.com/api/payments/flexpaie/callback
 
 # Email — Resend
 RESEND_API_KEY=re_...
-MAIL_FROM=STUDRC <noreply@studrc.com>
+MAIL_FROM="L'Entrevue <noreply@lentrevuemag.com>"
 ```
 
 > **Note** : MaxiCash / PayPal / MoMo ne sont plus utilisés en v2. Emails via **Resend** (pas SMTP).
 
 ## 5. Provisionning initial (checklist)
 
-### DigitalOcean
+### VPS OVH
 
-1. [ ] Créer Droplet Ubuntu 24.04
-2. [ ] Créer Managed PostgreSQL + DB `magazine`
-3. [ ] Créer Managed Redis
-4. [ ] Cloud Firewall (22/80/443)
-5. [ ] Ajouter IP Droplet aux trusted sources Postgres/Redis
-6. [ ] (Optionnel) Floating IP
+1. [ ] VPS Ubuntu 24.04 — `51.254.214.47`
+2. [ ] Firewall OVH : 22 / 80 / 443
+3. [ ] DNS A `lentrevuemag.com` / `www` / `api` → cette IP
+4. [ ] Accès SSH clé uniquement
 
-### Droplet OS
+### OS VPS
 
 ```bash
 # Docker
@@ -267,23 +262,19 @@ sudo ufw enable
 
 ### Cloudflare
 
-1. [ ] DNS `A` / `CNAME` vers Droplet (ou Floating IP)
+1. [ ] DNS `A` `lentrevuemag.com` / `www` / `api` → `51.254.214.47`
 2. [ ] Bucket R2 + token API
-3. [ ] Domaine custom CDN pour covers (optionnel)
-4. [ ] SSL mode Full (strict) si proxy orange
+3. [ ] Custom domain CDN `cdn.lentrevuemag.com` (R2, pas le VPS)
+4. [ ] SSL mode Full (strict) si proxy orange Cloudflare
 
 ### Application
 
 ```bash
-sudo mkdir -p /opt/magazine
-sudo chown $USER:$USER /opt/magazine
-cd /opt/magazine
-git clone <repo> .
-cd v2
-cp deploy/.env.example .env   # puis éditer
-docker compose pull           # ou build
-docker compose up -d --build
-docker compose exec api npx prisma migrate deploy
+# Premier run (Docker, UFW, clone, Certbot) — voir deploy/bootstrap-vps.sh
+sudo bash deploy/bootstrap-vps.sh
+# Puis .env prod + :
+docker compose -f docker-compose.yml -f docker-compose.data.yml up -d --build
+docker compose -f docker-compose.yml -f docker-compose.data.yml exec api npx prisma migrate deploy
 ```
 
 ## 6. Déploiement / mises à jour
@@ -292,11 +283,7 @@ docker compose exec api npx prisma migrate deploy
 
 ```bash
 cd /opt/magazine
-git pull
-cd v2
-docker compose up -d --build
-docker compose exec api npx prisma migrate deploy
-docker compose exec api npx prisma generate   # si besoin
+./deploy/remote-deploy.sh
 ```
 
 ### CI/CD (GitHub Actions → VPS)
@@ -311,7 +298,7 @@ La clé déjà utilisée pour ce serveur :
 
 ```bash
 # Publique déjà dans ~/.ssh/authorized_keys sur le VPS
-ssh-copy-id -i ~/.ssh/opt1mum_deploy.pub ubuntu@51.77.148.188
+ssh-copy-id -i ~/.ssh/opt1mum_deploy.pub ubuntu@51.254.214.47
 ```
 
 #### 2. Accès Git non interactif sur le VPS (repo privé)
@@ -320,7 +307,7 @@ ssh-copy-id -i ~/.ssh/opt1mum_deploy.pub ubuntu@51.77.148.188
 
 ```bash
 cd /opt/magazine
-git remote set-url origin git@github.com:gauthierntudi/studrc.git
+git remote set-url origin git@github.com:gauthierntudi/entrevue.git
 git fetch origin main
 chmod +x deploy/remote-deploy.sh
 ```
@@ -329,7 +316,7 @@ chmod +x deploy/remote-deploy.sh
 
 | Secret | Valeur |
 |--------|--------|
-| `VPS_HOST` | `51.77.148.188` |
+| `VPS_HOST` | `51.254.214.47` |
 | `VPS_USER` | `ubuntu` |
 | `VPS_SSH_KEY` | contenu de `~/.ssh/opt1mum_deploy` (clé **privée**) |
 | `VPS_PORT` | `22` (optionnel) |
@@ -375,7 +362,7 @@ Test restore Postgres au moins une fois avant go-live.
 - [ ] Secrets hors dépôt
 - [ ] Postgres/Redis non exposés public
 - [ ] Rate limit Nginx sur `/auth` et webhooks
-- [ ] Webhooks Stripe (`/payments/stripe/webhook`) + callback FlexPaie exposés en HTTPS
+- [ ] Callback FlexPaie exposé en HTTPS
 - [ ] PDF payants : jamais d’URL R2 publique permanente
 
 ## 11. Staging
@@ -404,7 +391,7 @@ Toujours : DB et bucket R2 **séparés** de la prod.
 | Managed Postgres | ~$/mois |
 | Managed Redis | ~$/mois |
 | R2 | stockage + class A/B ops (souvent faible) |
-| Domaine / Resend | variable (domaine `studrc.com` vérifié chez Resend) |
+| Domaine / Resend | variable (domaine `lentrevuemag.com` vérifié chez Resend) |
 
 Documenter les montants réels dans un suivi interne une fois les plans choisis.
 

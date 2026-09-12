@@ -2,7 +2,7 @@
   --legal-ink: var(--site-ink, #111111);
   --legal-muted: var(--site-muted, #6b6b6b);
   --legal-line: var(--site-line, #e6e6e6);
-  --legal-accent: var(--studrc-red, #d63026);
+  --legal-accent: var(--entrevue-red, #e42320);
   --legal-card: var(--site-card, #ffffff);
   --legal-bg: var(--site-bg, #ffffff);
   background: var(--legal-bg);
@@ -51,7 +51,7 @@
   right: 0;
   bottom: -1px;
   height: 2px;
-  background: var(--studrc-blue, #0565ab);
+  background: var(--entrevue-red, #e42320);
 }
 
 .opt-legal__hero {

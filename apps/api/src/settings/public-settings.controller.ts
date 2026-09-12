@@ -16,6 +16,11 @@ export class PublicSettingsController {
     return this.settings.getSocial();
   }
 
+  @Get('contact')
+  contact() {
+    return this.settings.getContact();
+  }
+
   /** Config publique pour l’app mobile (captcha, API). */
   @Get('app')
   app() {
@@ -30,8 +35,11 @@ export class PublicSettingsController {
       '';
     const googleIosClientId =
       this.config.get<string>('GOOGLE_IOS_CLIENT_ID')?.trim() || '';
+    const apiBase = (
+      this.config.get<string>('API_URL') || 'http://localhost:3001'
+    ).replace(/\/$/, '');
     return {
-      api: 'https://api.studrc.com/api',
+      api: `${apiBase}/api`,
       captcha,
       turnstileSiteKey: captcha ? siteKey : '',
       googleClientId,

@@ -3,6 +3,7 @@ import { AdminRole } from '@prisma/client';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAdminGuard } from '../auth/guards/jwt-admin.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { UpdateContactSettingsDto } from './dto/update-contact-settings.dto';
 import { UpdateSiteSettingsDto } from './dto/update-site-settings.dto';
 import { SettingsService } from './settings.service';
 
@@ -20,5 +21,15 @@ export class AdminSettingsController {
   @Patch('social')
   updateSocial(@Body() dto: UpdateSiteSettingsDto) {
     return this.settings.updateSocial(dto);
+  }
+
+  @Get('contact')
+  getContact() {
+    return this.settings.getContact();
+  }
+
+  @Patch('contact')
+  updateContact(@Body() dto: UpdateContactSettingsDto) {
+    return this.settings.updateContact(dto);
   }
 }

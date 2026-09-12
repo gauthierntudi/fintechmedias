@@ -4,8 +4,8 @@
   --opt-d-ink: #111111;
   --opt-d-muted: #6b6b6b;
   --opt-d-line: #e6e6e6;
-  --opt-d-red: #d63026;
-  --opt-d-teal: #0565ab;
+  --opt-d-red: #e42320;
+  --opt-d-teal: #e42320;
 
   background: #fff;
   padding: 2.75rem 1.5rem 3rem;
@@ -31,7 +31,7 @@
   font-size: clamp(1.5rem, 2.4vw, 2rem);
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: #febb00;
+  color: #e42320;
   line-height: 1.1;
 }
 
@@ -122,9 +122,9 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #00132b;
+  color: #fff;
   line-height: 1.2;
-  background: #febb00;
+  background: #e42320;
 }
 
 .opt-dossiers__card-title {

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import AchatClient from "./achat-client";
 
 export const metadata: Metadata = {
-  title: "Acheter un numéro — STU MAG",
-  description: "Achetez un numéro de STU MAG en accès immédiat.",
+  title: "Acheter un numéro — L'Entrevue",
+  description: "Achetez un numéro de L'Entrevue en accès immédiat.",
 };
 
 export default function AchatPage() {

@@ -26,13 +26,14 @@ import {
   type PublicMagazineDetail,
 } from "@/lib/api";
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
+import { BRAND } from "@/lib/brand";
 
 import "swiper/css";
 import "swiper/css/free-mode";
 import "./kiosque.css";
 
 const FALLBACK_COVER = "/legacy/covers/1591457791.jpg";
-const DEFAULT_THEME = { bgColor: "#00132b", accentColor: "#0565ab" };
+const DEFAULT_THEME = { bgColor: "#111111", accentColor: "#e42320" };
 const PAGE_SIZE = 12;
 /** Carrousel mobile : charger tout (cap API publique). */
 const MOBILE_LIST_TAKE = 48;
@@ -420,7 +421,7 @@ export function KiosqueClient() {
           </div>
 
           <div className="opt-kq__body">
-            <p className="opt-kq__eyebrow">STU MAG</p>
+            <p className="opt-kq__eyebrow">{BRAND.magazineName}</p>
             <h1 id="kq-title" className="opt-kq__title">
               {mag.title}
             </h1>

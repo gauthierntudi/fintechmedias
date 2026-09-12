@@ -2,7 +2,7 @@
   border-top: 1px solid rgba(233, 38, 42, 0.18);
   background: #fff4f4;
   color: #3b1214;
-  font-family: var(--opt-font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+  font-family: var(--opt-font-sans, "Familjen Grotesk", system-ui, sans-serif);
 }
 
 .opt-email-banner__inner {
@@ -18,7 +18,7 @@
 
 .opt-email-banner__inner > svg {
   flex: 0 0 auto;
-  color: #d63026;
+  color: #e42320;
 }
 
 .opt-email-banner__text {
@@ -44,7 +44,7 @@
   padding: 0.4rem 0.95rem;
   border: 0;
   border-radius: 999px;
-  background: #d63026;
+  background: #e42320;
   color: #fff;
   font-family: inherit;
   font-size: 0.82rem;

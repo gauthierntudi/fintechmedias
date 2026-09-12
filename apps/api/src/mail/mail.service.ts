@@ -2,8 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
 
-const NAVY = '#00132b';
-const GOLD = '#fdbd01';
+const NAVY = '#111111';
+const GOLD = '#d63026';
+const WHITE = '#ffffff';
 const INK = '#111111';
 const MUTED = '#5c6b7a';
 const LINE = '#e6e6e6';
@@ -20,7 +21,7 @@ export class MailService {
     const apiKey = this.config.get<string>('RESEND_API_KEY')?.trim();
     this.resend = apiKey ? new Resend(apiKey) : null;
     this.from =
-      this.config.get<string>('MAIL_FROM') ?? 'STUDRC <noreply@studrc.com>';
+      this.config.get<string>('MAIL_FROM') ?? "L'Entrevue <noreply@lentrevuemag.com>";
     this.appUrl = this.config.get<string>('APP_URL') ?? 'http://localhost:3000';
     if (this.resend && apiKey) {
       this.logger.log(
@@ -35,11 +36,11 @@ export class MailService {
     const url = `${this.appUrl.replace(/\/$/, '')}/verifier-email?token=${encodeURIComponent(token)}`;
     await this.send({
       to,
-      subject: 'Confirmez votre adresse e-mail — STUDRC',
+      subject: 'Confirmez votre adresse e-mail — L\'Entrevue',
       html: wrapTransactionalMail({
         appUrl: this.appUrl,
         title: 'Confirmez votre adresse',
-        preheader: 'Un clic pour activer votre compte STUDRC.',
+        preheader: 'Un clic pour activer votre compte L\'Entrevue.',
         bodyHtml: `
           <p style="margin:0 0 12px;font-size:16px;line-height:1.55;color:${INK};">Bonjour ${escapeHtml(name)},</p>
           <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:${MUTED};">
@@ -61,11 +62,11 @@ export class MailService {
   async sendPasswordResetOtp(to: string, name: string, otp: string) {
     await this.send({
       to,
-      subject: 'Code de réinitialisation — STUDRC',
+      subject: 'Code de réinitialisation — L\'Entrevue',
       html: wrapTransactionalMail({
         appUrl: this.appUrl,
         title: 'Réinitialiser le mot de passe',
-        preheader: 'Votre code STUDRC expire dans 15 minutes.',
+        preheader: 'Votre code L\'Entrevue expire dans 15 minutes.',
         bodyHtml: `
           <p style="margin:0 0 12px;font-size:16px;line-height:1.55;color:${INK};">Bonjour ${escapeHtml(name)},</p>
           <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:${MUTED};">
@@ -90,7 +91,7 @@ export class MailService {
   }) {
     await this.send({
       to: input.to,
-      subject: 'Code de confirmation admin — STUDRC',
+      subject: 'Code de confirmation admin — L\'Entrevue',
       html: wrapTransactionalMail({
         appUrl: this.appUrl,
         title: 'Action admin à confirmer',
@@ -120,11 +121,11 @@ export class MailService {
     const homeUrl = this.appUrl.replace(/\/$/, '');
     await this.send({
       to,
-      subject: 'Bienvenue dans la newsletter STUDRC',
+      subject: 'Bienvenue dans la newsletter L\'Entrevue',
       html: wrapTransactionalMail({
         appUrl: this.appUrl,
         title: 'Inscription confirmée',
-        preheader: 'Vous recevrez les actualités STUDRC dans votre boîte mail.',
+        preheader: 'Vous recevrez les actualités de L\'Entrevue dans votre boîte mail.',
         bodyHtml: `
           <p style="margin:0 0 12px;font-size:16px;line-height:1.55;color:${INK};">Bonjour,</p>
           <p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:${MUTED};">
@@ -132,9 +133,9 @@ export class MailService {
             <strong style="color:${INK};">${escapeHtml(to)}</strong>.
           </p>
           <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:${MUTED};">
-            Vous recevrez nos actualités, analyses et coups de projecteur sur l’école en RDC.
+            Vous recevrez nos actualités, analyses et portraits autour de l’entrepreneuriat.
           </p>
-          ${mailButton(homeUrl, 'Lire STUDRC')}
+          ${mailButton(homeUrl, "Lire L'Entrevue")}
           <p style="margin:20px 0 0;font-size:13px;line-height:1.55;color:${MUTED};">
             Si vous n’êtes pas à l’origine de cette inscription, ignorez cet e-mail.
           </p>
@@ -163,8 +164,8 @@ export class MailService {
 
     const subject =
       input.purpose === 'PURCHASE'
-        ? `Paiement confirmé — ${input.productLabel} — STUDRC`
-        : `Abonnement activé — ${input.productLabel} — STUDRC`;
+        ? `Paiement confirmé — ${input.productLabel} — L'Entrevue`
+        : `Abonnement activé — ${input.productLabel} — L'Entrevue`;
 
     const intro =
       input.purpose === 'PURCHASE'
@@ -216,7 +217,47 @@ export class MailService {
     });
   }
 
-  private async send(input: { to: string; subject: string; html: string }) {
+  async sendContactMessage(input: {
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+    to?: string;
+  }) {
+    const to =
+      input.to?.trim() ||
+      this.config.get<string>('CONTACT_EMAIL')?.trim() ||
+      this.config.get<string>('MAIL_CONTACT')?.trim() ||
+      'contact@lentrevuemag.com';
+    await this.send({
+      to,
+      replyTo: input.email,
+      subject: `Contact — ${input.subject}`,
+      html: wrapTransactionalMail({
+        appUrl: this.appUrl,
+        title: 'Nouveau message',
+        preheader: `${input.name} vous écrit depuis le site.`,
+        bodyHtml: `
+          <p style="margin:0 0 12px;font-size:16px;line-height:1.55;color:${INK};">
+            Message reçu via la page contact.
+          </p>
+          <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:${MUTED};">
+            <strong style="color:${INK};">Nom</strong> — ${escapeHtml(input.name)}<br />
+            <strong style="color:${INK};">E-mail</strong> — ${escapeHtml(input.email)}<br />
+            <strong style="color:${INK};">Sujet</strong> — ${escapeHtml(input.subject)}
+          </p>
+          <p style="margin:16px 0 0;font-size:15px;line-height:1.65;color:${INK};white-space:pre-wrap;">${escapeHtml(input.message)}</p>
+        `,
+      }),
+    });
+  }
+
+  private async send(input: {
+    to: string;
+    subject: string;
+    html: string;
+    replyTo?: string;
+  }) {
     if (!this.resend) {
       this.logger.error(
         `RESEND_API_KEY manquant — email non envoyé à ${input.to}: ${input.subject}`,
@@ -230,13 +271,14 @@ export class MailService {
       const result = await this.resend.emails.send({
         from: this.from,
         to: input.to,
+        replyTo: input.replyTo,
         subject: input.subject,
         html: input.html,
       });
       if (result.error) {
         this.logger.error(`Resend error: ${result.error.message}`);
         const hint = /domain is not verified/i.test(result.error.message)
-          ? ' La clé chargée par Nest n’est pas celle du compte où studrc.com est Verified (souvent .env racine ≠ apps/api/.env).'
+          ? ' La clé chargée par Nest n’est pas celle du compte où lentrevuemag.com est Verified (souvent .env racine ≠ apps/api/.env).'
           : '';
         throw new Error(
           `Échec envoi e-mail (${result.error.message}).${hint} Vérifiez RESEND_API_KEY / MAIL_FROM.`,
@@ -266,7 +308,7 @@ export function wrapTransactionalMail(input: {
   preheader?: string;
   bodyHtml: string;
 }): string {
-  const home = input.appUrl.replace(/\/$/, '') || 'https://studrc.com';
+  const home = input.appUrl.replace(/\/$/, '') || 'https://lentrevuemag.com';
   const pre = input.preheader
     ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(input.preheader)}</div>`
     : '';
@@ -286,8 +328,10 @@ export function wrapTransactionalMail(input: {
         <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="width:100%;max-width:560px;background:#ffffff;border:1px solid ${LINE};">
           <tr>
             <td style="background:${NAVY};padding:22px 28px;">
-              <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:${GOLD};">STUDRC</p>
-              <p style="margin:6px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.72);">Média et observatoire de l’école en RDC</p>
+              <a href="${escapeHtml(home)}" style="text-decoration:none;">
+                <img src="${escapeHtml(home)}/brand/logo-Lentrevue-blanc.png" alt="L'Entrevue" height="36" style="display:block;height:36px;width:auto;max-width:200px;border:0;outline:none;" />
+              </a>
+              <p style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.72);">Autour de l’entrepreneuriat</p>
             </td>
           </tr>
           <tr>
@@ -302,7 +346,7 @@ export function wrapTransactionalMail(input: {
           <tr>
             <td style="padding:8px 28px 24px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:${MUTED};">
               <p style="margin:0;padding-top:16px;border-top:1px solid ${LINE};">
-                STUDRC · 8 Avenue Kalemie, Kinshasa-Gombe<br />
+                Entrevue · 8 Avenue Kalemie, Kinshasa-Gombe<br />
                 <a href="${escapeHtml(home)}" style="color:${NAVY};text-decoration:underline;">${escapeHtml(home.replace(/^https?:\/\//, ''))}</a>
               </p>
             </td>
@@ -319,7 +363,7 @@ function mailButton(url: string, label: string): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
     <tr>
       <td style="border-radius:10px;background:${GOLD};">
-        <a href="${escapeHtml(url)}" style="display:inline-block;padding:13px 22px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:${NAVY};text-decoration:none;">${escapeHtml(label)}</a>
+        <a href="${escapeHtml(url)}" style="display:inline-block;padding:13px 22px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:${WHITE};text-decoration:none;">${escapeHtml(label)}</a>
       </td>
     </tr>
   </table>`;
@@ -329,7 +373,7 @@ function mailCode(otp: string): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
     <tr>
       <td align="center" style="background:${NAVY};padding:18px 12px;">
-        <p style="margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:28px;font-weight:700;letter-spacing:0.28em;color:${GOLD};">${escapeHtml(otp)}</p>
+        <p style="margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:28px;font-weight:700;letter-spacing:0.28em;color:${WHITE};">${escapeHtml(otp)}</p>
       </td>
     </tr>
   </table>`;

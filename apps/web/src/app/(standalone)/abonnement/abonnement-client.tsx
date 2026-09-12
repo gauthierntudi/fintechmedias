@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import dynamic from "next/dynamic";
 import {
   Check,
-  CreditCard,
   Loader2,
   Smartphone,
 } from "lucide-react";
@@ -25,7 +23,7 @@ import { DEMO_MAGAZINES } from "@/lib/legacy-demo";
 import { cn } from "@/lib/utils";
 import "./abonnement.css";
 
-const DEFAULT_THEME = { bgColor: "#00132b", accentColor: "#0565ab" };
+const DEFAULT_THEME = { bgColor: "#111111", accentColor: "#e42320" };
 
 type CoverState = {
   id: string;
@@ -33,20 +31,6 @@ type CoverState = {
   coverUrl: string;
   issueNumber: string | null;
   theme: { bgColor: string; accentColor: string };
-};
-
-const StripePaymentModal = dynamic(
-  () =>
-    import("./stripe-payment-modal").then((m) => m.StripePaymentModal),
-  { ssr: false },
-);
-
-type PayChannel = "stripe" | "flexpaie";
-
-type StripePaySession = {
-  paymentId: string;
-  clientSecret: string;
-  publishableKey: string;
 };
 
 function formatMoney(cents: number, currency: string): string {
@@ -69,9 +53,8 @@ function durationLabel(days: number): string {
   return `${days} jours`;
 }
 
-/** Retour post-auth avec tab Mobile Money + numéro préservés. */
-function abonnementAuthNext(channel: PayChannel, phone: string): string {
-  if (channel !== "flexpaie") return "/abonnement";
+/** Retour post-auth avec numéro Mobile Money préservé. */
+function abonnementAuthNext(phone: string): string {
   const qs = new URLSearchParams();
   qs.set("pay", "mobile");
   const trimmed = phone.trim();
@@ -95,12 +78,8 @@ function AbonnementInner({
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(
     initialPlans[0]?.id ?? null,
   );
-  const [channel, setChannel] = useState<PayChannel>(() =>
-    searchParams.get("pay") === "mobile" ? "flexpaie" : "stripe",
-  );
   const [phone, setPhone] = useState(() => searchParams.get("phone") ?? "");
   const [busy, setBusy] = useState(false);
-  const [stripePay, setStripePay] = useState<StripePaySession | null>(null);
   const [flexPendingId, setFlexPendingId] = useState<string | null>(null);
   const [flexStatus, setFlexStatus] = useState<
     "PENDING" | "SUCCESS" | "FAILED" | "CANCELLED" | "REFUNDED" | null
@@ -110,15 +89,12 @@ function AbonnementInner({
 
   const cancelled = searchParams.get("cancelled") === "1";
   const authNext = useMemo(
-    () => abonnementAuthNext(channel, phone),
-    [channel, phone],
+    () => abonnementAuthNext(phone),
+    [phone],
   );
   const authNextEncoded = encodeURIComponent(authNext);
 
   useEffect(() => {
-    if (searchParams.get("pay") === "mobile") {
-      setChannel("flexpaie");
-    }
     const phoneParam = searchParams.get("phone");
     if (phoneParam) setPhone(phoneParam);
   }, [searchParams]);
@@ -259,13 +235,13 @@ function AbonnementInner({
   }, [flexPendingId, router]);
 
   useEffect(() => {
-    if (!flexPendingId && !stripePay) return;
+    if (!flexPendingId) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [flexPendingId, stripePay]);
+  }, [flexPendingId]);
 
   const selected = useMemo(
     () => plans.find((p) => p.id === selectedPlanId) ?? null,
@@ -283,22 +259,6 @@ function AbonnementInner({
     }
     setBusy(true);
     try {
-      if (channel === "stripe") {
-        const res = await paymentsApi.createStripeCheckout(selected.id);
-        const key =
-          res.publishableKey ||
-          process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
-          "";
-        if (!res.clientSecret || !key) {
-          throw new Error("Configuration Stripe incomplète");
-        }
-        setStripePay({
-          paymentId: res.paymentId,
-          clientSecret: res.clientSecret,
-          publishableKey: key,
-        });
-        return;
-      }
       if (!phone.trim()) {
         toast.error("Indiquez votre numéro Mobile Money");
         setBusy(false);
@@ -316,12 +276,6 @@ function AbonnementInner({
   function cancelFlexWait() {
     setFlexPendingId(null);
     setFlexStatus(null);
-  }
-
-  function onStripeSuccess(paymentId: string) {
-    setStripePay(null);
-    toast.success("Paiement confirmé — abonnement activé");
-    router.push(`/abonnement/retour?payment=${paymentId}`);
   }
 
   return (
@@ -411,71 +365,23 @@ function AbonnementInner({
               ) : null}
 
               <div className="opt-abo__block">
-                <h2 className="opt-abo__block-title">Paiement</h2>
-                <div
-                  className="opt-abo__tabs"
-                  role="radiogroup"
-                  aria-label="Moyen de paiement"
-                >
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={channel === "stripe"}
-                    className={cn(
-                      "opt-abo__tab",
-                      channel === "stripe" && "is-active",
-                    )}
-                    onClick={() => setChannel("stripe")}
-                    disabled={Boolean(flexPendingId || stripePay)}
-                  >
-                    <CreditCard size={16} aria-hidden />
-                    Carte bancaire
-                  </button>
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={channel === "flexpaie"}
-                    className={cn(
-                      "opt-abo__tab",
-                      channel === "flexpaie" && "is-active",
-                    )}
-                    onClick={() => setChannel("flexpaie")}
-                    disabled={Boolean(flexPendingId || stripePay)}
-                  >
-                    <Smartphone size={16} aria-hidden />
-                    Mobile Money
-                  </button>
-                </div>
-
-                {channel === "stripe" ? (
-                  <ul className="opt-abo__pay-icons" aria-label="Cartes acceptées">
-                    <li aria-label="Visa">
-                      <i className="fab fa-cc-visa" aria-hidden />
-                    </li>
-                    <li aria-label="Mastercard">
-                      <i className="fab fa-cc-mastercard" aria-hidden />
-                    </li>
-                    <li aria-label="American Express">
-                      <i className="fab fa-cc-amex" aria-hidden />
-                    </li>
-                    <li aria-label="Discover">
-                      <i className="fab fa-cc-discover" aria-hidden />
-                    </li>
-                  </ul>
-                ) : (
-                  <label className="opt-abo__field">
-                    <span>Numéro Mobile Money (RDC)</span>
-                    <input
-                      type="tel"
-                      inputMode="tel"
-                      placeholder="2438XXXXXXXX"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      disabled={busy || Boolean(flexPendingId || stripePay)}
-                      autoComplete="tel"
-                    />
-                  </label>
-                )}
+                <h2 className="opt-abo__block-title">Paiement Mobile Money</h2>
+                <p className="opt-abo__muted" style={{ margin: "0 0 0.85rem" }}>
+                  <Smartphone size={16} aria-hidden /> FlexPaie — Airtel, Orange,
+                  M-Pesa
+                </p>
+                <label className="opt-abo__field">
+                  <span>Numéro Mobile Money (RDC)</span>
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    placeholder="2438XXXXXXXX"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    disabled={busy || Boolean(flexPendingId)}
+                    autoComplete="tel"
+                  />
+                </label>
               </div>
 
               <ul className="opt-abo__perks">
@@ -499,7 +405,7 @@ function AbonnementInner({
                     type="button"
                     className="opt-abo__cta"
                     disabled={
-                      busy || !selected || Boolean(flexPendingId || stripePay)
+                      busy || !selected || Boolean(flexPendingId)
                     }
                     onClick={() => void startCheckout()}
                   >
@@ -583,21 +489,6 @@ function AbonnementInner({
           }}
           eyebrow="Nouveau numéro"
           showDelayMs={1200}
-        />
-      ) : null}
-
-      {stripePay && selected && user ? (
-        <StripePaymentModal
-          paymentId={stripePay.paymentId}
-          clientSecret={stripePay.clientSecret}
-          publishableKey={stripePay.publishableKey}
-          amountValue={formatMoney(selected.priceCents, selected.currency)}
-          planName={selected.name}
-          customerName={user.name}
-          customerEmail={user.email}
-          customerPhone={user.phone}
-          onClose={() => setStripePay(null)}
-          onSuccess={onStripeSuccess}
         />
       ) : null}
 

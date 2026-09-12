@@ -8,7 +8,7 @@ import {
 } from "@/lib/api";
 import { CoverImage } from "@/components/site/cover-image";
 import { VideoPlay } from "@/components/site/video-play";
-import { isVideoRubrique } from "@/lib/rubriques";
+import { isVideoArticle } from "@/lib/rubriques";
 
 const BATCH = 8;
 
@@ -112,7 +112,7 @@ export function RubriqueFeed({
       <div className="opt-rubrique__more-layout">
         <div className="opt-rubrique__feed">
           {items.map((item) => (
-            <FeedRow key={item.id} article={item} video={video} />
+            <FeedRow key={item.id} article={item} />
           ))}
 
           {!done ? (
@@ -203,13 +203,10 @@ export function RubriqueFeed({
 
 function FeedRow({
   article,
-  video,
 }: {
   article: PublicArticleCard;
-  video?: boolean;
 }) {
-  const showPlay =
-    video || isVideoRubrique(article.category, article.categoryLabel);
+  const showPlay = isVideoArticle(article);
 
   return (
     <article className="opt-rubrique__feed-row">

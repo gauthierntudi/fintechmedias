@@ -18,7 +18,7 @@ export class HealthController {
 
     return {
       status: database === 'up' ? 'ok' : 'degraded',
-      service: 'studrc-api',
+      service: 'entrevue-api',
       database,
       timestamp: new Date().toISOString(),
     };

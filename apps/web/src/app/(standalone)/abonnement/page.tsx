@@ -44,7 +44,7 @@ async function loadCover(): Promise<{
         title: latest.title,
         coverUrl: latest.coverUrl,
         issueNumber: latest.issueNumber ?? null,
-        theme: latest.theme ?? { bgColor: "#00132b", accentColor: "#0565ab" },
+        theme: latest.theme ?? { bgColor: "#111111", accentColor: "#e42320" },
       };
     }
   } catch {

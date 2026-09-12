@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { FooterContact } from "@/components/site/footer-contact";
 import { FooterRecent } from "@/components/site/footer-recent";
 import { FooterSocial } from "@/components/site/footer-social";
 import { BrandLogo } from "@/components/site/brand-logo";
@@ -13,12 +13,13 @@ const QUICK = [
   ...(SUBSCRIPTIONS_ENABLED
     ? [{ href: "/abonnement", label: "Abonnement" }]
     : []),
-  { href: "/kiosque", label: "STU MAG" },
+  { href: "/kiosque", label: BRAND.magazineName },
   { href: "/actualites", label: "Actualités" },
+  { href: "/contact", label: "Nous contactez" },
 ];
 
 /**
- * Footer presse — identité STUDRC.
+ * Footer presse — identité L'Entrevue.
  */
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -29,7 +30,7 @@ export function SiteFooter() {
         <div className="opt-ft__inner">
           <div className="opt-ft__brand">
             <Link href="/" className="opt-ft__logo">
-              <BrandLogo onDark height={64} />
+              <BrandLogo onDark height={52} />
             </Link>
             <p className="opt-ft__tagline">{BRAND.tagline}</p>
             {SUBSCRIPTIONS_ENABLED ? (
@@ -69,20 +70,7 @@ export function SiteFooter() {
 
           <div className="opt-ft__col">
             <h2 className="opt-ft__heading">Contact</h2>
-            <ul className="opt-ft__contact">
-              <li>
-                <MapPin size={15} strokeWidth={1.75} aria-hidden />
-                <span>{BRAND.address}</span>
-              </li>
-              <li>
-                <Mail size={15} strokeWidth={1.75} aria-hidden />
-                <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
-              </li>
-              <li>
-                <Phone size={15} strokeWidth={1.75} aria-hidden />
-                <a href={`tel:${BRAND.phone.replace(/\s/g, "")}`}>{BRAND.phone}</a>
-              </li>
-            </ul>
+            <FooterContact />
           </div>
         </div>
       </div>

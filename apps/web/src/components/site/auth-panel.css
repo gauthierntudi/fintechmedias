@@ -1,13 +1,13 @@
 /* Auth split — UI type Realnest adapté Opt1mum */
 
 .opt-auth {
-  --opt-a-ink: #0f172a;
+  --opt-a-ink: #111111;
   --opt-a-muted: #94a3b8;
   --opt-a-label: #334155;
   --opt-a-line: #e2e8f0;
-  --opt-a-link: #3b82f6;
-  --opt-a-teal: #0565ab;
-  --opt-a-red: #d63026;
+  --opt-a-link: #e42320;
+  --opt-a-teal: #e42320;
+  --opt-a-red: #e42320;
   --opt-a-field: #fff;
   --opt-a-placeholder: #94a3b8;
   --opt-a-focus: rgba(15, 23, 42, 0.06);
@@ -77,10 +77,9 @@
 
 .opt-auth__brand-logo img {
   display: block;
-  height: 56px;
+  height: 44px;
   width: auto;
   object-fit: contain;
-  filter: brightness(0) invert(1);
 }
 
 .opt-auth__brand-footer {
@@ -91,6 +90,16 @@
   z-index: 2;
   padding: 2.5rem 2rem 2.25rem;
   max-width: 28rem;
+}
+
+.opt-auth__brand-kicker {
+  margin: 0 0 0.55rem;
+  font-family: var(--opt-font-sans);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #e42320;
 }
 
 .opt-auth__brand-title {
@@ -181,26 +190,26 @@
 
 .opt-auth a.opt-auth__badge,
 .opt-auth__badge {
-  background: #ff0c00;
-  border-color: #ff0c00;
+  background: #e42320;
+  border-color: #e42320;
   color: #fff;
 }
 
 .opt-auth a.opt-auth__badge:hover {
-  background: #e00b00;
-  border-color: #e00b00;
+  background: #c21e1b;
+  border-color: #c21e1b;
   color: #fff;
 }
 
 .opt-auth a.opt-auth__cta-sub {
-  background: #0565ab;
-  border-color: #0565ab;
+  background: #e42320;
+  border-color: #e42320;
   color: #fff;
 }
 
 .opt-auth a.opt-auth__cta-sub:hover {
-  background: #045a96;
-  border-color: #045a96;
+  background: #c21e1b;
+  border-color: #c21e1b;
   color: #fff;
 }
 
@@ -218,6 +227,16 @@
 .opt-auth__header {
   text-align: center;
   margin-bottom: 1.85rem;
+}
+
+.opt-auth__kicker {
+  margin: 0 0 0.45rem;
+  font-family: var(--opt-font-sans);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #e42320;
 }
 
 .opt-auth__title {
@@ -554,8 +573,8 @@
   border: 0;
   border-radius: 10px;
   padding: 0.95rem 1.25rem;
-  background: #febb00;
-  color: #00132b;
+  background: #e42320;
+  color: #fff;
   font-family: var(--opt-font-sans);
   font-size: 0.95rem;
   font-weight: 700;
@@ -565,8 +584,8 @@
 }
 
 .opt-auth .auth-submit:hover:not(:disabled) {
-  background: #e0a800;
-  color: #00132b;
+  background: #c21e1b;
+  color: #fff;
   box-shadow: none;
   transform: none;
 }
@@ -575,7 +594,7 @@
 .opt-auth .auth-submit:active,
 .opt-auth .auth-submit:focus:active {
   box-shadow: none;
-  outline: 2px solid #00132b;
+  outline: 2px solid #111111;
   outline-offset: 2px;
 }
 

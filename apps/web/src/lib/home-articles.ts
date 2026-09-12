@@ -2,6 +2,7 @@ import type {
   PublicArticleCard,
   PublicHomeArticles,
 } from "@/lib/api";
+import { isFlagshipRubrique } from "@/lib/rubriques";
 import {
   DEMO_A_NE_PAS_MANQUER_FEATURED,
   DEMO_A_NE_PAS_MANQUER_LIST,
@@ -96,6 +97,8 @@ export function toRubriqueStory(a: PublicArticleCard): RubriqueStory {
     tagTone: tagTone(a.categoryTone),
     videoHlsUrl: a.videoHlsUrl ?? null,
     videoPosterUrl: a.videoPosterUrl ?? null,
+    videoStatus: a.videoStatus,
+    viewCount: a.viewCount,
   };
 }
 
@@ -140,24 +143,25 @@ function pickLatestPerRubrique(
     used.add(id);
     out.push(article);
   }
-  return out.slice(0, 4);
+  return out.slice(0, 5);
 }
 
 export type HomeArticlesView = {
   featured: TopStory[];
   topGrid: TopStory[];
-  stuData: DossierCard[];
+  ecosystemePme: DossierCard[];
+  ecosystemePmeStories: RubriqueStory[];
   filInfo: { id: string | number; slug?: string; titre: string }[];
-  stuNewsFeatured: RubriqueStory;
-  stuNewsGrid: RubriqueStory[];
-  stuStoriesFeatured: RubriqueSplitStory;
-  stuStoriesGrid: RubriqueSplitStory[];
+  entreprendreFeatured: RubriqueStory;
+  entreprendreGrid: RubriqueStory[];
+  rencontreFeatured: RubriqueSplitStory;
+  rencontreGrid: RubriqueSplitStory[];
   plusVusFeatured: RubriqueStory;
   plusVusList: RubriqueStory[];
-  stuTalkFeatured: RubriqueStory;
-  stuTalkGrid: RubriqueStory[];
-  stuMagFeatured: RubriqueSplitStory;
-  stuMagGrid: RubriqueSplitStory[];
+  expertFeatured: RubriqueStory;
+  expertGrid: RubriqueStory[];
+  femmeFeatured: RubriqueSplitStory;
+  femmeGrid: RubriqueStory[];
   aNePasManquerFeatured: RubriqueStory;
   aNePasManquerList: RubriqueStory[];
 };
@@ -165,57 +169,70 @@ export type HomeArticlesView = {
 export function buildHomeArticlesView(
   feed: PublicHomeArticles | null,
 ): HomeArticlesView {
-  const featured = (feed?.featured ?? []).map(toTopStory);
-  const stuData = (feed?.stuData ?? []).map(toDossierCard);
+  const featured = (feed?.featured ?? [])
+    .filter((a) => isFlagshipRubrique(a.category, a.categoryLabel))
+    .map(toTopStory);
+  const ecosystemePmeCards = (feed?.ecosystemePme ?? []).map(toDossierCard);
+  const ecosystemePmeStories = (feed?.ecosystemePme ?? []).map(toRubriqueStory);
   const filInfo = (feed?.filInfo ?? []).map((a) => ({
     id: a.id,
     slug: a.slug,
     titre: a.title,
   }));
-  const stuNews = (feed?.stuNews ?? []).map(toRubriqueStory);
-  const stuStories = (feed?.stuStories ?? []).map(toSplitStory);
+  const entreprendre = (feed?.entreprendre ?? []).map(toRubriqueStory);
+  const rencontre = (feed?.rencontreAvec ?? []).map(toSplitStory);
   const plusVus = (feed?.plusVus ?? []).map(toRubriqueStory);
-  const stuTalk = (feed?.stuTalk ?? []).map(toRubriqueStory);
-  const stuMag = (feed?.stuMag ?? []).map(toSplitStory);
+  const expert = (feed?.expert ?? []).map(toRubriqueStory);
+  const femme = (feed?.femme ?? []).map(toSplitStory);
   const miss = (feed?.aNePasManquer ?? []).map(toRubriqueStory);
 
   const featuredIds = new Set(featured.map((a) => String(a.id)));
 
   return {
-    featured: pick(featured, DEMO_FEATURED, 1),
+    featured: pick(
+      featured,
+      DEMO_FEATURED.filter((s) => isFlagshipRubrique(s.category)),
+      1,
+    ),
     topGrid: pickLatestPerRubrique(
       [
-        (feed?.stuTalk ?? []).map(toTopStory),
-        (feed?.stuStories ?? []).map(toTopStory),
-        (feed?.stuData ?? []).map(toTopStory),
-        (feed?.stuNews ?? []).map(toTopStory),
+        (feed?.expert ?? []).map(toTopStory),
+        (feed?.rencontreAvec ?? []).map(toTopStory),
+        (feed?.entreprendre ?? []).map(toTopStory),
       ],
-      DEMO_TOP_GRID,
+      DEMO_TOP_GRID.filter((s) => isFlagshipRubrique(s.category)),
       featuredIds,
     ),
-    stuData: pick(stuData, DEMO_DOSSIERS, 1),
+    ecosystemePme: pick(ecosystemePmeCards, DEMO_DOSSIERS, 1),
+    ecosystemePmeStories: pick(ecosystemePmeStories, DEMO_DOSSIERS.map((s) => ({
+      ...s,
+      category: "Écosystème PME",
+      author: "L'Entrevue",
+      dateLabel: "",
+      tagTone: "blue" as const,
+    })), 1),
     filInfo: pick(
       filInfo,
       DEMO_FIL_INFO as { id: string | number; slug?: string; titre: string }[],
       1,
     ).slice(0, 5),
-    stuNewsFeatured: pickOne(stuNews, DEMO_STARTUP_FEATURED),
-    stuNewsGrid: pick(stuNews.slice(1), DEMO_STARTUP_GRID, 1),
-    stuStoriesFeatured: pickOne(
-      stuStories,
+    entreprendreFeatured: pickOne(entreprendre, DEMO_STARTUP_FEATURED),
+    entreprendreGrid: pick(entreprendre.slice(1), DEMO_STARTUP_GRID, 1),
+    rencontreFeatured: pickOne(
+      rencontre,
       DEMO_INSPIRATIONNEL_FEATURED,
     ),
-    stuStoriesGrid: pick(
-      stuStories.slice(1),
+    rencontreGrid: pick(
+      rencontre.slice(1),
       DEMO_INSPIRATIONNEL_GRID,
       1,
     ),
     plusVusFeatured: pickOne(plusVus, DEMO_PLUS_VUS_FEATURED),
     plusVusList: pick(plusVus.slice(1), DEMO_PLUS_VUS_LIST, 1).slice(0, 2),
-    stuTalkFeatured: pickOne(stuTalk, DEMO_ZOOM_FEATURED),
-    stuTalkGrid: pick(stuTalk.slice(1), DEMO_ZOOM_GRID, 1),
-    stuMagFeatured: pickOne(stuMag, DEMO_GAME_FEATURED),
-    stuMagGrid: pick(stuMag.slice(1), DEMO_GAME_GRID, 1),
+    expertFeatured: pickOne(expert, DEMO_ZOOM_FEATURED),
+    expertGrid: pick(expert.slice(1), DEMO_ZOOM_GRID, 1),
+    femmeFeatured: pickOne(femme, DEMO_GAME_FEATURED),
+    femmeGrid: pick(femme.slice(1), DEMO_GAME_GRID, 1),
     aNePasManquerFeatured: pickOne(miss, DEMO_A_NE_PAS_MANQUER_FEATURED),
     aNePasManquerList: pick(miss.slice(1), DEMO_A_NE_PAS_MANQUER_LIST, 1).slice(
       0,

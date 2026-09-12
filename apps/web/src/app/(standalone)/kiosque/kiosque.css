@@ -1,6 +1,6 @@
 .opt-kq {
-  --kq-bg: #00132b;
-  --kq-accent: #0565ab;
+  --kq-bg: #111111;
+  --kq-accent: #e42320;
   --kq-on-accent: #062a2b;
   --kq-ink: #f8fafc;
   --kq-muted: color-mix(in srgb, var(--kq-ink) 72%, transparent);
@@ -47,7 +47,6 @@
 .opt-kq__brand img {
   height: 1.85rem;
   width: auto;
-  filter: brightness(0) invert(1);
 }
 
 .opt-kq__bar-spacer {

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
-import { Archivo, Plus_Jakarta_Sans } from "next/font/google";
+import { Familjen_Grotesk } from "next/font/google";
 import { preconnect } from "react-dom";
 import { Providers } from "@/components/providers";
 import { BRAND, BRAND_META_DESCRIPTION } from "@/lib/brand";
@@ -8,19 +8,10 @@ import { getSiteUrl } from "@/lib/site-url";
 import { isSiteTheme, SITE_THEME_KEY } from "@/lib/site-theme";
 import "./globals.css";
 
-/** Corps / UI — sans moderne, lisible presse digitale */
-const fontSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-opt-sans",
-  display: "swap",
-});
-
-/** Titres / display — sans éditoriale un peu plus marquée */
-const fontDisplay = Archivo({
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
-  variable: "--font-opt-display",
+/** Identité typographique L'Entrevue — corps et titres. */
+const fontEntrevue = Familjen_Grotesk({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-familjen",
   display: "swap",
 });
 
@@ -33,7 +24,7 @@ export const metadata: Metadata = {
   description: BRAND_META_DESCRIPTION,
   icons: {
     icon: [
-      { url: BRAND.icon, type: "image/png", sizes: "512x512" },
+            { url: BRAND.icon, type: "image/jpeg", sizes: "512x512" },
     ],
     apple: BRAND.icon,
     shortcut: BRAND.icon,
@@ -73,19 +64,19 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  preconnect("https://cdn.studrc.com", { crossOrigin: "anonymous" });
+  preconnect("https://cdn.entrevue.com", { crossOrigin: "anonymous" });
   const raw = (await cookies()).get(SITE_THEME_KEY)?.value;
   const theme = isSiteTheme(raw) ? raw : "light";
 
   return (
     <html
       lang="fr"
-      className={`${fontSans.variable} ${fontDisplay.variable}`}
+      className={fontEntrevue.variable}
       data-theme={theme}
       style={{ colorScheme: theme }}
       suppressHydrationWarning
     >
-      <body className={fontSans.className} suppressHydrationWarning>
+      <body className={fontEntrevue.className} suppressHydrationWarning>
         <Providers initialTheme={theme}>{children}</Providers>
       </body>
     </html>

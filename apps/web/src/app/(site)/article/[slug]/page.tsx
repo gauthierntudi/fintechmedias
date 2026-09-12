@@ -10,7 +10,7 @@ import {
 import {
   isStoriesRubrique,
   isShortRubrique,
-  isVideoRubrique,
+  isVideoArticle,
   RUBRIQUE_BY_SLUG,
 } from "@/lib/rubriques";
 import { VideoPlay } from "@/components/site/video-play";
@@ -18,6 +18,7 @@ import { HlsPlayer } from "@/components/site/hls-player";
 import { ArticleMagazineFloat } from "./article-magazine-float";
 import "./article.css";
 import { preconnect, preload } from "react-dom";
+import { BRAND } from "@/lib/brand";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const description =
       plainDescription(article.excerpt) ??
       plainDescription(article.content) ??
-      "Article STUDRC";
+      `Article ${BRAND.name}`;
     const image = absoluteMediaUrl(article.coverUrl);
     const url = `${getSiteUrl()}/article/${encodeURIComponent(article.slug)}`;
     const authors = article.author?.name ? [article.author.name] : undefined;
@@ -48,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         type: "article",
         locale: "fr_FR",
-        siteName: "STUDRC",
+        siteName: BRAND.name,
         title,
         description,
         url,
@@ -98,7 +99,7 @@ export default async function ArticlePage({ params }: Props) {
   }
 
   const cover = article.coverUrl;
-  const video = isVideoRubrique(article.category);
+  const video = isVideoArticle(article);
   const hlsUrl =
     article.videoStatus === "READY" && article.videoHlsUrl
       ? article.videoHlsUrl
@@ -278,7 +279,7 @@ export default async function ArticlePage({ params }: Props) {
                   >
                     <span
                       className={`opt-article__more-thumb${
-                        isVideoRubrique(item.category, item.categoryLabel)
+                        isVideoArticle(item)
                           ? " opt-article__more-thumb--video"
                           : ""
                       }`}
@@ -287,7 +288,7 @@ export default async function ArticlePage({ params }: Props) {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={item.coverUrl} alt="" />
                       ) : null}
-                      {isVideoRubrique(item.category, item.categoryLabel) ? (
+                      {isVideoArticle(item) ? (
                         <VideoPlay size={14} className="opt-video-play--xs" />
                       ) : null}
                     </span>

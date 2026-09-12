@@ -288,7 +288,7 @@ export class MagazinesService {
     bgColor: string;
     accentColor: string;
   } {
-    const fallback = { bgColor: '#0d203d', accentColor: '#02d0d1' };
+    const fallback = { bgColor: '#111111', accentColor: '#d63026' };
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return fallback;
     const obj = raw as Record<string, unknown>;
     const bg =

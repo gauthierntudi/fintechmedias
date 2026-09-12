@@ -5,8 +5,8 @@
 }
 
 .opt-hls {
-  --hls-navy: #00132b;
-  --hls-accent: #ff0c00;
+  --hls-navy: #111111;
+  --hls-accent: #e42320;
   --hls-accent-ink: #fff;
   --hls-chrome: #fff;
   position: absolute;
@@ -23,8 +23,8 @@
 }
 
 .opt-hls--gold {
-  --hls-accent: #febb00;
-  --hls-accent-ink: #00132b;
+  --hls-accent: #e42320;
+  --hls-accent-ink: #fff;
 }
 
 .opt-hls:focus-visible {
@@ -102,8 +102,8 @@
   height: 4.75rem;
   margin: 0 auto;
   border-radius: 50%;
-  background: #febb00;
-  color: #111;
+  background: #e42320;
+  color: #fff;
   box-shadow: 0 10px 36px rgba(0, 0, 0, 0.45);
   transition: transform 0.18s ease;
 }
@@ -179,8 +179,8 @@
   width: 4.75rem;
   height: 4.75rem;
   border-radius: 50%;
-  background: #febb00;
-  color: #111;
+  background: #e42320;
+  color: #fff;
 }
 
 .opt-hls__cue {

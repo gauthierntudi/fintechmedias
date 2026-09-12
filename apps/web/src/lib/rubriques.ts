@@ -6,52 +6,59 @@ export type Rubrique = {
   label: string;
   blurb: string;
   tone: RubriqueTone;
-  /** Miniatures + page rubrique au format vidéo. */
+  /** Mise en page 16:9 historique (les articles restent image ou vidéo au cas par cas). */
   format?: "article" | "video";
 };
 
-/** Cinq rubriques STUDRC — navigation, admin et filtres. */
+/** Rubriques du slider « À la une » sur l’accueil. */
+export const FLAGSHIP_RUBRIQUE_SLUGS = [
+  "qu-en-dit-l-expert",
+  "rencontre-avec",
+  "entreprendre",
+] as const;
+
+/** Cinq rubriques L'Entrevue — navigation, admin et filtres. */
 export const RUBRIQUES: readonly Rubrique[] = [
   {
-    slug: "stu-news",
-    href: "/rubrique/stu-news",
-    label: "STU NEWS",
+    slug: "qu-en-dit-l-expert",
+    href: "/rubrique/qu-en-dit-l-expert",
+    label: "Qu'en dit l'expert",
     blurb:
-      "L’actualité éducative en continu : réformes, politiques, initiatives, événements.",
-    tone: "red",
-  },
-  {
-    slug: "stu-data",
-    href: "/rubrique/stu-data",
-    label: "STU DATA",
-    blurb:
-      "Données, statistiques, cartographies et analyses pour comprendre et décider.",
-    tone: "blue",
-  },
-  {
-    slug: "stu-stories",
-    href: "/rubrique/stu-stories",
-    label: "STU STORIES",
-    blurb:
-      "Des visages, des parcours, des écoles et des initiatives qui inspirent.",
-    tone: "gold",
-    format: "video",
-  },
-  {
-    slug: "stu-talk",
-    href: "/rubrique/stu-talk",
-    label: "STU TALK",
-    blurb:
-      "Interviews, débats et paroles d’experts en vidéo — les voix qui font l’école.",
+      "Analyses et paroles d’experts pour éclairer les enjeux du moment.",
     tone: "teal",
     format: "video",
   },
   {
-    slug: "stu-mag",
-    href: "/kiosque",
-    label: "STU MAG",
+    slug: "rencontre-avec",
+    href: "/rubrique/rencontre-avec",
+    label: "Rencontre Avec",
     blurb:
-      "Le magazine numérique bimestriel pour des analyses approfondies.",
+      "Portraits et échanges avec celles et ceux qui font bouger les lignes.",
+    tone: "gold",
+    format: "video",
+  },
+  {
+    slug: "entreprendre",
+    href: "/rubrique/entreprendre",
+    label: "Entreprendre",
+    blurb:
+      "Initiatives, projets et parcours de celles et ceux qui osent.",
+    tone: "red",
+  },
+  {
+    slug: "ecosysteme-pme",
+    href: "/rubrique/ecosysteme-pme",
+    label: "Écosystème PME",
+    blurb:
+      "Le tissu des PME, leurs défis, leurs relais et leurs réussites.",
+    tone: "blue",
+  },
+  {
+    slug: "femme",
+    href: "/rubrique/femme",
+    label: "Femme",
+    blurb:
+      "Voix, parcours et combats des femmes qui transforment leur milieu.",
     tone: "dark",
   },
 ] as const;
@@ -90,8 +97,12 @@ const VIDEO_KEYS = new Set(
     .flatMap((r) => [r.slug, r.label.toLowerCase()]),
 );
 
-/** Anciennes rubriques Opt1mum encore présentes en base / démo. */
+/** Anciennes rubriques encore présentes en base / démo. */
 const VIDEO_ALIASES = new Set([
+  "stu-talk",
+  "stu talk",
+  "stu-stories",
+  "stu stories",
   "inspirationnel",
   "game-changers",
   "game-changer",
@@ -101,12 +112,31 @@ const VIDEO_ALIASES = new Set([
 ]);
 
 const STORIES_KEYS = new Set([
+  "rencontre-avec",
+  "rencontre avec",
   "stu-stories",
   "stu stories",
   "inspirationnel",
 ]);
 
-/** STU TALK / STU STORIES (et leurs alias) — miniatures au format vidéo. */
+const FLAGSHIP_KEYS = new Set([
+  ...FLAGSHIP_RUBRIQUE_SLUGS,
+  "qu'en dit l'expert",
+  "rencontre avec",
+  "entreprendre",
+]);
+
+/** Articles autorisés dans le héros d’accueil. */
+export function isFlagshipRubrique(
+  ...values: Array<string | null | undefined>
+): boolean {
+  return values.some((value) => {
+    if (!value) return false;
+    return FLAGSHIP_KEYS.has(value.trim().toLowerCase());
+  });
+}
+
+/** Rubriques vidéo (et leurs alias) — miniatures au format 16:9. */
 export function isVideoRubrique(
   ...values: Array<string | null | undefined>
 ): boolean {
@@ -115,6 +145,23 @@ export function isVideoRubrique(
     const key = value.trim().toLowerCase();
     return VIDEO_KEYS.has(key) || VIDEO_ALIASES.has(key);
   });
+}
+
+/** Publication vidéo — basée sur le média de l’article, pas sur la rubrique. */
+export function isVideoArticle(
+  article:
+    | {
+        videoStatus?: string | null;
+        videoHlsUrl?: string | null;
+        videoSourceKey?: string | null;
+      }
+    | null
+    | undefined,
+): boolean {
+  if (!article) return false;
+  if (article.videoHlsUrl || article.videoSourceKey) return true;
+  const status = article.videoStatus;
+  return Boolean(status && status !== "NONE");
 }
 
 /** SHORT — formats verticaux, app mobile seulement. */
@@ -128,7 +175,7 @@ export function isShortRubrique(
   });
 }
 
-/** STU STORIES — pastille or, lecteur 16:9. */
+/** Rencontre Avec — pastille or, lecteur 16:9. */
 export function isStoriesRubrique(
   ...values: Array<string | null | undefined>
 ): boolean {

@@ -44,8 +44,24 @@
 
 /* —— Top stories —— */
 .opt-home-skel__top {
-  padding: 1.6rem 1.5rem 2.15rem;
-  background: #eef6fc;
+  padding: 0;
+  background: #111111;
+}
+
+.opt-home-skel__hero {
+  min-height: min(86vh, 820px);
+  height: calc(100svh - 7.25rem);
+  max-height: 920px;
+  display: flex;
+  align-items: center;
+  padding: 4.5rem max(1.5rem, calc((100vw - 1180px) / 2)) 8.5rem;
+  background: linear-gradient(180deg, #1a1a1a 0%, #111111 100%);
+}
+
+.opt-home-skel__hero-copy {
+  width: min(38rem, 100%);
+  display: grid;
+  gap: 0.85rem;
 }
 
 .opt-home-skel__featured-media {

@@ -15,7 +15,7 @@ import {
   articlesPublicApi,
   type PublicArticleCard,
 } from "@/lib/api";
-import { isVideoRubrique } from "@/lib/rubriques";
+import { isVideoArticle } from "@/lib/rubriques";
 import { VideoPlay } from "@/components/site/video-play";
 
 const ICON = { size: 18, strokeWidth: 1.75 } as const;
@@ -235,7 +235,7 @@ export function HeaderLiveSearch({ variant, onNavigate }: Props) {
                           e.currentTarget.src = COVER_FALLBACK;
                         }}
                       />
-                      {isVideoRubrique(item.category, item.categoryLabel) ? (
+                      {isVideoArticle(item) ? (
                         <VideoPlay size={12} className="opt-video-play--xs" />
                       ) : null}
                     </span>

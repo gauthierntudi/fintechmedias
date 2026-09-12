@@ -22,8 +22,6 @@ function RetourInner() {
   const params = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const paymentId = params.get("payment");
-  const sessionId = params.get("session_id");
-  const paymentIntentId = params.get("payment_intent");
 
   const [payment, setPayment] = useState<PublicPayment | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,14 +52,7 @@ function RetourInner() {
     let cancelled = false;
     void (async () => {
       try {
-        let p: PublicPayment;
-        if (paymentIntentId) {
-          p = await paymentsApi.confirmStripe(paymentId, { paymentIntentId });
-        } else if (sessionId) {
-          p = await paymentsApi.confirmStripe(paymentId, { sessionId });
-        } else {
-          p = await paymentsApi.get(paymentId);
-        }
+        const p = await paymentsApi.get(paymentId);
         if (cancelled) return;
         setPayment(p);
         if (p.status === "SUCCESS") setPhase("ok");
@@ -77,7 +68,7 @@ function RetourInner() {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, user, paymentId, sessionId, paymentIntentId, router, params]);
+  }, [authLoading, user, paymentId, router, params]);
 
   // Poll si encore pending (webhook lent)
   useEffect(() => {
@@ -110,7 +101,7 @@ function RetourInner() {
             <>
               <CheckCircle2
                 size={48}
-                color="#0565ab"
+                color="#e42320"
                 strokeWidth={1.75}
                 aria-hidden
               />
@@ -148,7 +139,7 @@ function RetourInner() {
 
           {phase === "fail" ? (
             <>
-              <XCircle size={48} color="#d63026" strokeWidth={1.75} aria-hidden />
+              <XCircle size={48} color="#e42320" strokeWidth={1.75} aria-hidden />
               <h1 style={{ fontFamily: "var(--abo-display)", marginTop: "0.75rem" }}>
                 Paiement non confirmé
               </h1>

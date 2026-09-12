@@ -5,8 +5,8 @@
   --opt-k-muted: #6b6b6b;
   --opt-k-line: #e8e8e8;
   --opt-k-soft: #f6f6f6;
-  --opt-k-red: #d63026;
-  --opt-k-teal: #0565ab;
+  --opt-k-red: #e42320;
+  --opt-k-teal: #e42320;
 
   background:
     linear-gradient(180deg, #fff 0%, var(--opt-k-soft) 48%, #fff 100%);
@@ -47,7 +47,7 @@
 
 .opt-kiosque a.opt-kiosque__logo-link {
   display: inline-block;
-  color: #ff0c00;
+  color: #e42320;
   text-decoration: none;
 }
 
@@ -178,7 +178,7 @@
 
 .opt-kiosque__cover-wrap--video {
   border-radius: 10px;
-  background: #00132b;
+  background: #111111;
 }
 
 .opt-kiosque__hover {
@@ -201,7 +201,7 @@
   object-position: center;
   opacity: 0;
   transition: opacity 0.28s ease;
-  background: #00132b;
+  background: #111111;
 }
 
 .opt-kiosque__hover.is-on .opt-kiosque__hover-video {
@@ -311,13 +311,13 @@
 }
 
 .opt-kiosque__btn--teal {
-  background: #fabb05;
-  color: var(--studrc-navy, #00132b) !important;
+  background: #e42320;
+  color: #fff !important;
 }
 
 .opt-kiosque__btn--teal:hover {
-  background: #e0a800;
-  color: var(--studrc-navy, #00132b) !important;
+  background: #c21e1b;
+  color: #fff !important;
 }
 
 @media (max-width: 991px) {

@@ -12,6 +12,7 @@ import {
   type AdminDashboardStats,
 } from "@/lib/api";
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
+import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 const PURPOSE_LABEL: Record<string, string> = {
@@ -20,8 +21,8 @@ const PURPOSE_LABEL: Record<string, string> = {
 };
 
 const PURPOSE_COLOR: Record<string, string> = {
-  SUBSCRIPTION: "#0565ab",
-  PURCHASE: "#5b7cfa",
+  SUBSCRIPTION: "#e42320",
+  PURCHASE: "#111111",
 };
 
 function formatMoney(cents: number, currency = "USD"): string {
@@ -124,7 +125,7 @@ export default function AdminHomePage() {
         <div>
           <h1>Tableau de bord</h1>
           <p>
-            Pilotage STUDRC — abonnés, magazines et paiements
+            Pilotage {BRAND.name} — abonnés, magazines et paiements
             {admin?.name ? ` · ${admin.name}` : ""}.
           </p>
         </div>
@@ -156,7 +157,7 @@ export default function AdminHomePage() {
         <AdminBarChart
           title="Volume payé (14 jours)"
           points={volumePoints}
-          color="#0565ab"
+          color="#e42320"
           currency="USD"
         />
         <AdminDonutChart

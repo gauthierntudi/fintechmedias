@@ -1,6 +1,6 @@
 export type SiteTheme = "light" | "dark";
 
-export const SITE_THEME_KEY = "studrc-site-theme";
+export const SITE_THEME_KEY = "entrevue-site-theme";
 
 export function isSiteTheme(value: string | null | undefined): value is SiteTheme {
   return value === "light" || value === "dark";

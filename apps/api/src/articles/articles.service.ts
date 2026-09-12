@@ -34,7 +34,6 @@ import {
   SHORT_CATEGORY_SLUG,
   categoryDisplay,
   categoryQuerySlugs,
-  isVideoCategory,
   resolveCategorySlug,
 } from './categories';
 
@@ -214,16 +213,26 @@ export class ArticlesService {
     const [
       featured,
       recent,
-      stuData,
-      stuNews,
-      stuStories,
-      stuTalk,
-      stuMag,
+      ecosystemePme,
+      entreprendre,
+      rencontreAvec,
+      expert,
+      femme,
       plusVus,
       aNePasManquer,
     ] = await Promise.all([
       this.prisma.article.findMany({
-        where: { ...published, isFeatured: true },
+        where: {
+          ...published,
+          isFeatured: true,
+          category: {
+            in: [
+              ...categoryQuerySlugs('qu-en-dit-l-expert'),
+              ...categoryQuerySlugs('rencontre-avec'),
+              ...categoryQuerySlugs('entreprendre'),
+            ],
+          },
+        },
         orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
         take: 3,
         select: this.publicCardSelect,
@@ -234,11 +243,11 @@ export class ArticlesService {
         take: 16,
         select: this.publicCardSelect,
       }),
-      this.byCategory('stu-data', 4),
-      this.byCategory('stu-news', 5),
-      this.byCategory('stu-stories', 4),
-      this.byCategory('stu-talk', 5),
-      this.byCategory('stu-mag', 4),
+      this.byCategory('ecosysteme-pme', 10),
+      this.byCategory('entreprendre', 5),
+      this.byCategory('rencontre-avec', 4),
+      this.byCategory('qu-en-dit-l-expert', 5),
+      this.byCategory('femme', 5),
       this.prisma.article.findMany({
         where: published,
         orderBy: [{ viewCount: 'desc' }, { publishedAt: 'desc' }],
@@ -250,9 +259,10 @@ export class ArticlesService {
           ...published,
           category: {
             in: [
-              ...categoryQuerySlugs('stu-talk'),
-              ...categoryQuerySlugs('stu-stories'),
-              ...categoryQuerySlugs('stu-news'),
+              ...categoryQuerySlugs('qu-en-dit-l-expert'),
+              ...categoryQuerySlugs('rencontre-avec'),
+              ...categoryQuerySlugs('entreprendre'),
+              ...categoryQuerySlugs('femme'),
             ],
           },
         },
@@ -265,7 +275,7 @@ export class ArticlesService {
     const featuredIds = new Set(featured.map((a) => a.id));
     const used = new Set(featuredIds);
     const topGrid: typeof recent = [];
-    for (const list of [stuTalk, stuStories, stuData, stuNews]) {
+    for (const list of [expert, rencontreAvec, entreprendre]) {
       const article = list.find((a) => !used.has(a.id)) ?? list[0];
       if (!article) continue;
       if (topGrid.some((row) => row.id === article.id)) continue;
@@ -277,12 +287,12 @@ export class ArticlesService {
     return {
       featured: featured.map((a) => this.toPublicCard(a)),
       topGrid: topGrid.map((a) => this.toPublicCard(a)),
-      stuData: stuData.map((a) => this.toPublicCard(a)),
+      ecosystemePme: ecosystemePme.map((a) => this.toPublicCard(a)),
       filInfo: filInfo.map((a) => this.toPublicCard(a)),
-      stuNews: stuNews.map((a) => this.toPublicCard(a)),
-      stuStories: stuStories.map((a) => this.toPublicCard(a)),
-      stuTalk: stuTalk.map((a) => this.toPublicCard(a)),
-      stuMag: stuMag.map((a) => this.toPublicCard(a)),
+      entreprendre: entreprendre.map((a) => this.toPublicCard(a)),
+      rencontreAvec: rencontreAvec.map((a) => this.toPublicCard(a)),
+      expert: expert.map((a) => this.toPublicCard(a)),
+      femme: femme.map((a) => this.toPublicCard(a)),
       plusVus: plusVus.map((a) => this.toPublicCard(a)),
       aNePasManquer: aNePasManquer.map((a) => this.toPublicCard(a)),
     };
@@ -584,7 +594,7 @@ export class ArticlesService {
       category: article.category,
       categoryLabel: meta.label,
       categoryTone: meta.tone,
-      authorName: article.author?.name?.trim() || 'STUDRC',
+      authorName: article.author?.name?.trim() || "L'Entrevue",
       publishedAt: article.publishedAt?.toISOString() ?? null,
       dateLabel: new Intl.DateTimeFormat('fr-FR', {
         day: 'numeric',
@@ -902,11 +912,6 @@ export class ArticlesService {
       select: { id: true, category: true },
     });
     if (!article) throw new NotFoundException('Article introuvable');
-    if (!isVideoCategory(article.category)) {
-      throw new BadRequestException(
-        'La vidéo est réservée aux rubriques STU TALK, STU STORIES et SHORT',
-      );
-    }
     if (dto.size > ARTICLE_VIDEO_MAX_BYTES) {
       throw new BadRequestException('La vidéo dépasse 500 Mo');
     }
@@ -947,11 +952,6 @@ export class ArticlesService {
       select: { id: true, category: true },
     });
     if (!article) throw new NotFoundException('Article introuvable');
-    if (!isVideoCategory(article.category)) {
-      throw new BadRequestException(
-        'La vidéo est réservée aux rubriques STU TALK, STU STORIES et SHORT',
-      );
-    }
 
     const key = dto.key.replace(/^\//, '');
     const prefix = videoSourcePrefix(id);
@@ -1042,6 +1042,37 @@ export class ArticlesService {
     });
 
     return this.getById(id);
+  }
+
+  async clearVideo(id: string, actorId: string) {
+    const article = await this.prisma.article.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!article) throw new NotFoundException('Article introuvable');
+
+    const updated = await this.prisma.article.update({
+      where: { id },
+      data: {
+        videoSourceKey: null,
+        videoHlsKey: null,
+        videoPosterKey: null,
+        videoStatus: VideoStatus.NONE,
+        videoError: null,
+        videoDurationSec: null,
+      },
+      select: ARTICLE_SELECT,
+    });
+
+    void this.activity.log({
+      actorType: ActivityActorType.ADMIN,
+      adminId: actorId,
+      action: 'article_video_cleared',
+      entity: 'article',
+      entityId: id,
+    });
+
+    return this.toAdmin(updated);
   }
 
   async uploadBlockCover(
@@ -1354,7 +1385,7 @@ export class ArticlesService {
     bgColor: string;
     accentColor: string;
   } {
-    const fallback = { bgColor: '#0d203d', accentColor: '#02d0d1' };
+    const fallback = { bgColor: '#111111', accentColor: '#d63026' };
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return fallback;
     const obj = raw as Record<string, unknown>;
     const bg =

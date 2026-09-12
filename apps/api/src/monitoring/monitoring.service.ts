@@ -142,10 +142,10 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
         return { sent: false, reason: 'no-superadmins' };
       }
 
-      const subject = `[STUDRC] Monitoring — ${snap.overall.toUpperCase()}`;
+      const subject = `[ENTREVUE] Monitoring — ${snap.overall.toUpperCase()}`;
       const html = this.mail.wrap({
         title: `Monitoring — ${snap.overall.toUpperCase()}`,
-        preheader: issues[0] ?? 'Alerte infrastructure STUDRC',
+        preheader: issues[0] ?? 'Alerte infrastructure ENTREVUE',
         bodyHtml: this.buildAlertHtml(snap, issues),
       });
       for (const admin of supers) {
@@ -211,7 +211,7 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
 
   private buildAlertHtml(snap: MonitoringSnapshot, issues: string[]): string {
     const appUrl = (
-      this.config.get<string>('APP_URL') ?? 'https://studrc.com'
+      this.config.get<string>('APP_URL') ?? 'https://lentrevuemag.com'
     ).replace(/\/$/, '');
     const rows = issues
       .map(
@@ -228,9 +228,9 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
       </table>
       <table role="presentation" cellpadding="0" cellspacing="0">
         <tr>
-          <td style="border-radius:10px;background:#fdbd01;">
+          <td style="border-radius:10px;background:#d63026;">
             <a href="${escapeHtml(appUrl)}/admin/monitoring"
-               style="display:inline-block;padding:13px 22px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:#00132b;text-decoration:none;">
+               style="display:inline-block;padding:13px 22px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;">
               Ouvrir le monitoring
             </a>
           </td>
@@ -573,7 +573,7 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
         method: 'GET',
         redirect: 'follow',
         signal: controller.signal,
-        headers: { 'User-Agent': 'STUDRC-Monitoring/1.0' },
+        headers: { 'User-Agent': 'ENTREVUE-Monitoring/1.0' },
       });
       const ok = okStatuses.includes(res.status);
       return {

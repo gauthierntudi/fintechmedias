@@ -8,32 +8,32 @@ export const SOCIAL_NETWORK_META: Record<
   facebook: {
     label: "Facebook",
     tone: "#1877f2",
-    placeholder: "https://facebook.com/studrc",
+    placeholder: "https://facebook.com/entrevue",
   },
   twitter: {
     label: "X / Twitter",
     tone: "#111111",
-    placeholder: "https://x.com/studrc",
+    placeholder: "https://x.com/entrevue",
   },
   instagram: {
     label: "Instagram",
     tone: "#e1306c",
-    placeholder: "https://instagram.com/studrc",
+    placeholder: "https://instagram.com/entrevue",
   },
   linkedin: {
     label: "LinkedIn",
     tone: "#0a66c2",
-    placeholder: "https://linkedin.com/company/studrc",
+    placeholder: "https://linkedin.com/company/entrevue",
   },
   youtube: {
     label: "YouTube",
     tone: "#ff0000",
-    placeholder: "https://youtube.com/@studrc",
+    placeholder: "https://youtube.com/@entrevue",
   },
   tiktok: {
     label: "TikTok",
     tone: "#111111",
-    placeholder: "https://tiktok.com/@studrc",
+    placeholder: "https://tiktok.com/@entrevue",
   },
   whatsapp: {
     label: "WhatsApp",
@@ -48,11 +48,11 @@ export const SOCIAL_NETWORK_META: Record<
   threads: {
     label: "Threads",
     tone: "#111111",
-    placeholder: "https://threads.net/@studrc",
+    placeholder: "https://threads.net/@entrevue",
   },
   other: {
     label: "Autre",
-    tone: "#0565ab",
+    tone: "#e42320",
     placeholder: "https://…",
   },
 };

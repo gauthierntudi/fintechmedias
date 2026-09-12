@@ -43,7 +43,7 @@ function MagazineCard({
     <Link href={magazineHref(mag.id)} className="opt-rsplit__mag">
       <span className="opt-rsplit__mag-cover">
         <CoverImage src={mag.cover} />
-        <span className="opt-rsplit__mag-badge">STU MAG</span>
+        <span className="opt-rsplit__mag-badge">L&apos;Entrevue</span>
         {latest ? (
           <span className="opt-rsplit__mag-tag">Nouveau</span>
         ) : null}
@@ -64,10 +64,10 @@ function MagazineCard({
 }
 
 /**
- * Rayon STU MAG — couvertures magazine (3:4) dans la colonne principale.
+ * Rayon L'Entrevue — couvertures magazine (3:4) dans la colonne principale.
  */
 export function HomeRubriqueSplit({
-  title = "STU MAG",
+  title = "L'Entrevue",
   href = "/kiosque",
   accentClass,
   moreLabel = "Tous les numéros",

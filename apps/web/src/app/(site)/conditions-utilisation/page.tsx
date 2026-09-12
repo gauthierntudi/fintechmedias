@@ -7,7 +7,7 @@ import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
 export const metadata: Metadata = {
   title: "Conditions d'utilisation",
   description:
-    "Conditions générales d’utilisation du site et des services STUDRC.",
+    "Conditions générales d’utilisation du site et des services Entrevue.",
 };
 
 export default function ConditionsUtilisationPage() {
@@ -34,7 +34,7 @@ export default function ConditionsUtilisationPage() {
       <ul>
         <li>la lecture d’articles et de contenus éditoriaux&nbsp;;</li>
         <li>
-          le kiosque STU MAG : magazines gratuits et magazines payants à
+          le kiosque {BRAND.magazineName} : magazines gratuits et magazines payants à
           l’unité&nbsp;;
         </li>
         {SUBSCRIPTIONS_ENABLED ? (
@@ -98,13 +98,11 @@ export default function ConditionsUtilisationPage() {
       </ul>
 
       <h2 id="paiements">4. Paiements</h2>
-      <p>Les paiements peuvent passer par :</p>
+      <p>Les paiements passent par :</p>
       <ul>
         <li>
-          <strong>Carte bancaire</strong> — Stripe&nbsp;;
-        </li>
-        <li>
-          <strong>Mobile Money</strong> — FlexPaie / FlexPay.
+          <strong>Mobile Money</strong> — FlexPaie / FlexPay (Airtel, Orange,
+          M-Pesa, etc.).
         </li>
       </ul>
       <p>

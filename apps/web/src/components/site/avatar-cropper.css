@@ -1,10 +1,10 @@
 .opt-crop {
   --opt-crop-panel: var(--snow-elevated, var(--site-card, #ffffff));
-  --opt-crop-text: var(--snow-text, var(--site-ink, #00132b));
+  --opt-crop-text: var(--snow-text, var(--site-ink, #111111));
   --opt-crop-muted: var(--snow-muted, var(--site-muted, #6c757d));
   --opt-crop-line: var(--snow-line, var(--site-line, rgba(13, 32, 61, 0.12)));
-  --opt-crop-teal: var(--snow-teal, #0565ab);
-  --opt-crop-navy: #00132b;
+  --opt-crop-teal: var(--snow-teal, #e42320);
+  --opt-crop-navy: #111111;
   --opt-crop-backdrop: rgba(0, 0, 0, 0.58);
   --opt-crop-shadow: 0 24px 64px rgba(0, 0, 0, 0.32);
 

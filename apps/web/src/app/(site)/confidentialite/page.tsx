@@ -7,7 +7,7 @@ import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
 export const metadata: Metadata = {
   title: "Politique de confidentialité",
   description:
-    "Comment STUDRC collecte, utilise et protège vos données personnelles.",
+    "Comment Entrevue collecte, utilise et protège vos données personnelles.",
 };
 
 export default function ConfidentialitePage() {
@@ -57,9 +57,8 @@ export default function ConfidentialitePage() {
         </li>
         <li>
           <strong>Paiements</strong> : références de transaction, montants,
-          devise, statut, canal (carte via Stripe ou Mobile Money via FlexPaie).
-          Les données de carte sont traitées par Stripe ; nous ne stockons pas
-          le numéro complet de votre carte.
+          devise, statut, canal (Mobile Money via FlexPaie). Nous ne collectons
+          pas de données de carte bancaire.
         </li>
         <li>
           <strong>Achats{SUBSCRIPTIONS_ENABLED ? " et abonnements" : ""}</strong>{" "}
@@ -135,9 +134,6 @@ export default function ConfidentialitePage() {
         Elles peuvent être traitées pour notre compte par :
       </p>
       <ul>
-        <li>
-          <strong>Stripe</strong> — paiements par carte&nbsp;;
-        </li>
         <li>
           <strong>FlexPaie / FlexPay</strong> — paiements Mobile Money&nbsp;;
         </li>
@@ -218,7 +214,7 @@ export default function ConfidentialitePage() {
       <h2 id="cookies">10. Cookies</h2>
       <p>
         Le site utilise des cookies strictement nécessaires à la connexion et à
-        la session. Cloudflare Turnstile, Google Sign-In et Stripe peuvent
+        la session. Cloudflare Turnstile et Google Sign-In peuvent
         déposer leurs propres cookies selon leur configuration. Refuser certains
         cookies dans le navigateur peut limiter l’accès aux espaces connectés.
       </p>

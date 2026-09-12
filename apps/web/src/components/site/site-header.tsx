@@ -22,24 +22,25 @@ import { EmailVerifyBanner } from "./email-verify-banner";
 import { HeaderLiveSearch } from "./header-live-search";
 import { BrandLogo } from "./brand-logo";
 import { ThemeToggle } from "./theme-toggle";
+import { BRAND } from "@/lib/brand";
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
 import { RUBRIQUES } from "@/lib/rubriques";
 import "./site-header.css";
 
 const ICON = { size: 18, strokeWidth: 1.75 } as const;
 
-const NAV_PRIMARY = RUBRIQUES.filter((r) => r.slug !== "stu-mag").map((r) => ({
+const NAV_PRIMARY = RUBRIQUES.map((r) => ({
   href: r.href,
   label: r.label,
 }));
 
 const FEATURED = {
-  href: "/kiosque",
-  label: "Nouveau numéro STU MAG",
+  href: "/contact",
+  label: "Nous contactez",
 };
 
 /**
- * Header presse — identité STUDRC, logo centré, CTA abonnement.
+ * Header presse — identité L'Entrevue, logo centré, CTA abonnement.
  */
 export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
   const router = useRouter();
@@ -207,8 +208,8 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
             <HeaderLiveSearch variant="header" />
           </div>
 
-          <Link href="/" className="opt-header__brand" aria-label="STUDRC — Accueil">
-            <BrandLogo height={52} />
+          <Link href="/" className="opt-header__brand" aria-label={`${BRAND.name} — Accueil`}>
+            <BrandLogo height={42} />
           </Link>
 
           <div className="opt-header__side opt-header__side--right">
@@ -218,7 +219,7 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
 
             <Link href="/kiosque" className="opt-header__action">
               <BookOpen {...ICON} aria-hidden />
-              <span>STU MAG</span>
+              <span>{BRAND.magazineName}</span>
             </Link>
 
             <span className="opt-header__vsep" aria-hidden />
@@ -400,6 +401,11 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link href={FEATURED.href} onClick={() => setMenuOpen(false)}>
+                {FEATURED.label}
+              </Link>
+            </li>
           </ul>
 
           <div className="opt-menu__actions">

@@ -95,8 +95,6 @@ function formatMoney(cents: number, currency: string) {
 
 function providerLabel(provider: string) {
   switch (provider) {
-    case "STRIPE":
-      return "Carte";
     case "FLEXPAIE":
       return "Mobile Money";
     case "LEGACY":
@@ -336,7 +334,6 @@ export default function HistoriquePage() {
               }
             >
               <option value="">Tous les moyens</option>
-              <option value="STRIPE">Carte</option>
               <option value="FLEXPAIE">Mobile Money</option>
               <option value="LEGACY">Legacy</option>
             </select>

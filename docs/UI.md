@@ -38,7 +38,7 @@ Couleurs exactes : CTA `#02d0d1`, copyright `#e9262a`, bandeau header `banner-he
 
 | Legacy | React |
 |--------|--------|
-| Topbar dégradé `#021762 → #037d95` | `components/admin/admin-shell.tsx` |
+| Topbar dégradé `#111111 → #d63026` | `components/admin/admin-shell.tsx` |
 | Sidebar blanche Material Pro | idem |
 
 ## Non porté (pour l’instant)
@@ -53,7 +53,7 @@ Sans empattements Google via `next/font` :
 
 | Rôle | Police |
 |------|--------|
-| UI / corps | **Plus Jakarta Sans** |
-| Titres / display | **Archivo** |
+| UI / corps | **Familjen Grotesk** |
+| Titres / display | **Familjen Grotesk** |
 
 Variables : `--opt-font-sans`, `--opt-font-display`. Les alias Kelson legacy sont remappés vers cette stack (ok).

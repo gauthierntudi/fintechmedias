@@ -11,6 +11,7 @@ import { HealthModule } from './health/health.module';
 import { LibraryModule } from './library/library.module';
 import { MagazinesModule } from './magazines/magazines.module';
 import { MailModule } from './mail/mail.module';
+import { ContactModule } from './contact/contact.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { SettingsModule } from './settings/settings.module';
@@ -43,6 +44,7 @@ if (existsSync(envRoot)) loadEnv({ path: envRoot, override: true });
     SubscribersModule,
     PaymentsModule,
     NewsletterModule,
+    ContactModule,
     SettingsModule,
     MonitoringModule,
   ],

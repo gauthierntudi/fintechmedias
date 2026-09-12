@@ -13,7 +13,7 @@ import {
   articlesPublicApi,
   type PublicArticleCard,
 } from "@/lib/api";
-import { SEARCH_FILTERS, isVideoRubrique } from "@/lib/rubriques";
+import { SEARCH_FILTERS, isVideoArticle } from "@/lib/rubriques";
 import { VideoPlay } from "@/components/site/video-play";
 import "./recherche.css";
 
@@ -228,9 +228,7 @@ function RechercheInner() {
                     >
                       <span
                         className={`opt-search__cover${
-                          isVideoRubrique(item.category, item.categoryLabel)
-                            ? " opt-search__cover--video"
-                            : ""
+                          isVideoArticle(item) ? " opt-search__cover--video" : ""
                         }`}
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -242,7 +240,7 @@ function RechercheInner() {
                             e.currentTarget.src = COVER_FALLBACK;
                           }}
                         />
-                        {isVideoRubrique(item.category, item.categoryLabel) ? (
+                        {isVideoArticle(item) ? (
                           <VideoPlay size={18} className="opt-video-play--sm" />
                         ) : null}
                       </span>

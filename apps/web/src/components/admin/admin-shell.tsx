@@ -8,6 +8,7 @@ import {
   History,
   LayoutDashboard,
   LogOut,
+  Inbox,
   Mail,
   Menu,
   Moon,
@@ -45,6 +46,7 @@ const PAGE_LABEL: Record<string, string> = {
   "/admin/paiements": "Historique paiements",
   "/admin/abonnes": "Abonnés",
   "/admin/newsletter": "Newsletter",
+  "/admin/contact": "Contact",
   "/admin/reseaux": "Réseaux sociaux",
   "/admin/actualites": "Actualités",
   "/admin/publicite": "Publicité",
@@ -141,6 +143,7 @@ export function AdminShell({
     { href: "/admin/paiements", label: "Historique paiements", icon: History },
     { href: "/admin/abonnes", label: "Abonnés", icon: Users },
     { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
+    { href: "/admin/contact", label: "Contact", icon: Inbox },
     { href: "/admin/reseaux", label: "Réseaux sociaux", icon: Share2 },
     { href: "/admin/actualites", label: "Actualités", icon: Newspaper },
     ...(isSuperAdmin

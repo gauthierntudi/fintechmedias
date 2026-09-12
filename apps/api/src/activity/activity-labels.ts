@@ -40,7 +40,7 @@ export const ACTIVITY_LABELS: Record<string, string> = {
   payment_forced_success: 'Paiement forcé (assistance)',
   payment_status_updated: 'Statut paiement modifié',
   payment_status_otp_sent: 'OTP confirmation paiement envoyé',
-  payment_checkout_started: 'Checkout Stripe démarré',
+  payment_checkout_started: 'Paiement démarré',
   payment_flexpaie_started: 'Paiement FlexPaie démarré',
   subscription_activated: 'Abonnement activé',
   subscription_updated: 'Abonnement modifié',

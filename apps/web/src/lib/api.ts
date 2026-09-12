@@ -4,7 +4,7 @@ import { ARTICLE_CATEGORY_OPTIONS } from "@/lib/rubriques";
 /**
  * Côté navigateur : URL publique (NEXT_PUBLIC_*).
  * Côté serveur (SSR Docker) : préférer API_INTERNAL_URL (ex. http://api:3001)
- * pour éviter le hairpin NAT vers api.studrc.com.
+ * pour éviter le hairpin NAT vers api.entrevue.com.
  */
 const API_URL =
   (typeof window === "undefined"
@@ -1156,6 +1156,20 @@ export const newsletterPublicApi = {
   },
 };
 
+export const contactPublicApi = {
+  send(body: {
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+  }) {
+    return apiFetch<{ ok: true; message: string }>("/contact", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+};
+
 export type AdminNewsletterItem = {
   id: string;
   email: string;
@@ -1231,9 +1245,19 @@ export type SiteSocialSettings = {
   updatedAt: string;
 };
 
+export type SiteContactSettings = {
+  address: string;
+  email: string;
+  phone: string;
+  updatedAt: string;
+};
+
 export const settingsPublicApi = {
   social() {
     return apiFetch<SiteSocialSettings>("/settings/social");
+  },
+  contact() {
+    return apiFetch<SiteContactSettings>("/settings/contact");
   },
 };
 
@@ -1247,6 +1271,68 @@ export const adminSettingsApi = {
       method: "PATCH",
       body: JSON.stringify(body),
     });
+  },
+
+  getContact() {
+    return apiFetch<SiteContactSettings>("/admin/settings/contact");
+  },
+
+  updateContact(body: { address: string; email: string; phone: string }) {
+    return apiFetch<SiteContactSettings>("/admin/settings/contact", {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+  },
+};
+
+export type AdminContactMessage = {
+  id: string;
+  name: string;
+  email: string;
+  subject: string | null;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+};
+
+export type AdminContactListResponse = {
+  items: AdminContactMessage[];
+  total: number;
+  take: number;
+  skip: number;
+  summary: { total: number; unread: number };
+};
+
+export const adminContactApi = {
+  list(params?: {
+    q?: string;
+    read?: string;
+    take?: number;
+    skip?: number;
+  }) {
+    const qs = new URLSearchParams();
+    if (params?.q) qs.set("q", params.q);
+    if (params?.read) qs.set("read", params.read);
+    if (params?.take != null) qs.set("take", String(params.take));
+    if (params?.skip != null) qs.set("skip", String(params.skip));
+    const suffix = qs.toString() ? `?${qs}` : "";
+    return apiFetch<AdminContactListResponse>(`/admin/contact${suffix}`);
+  },
+
+  get(id: string) {
+    return apiFetch<AdminContactMessage>(
+      `/admin/contact/${encodeURIComponent(id)}`,
+    );
+  },
+
+  setRead(id: string, isRead: boolean) {
+    return apiFetch<AdminContactMessage>(
+      `/admin/contact/${encodeURIComponent(id)}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ isRead }),
+      },
+    );
   },
 };
 
@@ -1423,12 +1509,12 @@ export type PublicCategoryFeed = {
 export type PublicHomeArticles = {
   featured: PublicArticleCard[];
   topGrid: PublicArticleCard[];
-  stuData: PublicArticleCard[];
+  ecosystemePme: PublicArticleCard[];
   filInfo: PublicArticleCard[];
-  stuNews: PublicArticleCard[];
-  stuStories: PublicArticleCard[];
-  stuTalk: PublicArticleCard[];
-  stuMag: PublicArticleCard[];
+  entreprendre: PublicArticleCard[];
+  rencontreAvec: PublicArticleCard[];
+  expert: PublicArticleCard[];
+  femme: PublicArticleCard[];
   plusVus: PublicArticleCard[];
   aNePasManquer: PublicArticleCard[];
 };
@@ -1539,42 +1625,6 @@ export type MagazineReadSession = {
 };
 
 export const paymentsApi = {
-  createStripeCheckout(planId: string) {
-    return apiFetch<{
-      paymentId: string;
-      clientSecret: string;
-      publishableKey: string | null;
-    }>("/payments/stripe/create", {
-      method: "POST",
-      body: JSON.stringify({ planId }),
-    });
-  },
-
-  createStripePurchase(magazineId: string) {
-    return apiFetch<{
-      paymentId: string;
-      clientSecret: string;
-      publishableKey: string | null;
-    }>("/payments/stripe/purchase", {
-      method: "POST",
-      body: JSON.stringify({ magazineId }),
-    });
-  },
-
-  confirmStripe(
-    paymentId: string,
-    opts: { paymentIntentId?: string; sessionId?: string },
-  ) {
-    return apiFetch<PublicPayment>("/payments/stripe/confirm", {
-      method: "POST",
-      body: JSON.stringify({
-        paymentId,
-        paymentIntentId: opts.paymentIntentId,
-        sessionId: opts.sessionId,
-      }),
-    });
-  },
-
   createFlexpaie(planId: string, phone: string) {
     return apiFetch<{
       paymentId: string;
@@ -2070,6 +2120,12 @@ export const adminArticlesApi = {
   reprocessVideo(id: string) {
     return apiFetch<AdminArticle>(`/admin/articles/${id}/video/reprocess`, {
       method: "POST",
+    });
+  },
+
+  clearVideo(id: string) {
+    return apiFetch<AdminArticle>(`/admin/articles/${id}/video`, {
+      method: "DELETE",
     });
   },
 

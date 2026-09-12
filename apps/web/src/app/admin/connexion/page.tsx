@@ -15,6 +15,7 @@ import {
   resetTurnstile,
 } from "@/components/site/turnstile-widget";
 import { isTurnstileRequired } from "@/lib/captcha";
+import { BRAND } from "@/lib/brand";
 
 const SLIDE_MS = 5000;
 
@@ -155,9 +156,9 @@ export default function AdminLoginPage() {
           ))}
           <div className="admin-auth__hero-shade" />
           <div className="admin-auth__hero-copy">
-            <h2>Pilotez STUDRC en toute confiance.</h2>
+            <h2>Pilotez {BRAND.name} en toute confiance.</h2>
             <p>
-              Console staff STUDRC — magazines et rédaction.
+              Console staff {BRAND.shortName} — magazines et rédaction.
             </p>
           </div>
           <div className="admin-auth__hero-nav">
@@ -182,7 +183,7 @@ export default function AdminLoginPage() {
           />
           <div className="admin-auth__intro">
             <h1>Bon retour</h1>
-            <p>Accès réservé au staff STUDRC.</p>
+            <p>Accès réservé au staff {BRAND.shortName}.</p>
           </div>
 
           {message ? <Alert variant="error">{message}</Alert> : null}
@@ -195,7 +196,7 @@ export default function AdminLoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="username"
-              placeholder="admin@studrc.com"
+              placeholder="admin@entrevue.com"
             />
           </label>
 

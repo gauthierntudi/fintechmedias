@@ -10,8 +10,8 @@ Internet
    ▼
 DigitalOcean Droplet (Docker Compose)
 ├─ nginx          :80 / :443  (reverse proxy + TLS)
-├─ web            :3000       Next.js 16     → https://studrc.com
-├─ api            :3001       NestJS         → https://api.studrc.com
+├─ web            :3000       Next.js 16     → https://entrevue.com
+├─ api            :3001       NestJS         → https://api.entrevue.com
 └─ worker                     même image NestJS, process BullMQ
          │
          ├── Managed PostgreSQL (Prisma)
@@ -23,9 +23,9 @@ Domaines :
 
 | Hôte | Service |
 |------|---------|
-| `studrc.com` / `www.studrc.com` | Front Next.js |
-| `api.studrc.com` | API NestJS (+ webhooks Stripe / FlexPaie) |
-| `cdn.studrc.com` (optionnel) | Médias R2 |
+| `entrevue.com` / `www.entrevue.com` | Front Next.js |
+| `api.entrevue.com` | API NestJS (+ callback FlexPaie) |
+| `cdn.entrevue.com` (optionnel) | Médias R2 |
 
 ## Applications
 
@@ -48,7 +48,7 @@ Modules prévus :
 | `users` | Abonnés + users admin (rôles) |
 | `magazines` | CRUD magazines, accès lecture selon abo/achat |
 | `subscriptions` | Formules, abonnements, renouvellement |
-| `payments` | Stripe (carte) + FlexPaie (mobile) — webhooks + idempotence |
+| `payments` | FlexPaie (Mobile Money) — callback + idempotence |
 | `articles` | Actualités, commentaires, catégories |
 | `media` | Upload signé R2, métadonnées fichiers |
 | `notifications` | Emails transactionnels via **Resend** + queue BullMQ |
@@ -61,7 +61,7 @@ Même codebase NestJS, entrypoint `worker` :
 - Envoi emails via **Resend** (activation, facture, reset password)
 - Renouvellement / expiration abonnements
 - Optimisation images / préparation PDF après upload
-- Transcodage vidéo STU TALK / STU STORIES (FFmpeg → HLS multi-qualité sur R2)
+- Transcodage vidéo des rubriques interview (FFmpeg → HLS multi-qualité sur R2)
 - Traitement webhooks paiement asynchrones si besoin
 
 ## Stockage R2
@@ -82,17 +82,16 @@ Accès : URLs publiques CDN R2 pour covers/images ; URLs signées temporaires po
 
 | Canal | Provider | Usage |
 |-------|----------|--------|
-| Carte bancaire | **Stripe** | Checkout / Payment Intents + webhooks |
 | Mobile Money | **FlexPaie** | Paiement mobile (Airtel, Orange, M-Pesa, etc.) + callback |
 
-Le legacy (MaxiCash, PayPal, MoMo) **n’est pas repris** en v2. Les abonnements / achats existants restent en base ; les nouveaux paiements passent uniquement par Stripe et FlexPaie.
+Le legacy (MaxiCash, PayPal, MoMo) **n’est pas repris**. Les abonnements / achats existants restent en base ; les nouveaux paiements passent uniquement par FlexPaie.
 
 Flux type :
 
-1. Client choisit **carte** ou **mobile**
+1. Client saisit son numéro Mobile Money
 2. API Nest crée une intention de paiement (`Payment` en DB, statut `PENDING`)
-3. Redirection / SDK Stripe **ou** push USSD/OTP FlexPaie
-4. Webhook / callback → validation idempotente → activation abo ou achat
+3. Push USSD / OTP FlexPaie
+4. Callback → validation idempotente → activation abo ou achat
 5. Job BullMQ : email facture / confirmation
 
 ## Auth

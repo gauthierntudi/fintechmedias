@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
+  AUTH_HERO_POOL,
   AUTH_HERO_VISIBLE,
   heroWindow,
   nextHeroOffset,
+  type AuthHeroSlide,
 } from "@/lib/auth-hero-slides";
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
+import { BRAND } from "@/lib/brand";
 import { ThemeToggle } from "./theme-toggle";
 import "./auth-panel.css";
 
@@ -19,6 +22,11 @@ type AuthPanelProps = {
   /** Badge haut droite — action alternative (ex. S'inscrire sur la page login) */
   badge?: string;
   badgeHref?: string;
+  /** Surtitre éditorial au-dessus du titre (ex. L'Entrevue). */
+  kicker?: string;
+  /** Accroche sur le panneau photo, au-dessus du titre de slide. */
+  brandKicker?: string;
+  heroPool?: readonly AuthHeroSlide[];
 };
 
 /**
@@ -32,19 +40,22 @@ export function AuthPanel({
   footer,
   badge = "Se connecter",
   badgeHref,
+  kicker,
+  brandKicker,
+  heroPool = AUTH_HERO_POOL,
 }: AuthPanelProps) {
   const [batchOffset, setBatchOffset] = useState(0);
   const [slide, setSlide] = useState(0);
 
   const slides = useMemo(
-    () => heroWindow(batchOffset, AUTH_HERO_VISIBLE),
-    [batchOffset],
+    () => heroWindow(batchOffset, AUTH_HERO_VISIBLE, heroPool),
+    [batchOffset, heroPool],
   );
 
   const goNext = () => {
     setSlide((s) => {
       if (s < AUTH_HERO_VISIBLE - 1) return s + 1;
-      setBatchOffset((o) => nextHeroOffset(o));
+      setBatchOffset((o) => nextHeroOffset(o, heroPool.length));
       return 0;
     });
   };
@@ -88,10 +99,13 @@ export function AuthPanel({
 
           <Link href="/" className="opt-auth__brand-logo">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/studrc-logo.png" alt="STUDRC" />
+            <img src={BRAND.logoOnDark} alt={BRAND.name} />
           </Link>
 
           <div className="opt-auth__brand-footer">
+            {brandKicker ? (
+              <p className="opt-auth__brand-kicker">{brandKicker}</p>
+            ) : null}
             <h1 className="opt-auth__brand-title">{current.title}</h1>
             <p className="opt-auth__brand-lead">{current.lead}</p>
             <div className="opt-auth__dots" role="tablist" aria-label="Diaporama">
@@ -111,9 +125,9 @@ export function AuthPanel({
 
         <div className="opt-auth__panel">
           <div className="opt-auth__panel-top">
-            <Link href="/" className="opt-auth__panel-logo" aria-label="STUDRC — accueil">
+            <Link href="/" className="opt-auth__panel-logo" aria-label={`${BRAND.magazineName} — accueil`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/brand/studrc-logo.png" alt="STUDRC" />
+              <img src={BRAND.logo} alt={BRAND.name} />
             </Link>
             <div className="opt-auth__panel-top-actions">
               <ThemeToggle />
@@ -134,6 +148,7 @@ export function AuthPanel({
 
           <div className="opt-auth__panel-inner">
             <header className="opt-auth__header">
+              {kicker ? <p className="opt-auth__kicker">{kicker}</p> : null}
               <h2 className="opt-auth__title">{title}</h2>
               <p className="opt-auth__subtitle">{subtitle}</p>
             </header>

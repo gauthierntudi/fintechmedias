@@ -4,95 +4,65 @@ import Link from "next/link";
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
   type TransitionEvent,
 } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DEMO_FEATURED, DEMO_TOP_GRID, type TopStory } from "@/lib/legacy-demo";
 import { articleHref } from "@/lib/home-articles";
 import { CoverImage } from "@/components/site/cover-image";
-import { VideoPlay } from "@/components/site/video-play";
-import { isVideoRubrique } from "@/lib/rubriques";
 import "./top-stories.css";
 
-const AUTO_MS = 6000;
+const AUTO_MS = 7000;
 
-/** Accents charte — fonds du sticker « à la une » */
-const FEATURED_ACCENT = ["#ff0c00", "#0462a9", "#022144", "#e1045c"] as const;
-
-function hashId(id: string | number) {
-  const s = String(id);
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return Math.abs(h);
+function readingMinutes(story: TopStory) {
+  const words = `${story.titre} ${story.excerpt ?? ""}`
+    .split(/\s+/)
+    .filter(Boolean).length;
+  return Math.min(12, Math.max(3, Math.round(words / 40) + 3));
 }
 
-function accentForStory(story: TopStory) {
-  return FEATURED_ACCENT[hashId(story.id) % FEATURED_ACCENT.length];
-}
-
-function Meta({ author, dateLabel }: { author: string; dateLabel: string }) {
-  return (
-    <p className="opt-top__meta">
-      <span className="opt-top__meta-author">{author}</span>
-      <span className="opt-top__meta-date">{dateLabel}</span>
-    </p>
-  );
-}
-
-function CategoryBadge({
-  label,
-  tone,
-}: {
-  label: string;
-  tone: TopStory["categoryTone"];
-}) {
-  return <span className={`opt-top__badge opt-top__badge--${tone}`}>{label}</span>;
-}
-
-function GridCard({ story }: { story: TopStory }) {
-  const video = isVideoRubrique(story.category);
-  return (
-    <article className={`opt-top__card opt-top__card--${story.categoryTone}`}>
-      <Link href={articleHref(story)} className="opt-top__card-link">
-        <div className="opt-top__card-media">
-          <CoverImage src={story.cover} className="opt-top__card-cover" />
-          {video ? <VideoPlay size={18} className="opt-video-play--sm" /> : null}
-          <CategoryBadge label={story.category} tone={story.categoryTone} />
-        </div>
-        <div className="opt-top__card-body">
-          <h3 className="opt-top__card-title">{story.titre}</h3>
-          <Meta author={story.author} dateLabel={story.dateLabel} />
-        </div>
-      </Link>
-    </article>
-  );
+function uniqueStories(featured: TopStory[], grid: TopStory[]) {
+  const seen = new Set<string>();
+  const out: TopStory[] = [];
+  for (const story of [...featured, ...grid]) {
+    const id = String(story.id);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    out.push(story);
+  }
+  return out.slice(0, 6);
 }
 
 function FeaturedSlide({ story }: { story: TopStory }) {
-  const video = isVideoRubrique(story.category);
+  const href = articleHref(story);
+
   return (
-    <article className="opt-top__featured">
-      <Link href={articleHref(story)} className="opt-top__featured-media">
-        <CoverImage src={story.cover} />
-        {video ? <VideoPlay size={26} /> : null}
-        <div className="opt-top__featured-badges">
-          <CategoryBadge label={story.category} tone={story.categoryTone} />
-          <span className="opt-top__badge opt-top__badge--dark">À la une</span>
+    <article className="opt-top__slide">
+      <div className="opt-top__media">
+        <CoverImage src={story.cover} className="opt-top__cover" />
+        <div className="opt-top__shade" aria-hidden />
+      </div>
+
+      <div className="opt-top__copy">
+        <div className="opt-top__copy-inner">
+          {story.category ? (
+            <p className="opt-top__eyebrow">{story.category}</p>
+          ) : null}
+          <h2 className="opt-top__title">
+            <Link href={href}>{story.titre}</Link>
+          </h2>
+          {story.excerpt ? (
+            <p className="opt-top__excerpt">{story.excerpt}</p>
+          ) : null}
+          <Link href={href} className="opt-top__read">
+            Lire l&apos;article
+            <span aria-hidden>→</span>
+          </Link>
         </div>
-      </Link>
-      <div
-        className="opt-top__featured-body"
-        style={{ backgroundColor: accentForStory(story) }}
-      >
-        <h2 className="opt-top__featured-title">
-          <Link href={articleHref(story)}>{story.titre}</Link>
-        </h2>
-        {story.excerpt && (
-          <p className="opt-top__featured-excerpt">{story.excerpt}</p>
-        )}
-        <Meta author={story.author} dateLabel={story.dateLabel} />
       </div>
     </article>
   );
@@ -101,7 +71,6 @@ function FeaturedSlide({ story }: { story: TopStory }) {
 function FeaturedSlider({ stories }: { stories: TopStory[] }) {
   const n = stories.length;
   const multi = n > 1;
-  /** Piste : [clone dernier, ...stories, clone premier] — index réel démarre à 1 */
   const trackStories = multi
     ? [stories[n - 1], ...stories, stories[0]]
     : stories;
@@ -124,6 +93,7 @@ function FeaturedSlider({ stories }: { stories: TopStory[] }) {
   const [swiping, setSwiping] = useState(false);
 
   const realIndex = multi ? (pos - 1 + n) % n : 0;
+  const current = stories[realIndex] ?? stories[0];
 
   useEffect(() => {
     const el = viewportRef.current;
@@ -267,11 +237,8 @@ function FeaturedSlider({ stories }: { stories: TopStory[] }) {
     [endDrag],
   );
 
-  if (!multi) {
-    return <FeaturedSlide story={stories[0]} />;
-  }
-
   const offsetPx = slideW > 0 ? -(pos * slideW) + dragX : 0;
+  const minutes = current ? readingMinutes(current) : 4;
 
   return (
     <div
@@ -311,7 +278,16 @@ function FeaturedSlider({ stories }: { stories: TopStory[] }) {
               className="opt-top__slider-slide"
               key={`${story.id}-${i}`}
               aria-hidden={i !== pos}
-              style={slideW > 0 ? { width: slideW, minWidth: slideW, maxWidth: slideW, flexBasis: slideW } : undefined}
+              style={
+                slideW > 0
+                  ? {
+                      width: slideW,
+                      minWidth: slideW,
+                      maxWidth: slideW,
+                      flexBasis: slideW,
+                    }
+                  : undefined
+              }
             >
               <FeaturedSlide story={story} />
             </div>
@@ -319,37 +295,71 @@ function FeaturedSlider({ stories }: { stories: TopStory[] }) {
         </div>
       </div>
 
-      <div className="opt-top__slider-progress" aria-hidden>
-        <span
-          key={realIndex}
-          className="opt-top__slider-progress-bar"
-          style={{ animationDuration: `${AUTO_MS}ms` }}
-        />
-      </div>
+      <div className="opt-top__bar">
+        {multi ? (
+          <div className="opt-top__ticks" aria-hidden>
+            {stories.map((story, i) => (
+              <span
+                key={story.id}
+                className={`opt-top__tick${i === realIndex ? " is-active" : ""}`}
+              >
+                {i === realIndex ? (
+                  <span
+                    key={`${story.id}-${pos}`}
+                    className="opt-top__tick-fill"
+                    style={{ animationDuration: `${AUTO_MS}ms` }}
+                  />
+                ) : null}
+              </span>
+            ))}
+          </div>
+        ) : null}
 
-      <div className="opt-top__slider-dots" role="tablist" aria-label="À la une">
-        {stories.map((story, i) => (
-          <button
-            key={story.id}
-            type="button"
-            role="tab"
-            aria-selected={i === realIndex}
-            aria-label={`Article ${i + 1}`}
-            className={`opt-top__slider-dot${i === realIndex ? " is-active" : ""}`}
-            onClick={() => {
-              if (busy || i === realIndex) return;
-              setBusy(true);
-              setAnimate(true);
-              setPos(i + 1);
-            }}
-          />
-        ))}
+        <div className="opt-top__meta-row">
+          <dl className="opt-top__facts">
+            <div>
+              <dt>Publié le</dt>
+              <dd>{current?.dateLabel ?? "—"}</dd>
+            </div>
+            <div>
+              <dt>Rubrique</dt>
+              <dd>{current?.category ?? "—"}</dd>
+            </div>
+            <div>
+              <dt>Temps de lecture</dt>
+              <dd>{minutes} min</dd>
+            </div>
+          </dl>
+
+          {multi ? (
+            <div className="opt-top__arrows">
+              <button
+                type="button"
+                className="opt-top__arrow"
+                aria-label="Article précédent"
+                disabled={busy}
+                onClick={() => go(-1)}
+              >
+                <ChevronLeft size={18} strokeWidth={1.75} aria-hidden />
+              </button>
+              <button
+                type="button"
+                className="opt-top__arrow"
+                aria-label="Article suivant"
+                disabled={busy}
+                onClick={() => go(1)}
+              >
+                <ChevronRight size={18} strokeWidth={1.75} aria-hidden />
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   );
 }
 
-/** Première section accueil — à la une (slide si plusieurs) + grille 2×2. */
+/** Première section accueil — héros plein écran. */
 export function TopStories({
   featured = DEMO_FEATURED,
   grid = DEMO_TOP_GRID,
@@ -357,17 +367,16 @@ export function TopStories({
   featured?: TopStory[];
   grid?: TopStory[];
 } = {}) {
+  const stories = useMemo(
+    () => uniqueStories(featured, grid),
+    [featured, grid],
+  );
+
+  if (!stories.length) return null;
+
   return (
     <section className="opt-top" aria-label="À la une">
-      <div className="opt-top__inner">
-        <FeaturedSlider stories={featured} />
-
-        <div className="opt-top__grid">
-          {grid.slice(0, 4).map((story) => (
-            <GridCard key={story.id} story={story} />
-          ))}
-        </div>
-      </div>
+      <FeaturedSlider stories={stories} />
     </section>
   );
 }

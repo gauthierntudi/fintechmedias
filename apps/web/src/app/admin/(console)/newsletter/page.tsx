@@ -12,7 +12,7 @@ import {
 const TAKE = 15;
 
 const AVATAR_PALETTE = [
-  { bg: "#0565ab", fg: "#041512" },
+  { bg: "#e42320", fg: "#ffffff" },
   { bg: "#5b7cfa", fg: "#ffffff" },
   { bg: "#f97366", fg: "#ffffff" },
   { bg: "#10b981", fg: "#ffffff" },

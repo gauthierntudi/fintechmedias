@@ -7,6 +7,7 @@ import {
   plainDescription,
 } from "@/lib/site-url";
 import { KiosqueClient } from "./kiosque-client";
+import { BRAND } from "@/lib/brand";
 import "./kiosque.css";
 
 type Props = {
@@ -28,20 +29,20 @@ export async function generateMetadata({
     const url = `${site}/kiosque`;
     return {
       title: "Kiosque",
-      description: "Parcourez les numéros STUDRC dans le kiosque numérique.",
+      description: `Parcourez les numéros de ${BRAND.magazineName} dans le kiosque numérique.`,
       alternates: { canonical: url },
       openGraph: {
         type: "website",
         locale: "fr_FR",
-        siteName: "STUDRC",
-        title: "Kiosque · STUDRC",
-        description: "Parcourez les numéros STUDRC dans le kiosque numérique.",
+        siteName: BRAND.name,
+        title: `Kiosque · ${BRAND.name}`,
+        description: `Parcourez les numéros de ${BRAND.magazineName} dans le kiosque numérique.`,
         url,
       },
       twitter: {
         card: "summary_large_image",
-        title: "Kiosque · STUDRC",
-        description: "Parcourez les numéros STUDRC dans le kiosque numérique.",
+        title: `Kiosque · ${BRAND.name}`,
+        description: `Parcourez les numéros de ${BRAND.magazineName} dans le kiosque numérique.`,
       },
     };
   }
@@ -54,8 +55,8 @@ export async function generateMetadata({
     const description =
       plainDescription(mag.description) ??
       (issue
-        ? `Numéro ${issue} de STU MAG — disponible dans le kiosque.`
-        : "STU MAG — disponible dans le kiosque.");
+        ? `Numéro ${issue} de ${BRAND.magazineName} — disponible dans le kiosque.`
+        : `${BRAND.magazineName} — disponible dans le kiosque.`);
     const image = absoluteMediaUrl(mag.coverUrl);
     const url = `${site}/kiosque?magazine=${encodeURIComponent(mag.id)}`;
 
@@ -66,7 +67,7 @@ export async function generateMetadata({
       openGraph: {
         type: "website",
         locale: "fr_FR",
-        siteName: "STUDRC",
+        siteName: BRAND.name,
         title,
         description,
         url,
@@ -90,7 +91,7 @@ export async function generateMetadata({
     const url = `${site}/kiosque`;
     return {
       title: "Kiosque",
-      description: "STU MAG — kiosque numérique.",
+      description: `${BRAND.magazineName} — kiosque numérique.`,
       alternates: { canonical: url },
     };
   }
@@ -98,7 +99,7 @@ export async function generateMetadata({
 
 function KiosqueFallback() {
   return (
-    <div className="opt-kq" style={{ background: "#00132b", minHeight: "100vh" }}>
+    <div className="opt-kq" style={{ background: "#111111", minHeight: "100vh" }}>
       <div className="opt-kq__loading" aria-busy="true">
         <div className="opt-kq__skel">
           <div className="opt-kq__skel-cover" />

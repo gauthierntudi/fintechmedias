@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { newsletterPublicApi } from "@/lib/api";
+import { BRAND } from "@/lib/brand";
 import "./home-newsletter.css";
 
 /**
@@ -51,10 +52,10 @@ export function HomeNewsletter() {
   return (
     <section className="opt-nl" aria-label="Newsletter">
       <div className="opt-nl__inner">
-        <p className="opt-nl__kicker">Newsletter STUDRC</p>
+        <p className="opt-nl__kicker">Newsletter {BRAND.name}</p>
         <h2 className="opt-nl__title">Restons en contact</h2>
         <p className="opt-nl__lead">
-          Recevez l’actualité éducative, les données et les histoires STUDRC
+          Recevez portraits, enquêtes et actualités de {BRAND.name}
           directement dans votre boîte mail.
         </p>
 

@@ -1,0 +1,50 @@
+# Postgres + Redis internes — à combiner avec docker-compose.yml :
+#   docker compose -f docker-compose.yml -f docker-compose.data.yml up -d
+# Omettre ce fichier si DATABASE_URL / REDIS_URL pointent vers un service managé.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-entrevue}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-entrevue}
+      POSTGRES_DB: ${POSTGRES_DB:-entrevue}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-entrevue} -d ${POSTGRES_DB:-entrevue}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    # Pas de ports publics — uniquement le réseau Compose.
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  api:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:

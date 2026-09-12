@@ -1,11 +1,11 @@
-/* Newsletter — bandeau charte STUDRC */
+/* Newsletter — bandeau charte ENTREVUE */
 
 .opt-nl {
-  --opt-nl-navy: #00132b;
-  --opt-nl-blue: #0462a9;
-  --opt-nl-gold: #febb00;
-  --opt-nl-red: #cf2c22;
-  --opt-nl-ink: #00132b;
+  --opt-nl-navy: #111111;
+  --opt-nl-blue: #111111;
+  --opt-nl-gold: #e42320;
+  --opt-nl-red: #c21e1b;
+  --opt-nl-ink: #111111;
 
   position: relative;
   isolation: isolate;
@@ -14,23 +14,6 @@
   color: #fff;
   padding: 4.5rem 1.5rem;
   text-align: center;
-}
-
-.opt-nl::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 100%;
-  height: 3px;
-  background-color: #0462a9;
-  background-image:
-    linear-gradient(#0462a9, #0462a9),
-    linear-gradient(#febb00, #febb00),
-    linear-gradient(#d63026, #d63026);
-  background-size: 33.334% 100%, 33.333% 100%, 33.333% 100%;
-  background-position: 0 0, 33.334% 0, 66.667% 0;
-  background-repeat: no-repeat;
-  pointer-events: none;
 }
 
 .opt-nl__inner {
@@ -109,7 +92,7 @@
   margin: 0;
   padding: 0.95rem 1.35rem;
   background: var(--opt-nl-gold);
-  color: var(--opt-nl-ink);
+  color: #fff;
   font-family: var(--opt-font-sans);
   font-size: 0.82rem;
   font-weight: 800;
@@ -121,8 +104,8 @@
 }
 
 .opt-nl__submit:hover:not(:disabled) {
-  background: #e0a800;
-  color: var(--opt-nl-ink);
+  background: #c21e1b;
+  color: #fff;
 }
 
 .opt-nl__submit:disabled {
@@ -249,8 +232,8 @@
 }
 
 html[data-theme="dark"] .opt-nl {
-  --opt-nl-navy: #022144;
-  background: #022144;
+  --opt-nl-navy: #111111;
+  background: #111111;
 }
 
 .opt-nl .visually-hidden {

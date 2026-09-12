@@ -1,9 +1,9 @@
 /* Shell commun pages espace abonné (notifications, historique) */
 
 .opt-account {
-  --opt-navy: #00132b;
-  --opt-red: #d63026;
-  --opt-teal: #0565ab;
+  --opt-navy: #111111;
+  --opt-red: #e42320;
+  --opt-teal: #e42320;
   --opt-ink: var(--site-ink, var(--opt-navy));
   --opt-muted: var(--site-muted, #6c757d);
   --opt-border: var(--site-line, rgba(13, 32, 61, 0.1));

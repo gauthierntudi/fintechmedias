@@ -8,7 +8,7 @@ import {
   type RubriqueStory,
 } from "@/lib/legacy-demo";
 import { articleHref } from "@/lib/home-articles";
-import { isVideoRubrique } from "@/lib/rubriques";
+import { isVideoArticle } from "@/lib/rubriques";
 import {
   HomeRubriqueSplit,
   type HomeRubriqueSplitProps,
@@ -106,7 +106,7 @@ function GridCard({
 }
 
 function PlusVusItem({ story }: { story: RubriqueStory }) {
-  const video = isVideoRubrique(story.category);
+  const video = isVideoArticle(story);
   return (
     <Link href={articleHref(story)} className="opt-rub__pv-item">
       <div className="opt-rub__pv-thumb">
@@ -179,10 +179,17 @@ export function HomeRubriqueBlock({
           <div
             className={`opt-rub__main-body${primary.video ? " opt-rub__main-body--video" : ""}`}
           >
-            <FeaturedCard story={primary.featured} video={primary.video} />
+            <FeaturedCard
+              story={primary.featured}
+              video={isVideoArticle(primary.featured)}
+            />
             <div className="opt-rub__grid">
               {primary.grid.map((story) => (
-                <GridCard key={story.id} story={story} video={primary.video} />
+                <GridCard
+                  key={story.id}
+                  story={story}
+                  video={isVideoArticle(story)}
+                />
               ))}
             </div>
           </div>
@@ -205,7 +212,7 @@ export function HomeRubriqueBlock({
 
           <FeaturedCard
             story={sidebar.featured}
-            video={isVideoRubrique(sidebar.featured.category)}
+            video={isVideoArticle(sidebar.featured)}
             hideMeta
           />
           <div className="opt-rub__pv-list">
@@ -219,7 +226,7 @@ export function HomeRubriqueBlock({
   );
 }
 
-/** STU NEWS + Les plus vus (STU STORIES est déjà dans le carrousel). */
+/** Entreprendre + Les plus vus (Rencontre Avec est déjà dans le carrousel). */
 export function HomeRubrique({
   primary,
   split,
@@ -227,11 +234,11 @@ export function HomeRubrique({
 }: Partial<HomeRubriqueBlockProps> = {}) {
   return (
     <HomeRubriqueBlock
-      ariaLabel="STU NEWS et Juste pour toi"
+      ariaLabel="Entreprendre et Juste pour toi"
       primary={
         primary ?? {
-          title: "STU NEWS",
-          href: "/rubrique/stu-news",
+          title: "Entreprendre",
+          href: "/rubrique/entreprendre",
           titleClass: "opt-rub__title--red",
           dotClass: "opt-rub__dot--red",
           featured: DEMO_STARTUP_FEATURED,
@@ -252,19 +259,19 @@ export function HomeRubrique({
   );
 }
 
-/** Après newsletter : STU TALK + STU MAG + À ne pas manquer */
+/** Après newsletter : Qu'en dit l'expert + À ne pas manquer */
 export function HomeRubriqueSuite({
   primary,
   split,
   sidebar,
 }: {
   primary: HomeRubriqueBlockProps["primary"];
-  split: HomeRubriqueSplitProps;
+  split?: HomeRubriqueSplitProps;
   sidebar: HomeRubriqueBlockProps["sidebar"];
 }) {
   return (
     <HomeRubriqueBlock
-      ariaLabel={`${primary.title}, ${split.title ?? ""} et ${sidebar.title}`}
+      ariaLabel={`${primary.title} et ${sidebar.title}`}
       primary={primary}
       split={split}
       sidebar={sidebar}

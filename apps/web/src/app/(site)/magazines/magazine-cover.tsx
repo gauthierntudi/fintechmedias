@@ -13,18 +13,10 @@ type Props = {
 };
 
 const BADGE_PALETTE = [
-  { background: "#d63026", color: "#ffffff" },
-  { background: "#0565ab", color: "#0a3d3e" },
-  { background: "#00132b", color: "#ffffff" },
-  { background: "#f59e0b", color: "#1a1200" },
-  { background: "#8b5cf6", color: "#ffffff" },
-  { background: "#10b981", color: "#042f1e" },
-  { background: "#ec4899", color: "#ffffff" },
-  { background: "#3b82f6", color: "#ffffff" },
-  { background: "#ef4444", color: "#ffffff" },
-  { background: "#14b8a6", color: "#042f2e" },
-  { background: "#f97316", color: "#1a0a00" },
-  { background: "#6366f1", color: "#ffffff" },
+  { background: "#e42320", color: "#ffffff" },
+  { background: "#111111", color: "#ffffff" },
+  { background: "#c21e1b", color: "#ffffff" },
+  { background: "#1a1a1a", color: "#ffffff" },
 ] as const;
 
 function badgeColorsFromSeed(seed: string) {

@@ -1,4 +1,7 @@
+"use client";
+
 import { BRAND } from "@/lib/brand";
+import { useSiteTheme } from "@/components/site/theme-provider";
 
 type BrandLogoProps = {
   onDark?: boolean;
@@ -11,6 +14,8 @@ export function BrandLogo({
   className,
   height = 52,
 }: BrandLogoProps) {
+  const { theme } = useSiteTheme();
+  const useWhite = onDark || theme === "dark";
   const classes = ["brand-logo", onDark ? "brand-logo--on-dark" : "", className]
     .filter(Boolean)
     .join(" ");
@@ -18,7 +23,7 @@ export function BrandLogo({
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={BRAND.logo}
+      src={useWhite ? BRAND.logoOnDark : BRAND.logo}
       alt={BRAND.name}
       className={classes}
       height={height}

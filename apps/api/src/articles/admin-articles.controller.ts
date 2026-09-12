@@ -144,4 +144,12 @@ export class AdminArticlesController {
   ) {
     return this.articles.reprocessVideo(id, actor.id);
   }
+
+  @Delete(':id/video')
+  clearVideo(
+    @Param('id') id: string,
+    @CurrentAdmin() actor: AdminAuthUser,
+  ) {
+    return this.articles.clearVideo(id, actor.id);
+  }
 }

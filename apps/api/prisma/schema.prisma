@@ -291,7 +291,7 @@ model Article {
   authorId    String?
   /// Magazine lié (affiché sur l’article + kiosque)
   magazineId  String?
-  /// MP4 source (R2) — STU TALK / STU STORIES
+  /// MP4 source (R2) — rubriques vidéo
   videoSourceKey   String?
   /// Playlist HLS master (R2)
   videoHlsKey      String?
@@ -398,10 +398,13 @@ model NewsletterSubscription {
 
 /** Réglages site (singleton) — réseaux sociaux footer, etc. */
 model SiteSettings {
-  id          String   @id @default("default")
+  id             String   @id @default("default")
   /** [{ id, network, label, url }] */
-  socialLinks Json     @default("[]")
-  updatedAt   DateTime @updatedAt
+  socialLinks    Json     @default("[]")
+  contactAddress String?
+  contactEmail   String?
+  contactPhone   String?
+  updatedAt      DateTime @updatedAt
 
   @@map("site_settings")
 }

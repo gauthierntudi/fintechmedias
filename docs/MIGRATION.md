@@ -10,7 +10,7 @@ Document de référence pour porter le legacy (racine du dépôt) vers `v2/`.
 - MySQL/MariaDB (MyISAM, peu de contraintes FK)
 - Fichiers locaux : `magazines/`, `magazinefileopti/` (~1.5 Go), `covers/`, `img/`, `profil/`
 - Lecteur : `flip/` (turn.js + pdf.js ancien)
-- Paiements legacy : MaxiCash, PayPal, MoMo (`config/`) — **remplacés en v2 par Stripe + FlexPaie**
+- Paiements legacy : MaxiCash, PayPal, MoMo (`config/`) — **remplacés en v2 par FlexPaie**
 
 ### Tables sources (`database/schema.sql`)
 
@@ -132,7 +132,7 @@ Achat à l’unité d’un magazine (hors abo).
 - [ ] Lecture PDF (PDF.js) avec contrôle d’accès (abo / achat / gratuit)
 - [ ] Formules + souscription
 - [ ] Achats unitaires
-- [ ] Paiements : Stripe (carte) + FlexPaie (mobile) + webhooks/callbacks
+- [ ] Paiements : FlexPaie (mobile) + callbacks
 - [ ] Admin : CRUD magazines + upload PDF/cover
 
 ### Priorité P1
@@ -166,7 +166,7 @@ Achat à l’unité d’un magazine (hors abo).
 2. **Users** : `abonne`, `users`, `images_abonne`
 3. **Contenu** : `magazine`, `actualites`, `slide`
 4. **Transactions** : `abonnement`, `paiement`
-   - Script abonnements : `pnpm --filter @studrc/api migrate:subscriptions`
+   - Script abonnements : `pnpm --filter @entrevue/api migrate:subscriptions`
    - Migre `formuleabonnement` → `Plan`, `abonnement` → `Subscription` (+ paiements `LEGACY` optionnels)
    - Prérequis : `pnpm migrate:mysql` (abonnés avec `legacyId`)
 5. **Social** : `commentaire`, `followers`, `contact`
@@ -191,7 +191,7 @@ v2/apps/api/scripts/migrate-articles-to-r2.ts        # covers articles/ → R2 a
 
 Sources :
 
-1. `LEGACY_MYSQL_URL` (live MySQL) — nécessite `pnpm --filter @studrc/api add mysql2`
+1. `LEGACY_MYSQL_URL` (live MySQL) — nécessite `pnpm --filter @entrevue/api add mysql2`
 2. Sinon `LEGACY_SQL_DUMP` ou le dump du dépôt `database/schema.sql`
 
 Variables :
@@ -277,18 +277,17 @@ Les historiques `abonnement` / `paiement` sont migrés en lecture (statut, monta
 
 | Canal | Provider | Intégration |
 |-------|----------|-------------|
-| Carte | **Stripe** | Payment Intents / Checkout Session, Customer pour abonnés, webhooks `payment_intent.*` / `checkout.session.*` |
 | Mobile Money | **FlexPaie** | API marchand + callback URL, paiement via téléphone (réseaux locaux) |
 
 Règles communes Nest :
 
-- Table `Payment` unifiée : `provider` (`STRIPE` \| `FLEXPAIE`), `providerRef`, `amountCents`, `currency`, `status`, `purpose` (`SUBSCRIPTION` \| `PURCHASE`)
+- Table `Payment` unifiée : `provider` (`FLEXPAIE` \| `LEGACY`), `providerRef`, `amountCents`, `currency`, `status`, `purpose` (`SUBSCRIPTION` \| `PURCHASE`)
 - Créer l’enregistrement `PENDING` **avant** d’appeler le provider
-- Webhooks / callbacks **idempotents** (ignorer doublons via `providerRef`)
-- Vérifier signatures Stripe (`stripe-signature`) ; valider callbacks FlexPaie selon leur doc marchand
+- Callbacks **idempotents** (ignorer doublons via `providerRef`)
+- Valider callbacks FlexPaie selon leur doc marchand
 - Jobs BullMQ : activation abo / achat + email après `SUCCESS`
 
-Devises : USD / CDF selon offre — aligner Stripe et FlexPaie sur la même stratégie de prix (centimes / unités provider).
+Devises : USD / CDF selon offre — aligner FlexPaie sur la même stratégie de prix (centimes / unités provider).
 
 ## 7. Lecteur PDF
 
@@ -311,7 +310,6 @@ Devises : USD / CDF selon offre — aligner Stripe et FlexPaie sur la même stra
 - [ ] Login abonnés existants OK (mêmes mots de passe)
 - [ ] Abonnements actifs respectés
 - [ ] PDF payants inaccessibles sans droit
-- [ ] Paiement test Stripe (test mode) OK
 - [ ] Paiement test FlexPaie (sandbox / période de tests) OK
 - [ ] Admin peut publier un nouveau numéro (upload R2)
 - [ ] Backups Postgres + Redis OK
@@ -333,7 +331,7 @@ Devises : USD / CDF selon offre — aligner Stripe et FlexPaie sur la même stra
 2. Schéma Prisma + seed Plans
 3. Auth + Magazines API
 4. Upload R2 + lecteur PDF
-5. Subscriptions + Payments (Stripe carte + FlexPaie mobile)
+5. Subscriptions + Payments (FlexPaie mobile)
 6. Script ETL données
 7. Script médias R2
 8. Frontend public + admin minimum

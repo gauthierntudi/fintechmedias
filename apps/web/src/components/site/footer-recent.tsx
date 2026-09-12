@@ -7,7 +7,7 @@ import {
   type PublicArticleCard,
 } from "@/lib/api";
 import { DEMO_FEATURED, DEMO_TOP_GRID } from "@/lib/legacy-demo";
-import { isVideoRubrique } from "@/lib/rubriques";
+import { isVideoArticle } from "@/lib/rubriques";
 import { VideoPlay } from "@/components/site/video-play";
 
 const FALLBACK_COVER = "/legacy/articles/1591543587.jpg";
@@ -19,6 +19,8 @@ type RecentItem = {
   cover: string;
   dateLabel: string;
   category?: string;
+  videoStatus?: PublicArticleCard["videoStatus"];
+  videoHlsUrl?: string | null;
 };
 
 const DEMO_RECENT: RecentItem[] = [...DEMO_FEATURED, ...DEMO_TOP_GRID]
@@ -40,6 +42,8 @@ function fromApi(a: PublicArticleCard): RecentItem {
     cover: a.coverUrl || FALLBACK_COVER,
     dateLabel: a.dateLabel,
     category: a.categoryLabel,
+    videoStatus: a.videoStatus,
+    videoHlsUrl: a.videoHlsUrl,
   };
 }
 
@@ -82,7 +86,7 @@ export function FooterRecent() {
             <span className="opt-ft__recent-thumb">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={post.cover} alt="" />
-              {isVideoRubrique(post.category) ? (
+              {isVideoArticle(post) ? (
                 <VideoPlay size={12} className="opt-video-play--xs" />
               ) : null}
             </span>

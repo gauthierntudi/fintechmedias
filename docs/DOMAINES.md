@@ -4,18 +4,20 @@
 
 | Hôte | Rôle |
 |------|------|
-| `studrc.com` / `www.studrc.com` | Front Next.js |
-| `api.studrc.com` | NestJS + webhooks Stripe / FlexPaie |
-| `cdn.studrc.com` (optionnel) | Médias R2 |
+| `lentrevuemag.com` / `www.lentrevuemag.com` | Front Next.js |
+| `api.lentrevuemag.com` | NestJS + callback FlexPaie |
+| `cdn.lentrevuemag.com` | Médias R2 (custom domain Cloudflare, pas le VPS) |
 
-Webhook Stripe : `https://api.studrc.com/payments/stripe/webhook`  
-Callback FlexPaie : `https://api.studrc.com/payments/flexpaie/callback`
+VPS : `51.254.214.47`
+
+Callback FlexPaie : `https://api.lentrevuemag.com/api/payments/flexpaie/callback`
 
 ## Checklist de cutover
 
-1. [ ] DNS Cloudflare `studrc.com` → Droplet
-2. [ ] Mettre à jour `.env` (`APP_URL`, `API_URL`, `COOKIE_DOMAIN`, callbacks)
-3. [ ] Nginx `server_name`
-4. [ ] Recréer webhook Stripe + callback FlexPaie sur les nouvelles URLs
-5. [ ] Vérifier domaine Resend (`noreply@studrc.com`)
-6. [ ] Certificat Let’s Encrypt pour `studrc.com` / `www` / `api`
+1. [ ] DNS `lentrevuemag.com` / `www` / `api` → A `51.254.214.47`
+2. [ ] `cdn.lentrevuemag.com` lié au bucket R2 (Cloudflare)
+3. [ ] Mettre à jour `.env` (`APP_URL`, `API_URL`, `COOKIE_DOMAIN`, callbacks)
+4. [ ] Nginx `server_name`
+5. [ ] Recréer le callback FlexPaie sur les nouvelles URLs
+6. [ ] Vérifier domaine Resend (`noreply@lentrevuemag.com`)
+7. [ ] Certificat Let’s Encrypt pour `lentrevuemag.com` / `www` / `api`

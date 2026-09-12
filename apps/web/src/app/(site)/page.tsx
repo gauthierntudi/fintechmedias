@@ -1,12 +1,13 @@
 import { Suspense } from "react";
 import { TopStories } from "@/components/site/top-stories";
 import { HomeKiosque } from "@/components/site/home-kiosque";
-import { HomeDossiers } from "@/components/site/home-dossiers";
+import { HomeRencontre } from "@/components/site/home-rencontre";
 import {
   HomeRubrique,
   HomeRubriqueSuite,
 } from "@/components/site/home-rubrique";
 import { HomeNewsletter } from "@/components/site/home-newsletter";
+import { HomeFemme } from "@/components/site/home-femme";
 import { HomeSkeleton } from "@/components/site/home-skeleton";
 import { MagazinePromoFloat } from "@/components/site/magazine-promo-float";
 import { articlesPublicApi, magazinesPublicApi } from "@/lib/api";
@@ -22,10 +23,9 @@ export default function HomePage() {
 }
 
 async function HomeContent() {
-  const [feedResult, latestResult, magsResult] = await Promise.allSettled([
+  const [feedResult, latestResult] = await Promise.allSettled([
     articlesPublicApi.home(),
     magazinesPublicApi.latest(),
-    magazinesPublicApi.list(4),
   ]);
 
   const feed = feedResult.status === "fulfilled" ? feedResult.value : null;
@@ -33,45 +33,32 @@ async function HomeContent() {
   const latestMagazine =
     latestResult.status === "fulfilled" ? latestResult.value : null;
 
-  const magazines =
-    magsResult.status === "fulfilled"
-      ? (magsResult.value.items ?? []).slice(0, 4).map((m) => ({
-          id: m.id,
-          title: m.title,
-          cover: m.coverUrl || "/legacy/covers/1591457791.jpg",
-          issueNumber: m.issueNumber,
-          dateLabel: m.dateLabel,
-        }))
-      : [];
-
   const articles = buildHomeArticlesView(feed);
 
   return (
     <>
       <TopStories featured={articles.featured} grid={articles.topGrid} />
       <HomeKiosque
-        items={[
-          articles.stuStoriesFeatured,
-          ...articles.stuStoriesGrid,
-        ].map((s) => ({
+        items={articles.ecosystemePmeStories.map((s) => ({
           id: s.id,
           slug: s.slug,
           titre: s.titre,
           cover: s.cover,
           dateLabel: s.dateLabel,
-          videoHlsUrl: s.videoHlsUrl,
-          videoPosterUrl: s.videoPosterUrl,
         }))}
       />
-      <HomeDossiers decryptages={articles.stuData} />
+      <HomeRencontre
+        featured={articles.rencontreFeatured}
+        items={articles.rencontreGrid}
+      />
       <HomeRubrique
         primary={{
-          title: "STU NEWS",
-          href: "/rubrique/stu-news",
+          title: "Entreprendre",
+          href: "/rubrique/entreprendre",
           titleClass: "opt-rub__title--red",
           dotClass: "opt-rub__dot--red",
-          featured: articles.stuNewsFeatured,
-          grid: articles.stuNewsGrid,
+          featured: articles.entreprendreFeatured,
+          grid: articles.entreprendreGrid,
         }}
         sidebar={{
           title: "Juste pour toi",
@@ -84,21 +71,14 @@ async function HomeContent() {
       <HomeNewsletter />
       <HomeRubriqueSuite
         primary={{
-          title: "STU TALK",
-          href: "/rubrique/stu-talk",
+          title: "Qu'en dit l'expert",
+          href: "/rubrique/qu-en-dit-l-expert",
           titleClass: "opt-rub__title--teal",
           dotClass: "opt-rub__dot--teal",
-          moreLabel: "Toutes les vidéos",
+          moreLabel: "Toute la rubrique",
           video: true,
-          featured: articles.stuTalkFeatured,
-          grid: articles.stuTalkGrid,
-        }}
-        split={{
-          title: "STU MAG",
-          href: "/kiosque",
-          accentClass: "opt-rsplit__title--dark",
-          moreLabel: "Tous les numéros",
-          magazines,
+          featured: articles.expertFeatured,
+          grid: articles.expertGrid,
         }}
         sidebar={{
           title: "À ne pas manquer",
@@ -108,6 +88,7 @@ async function HomeContent() {
           list: articles.aNePasManquerList,
         }}
       />
+      <HomeFemme featured={articles.femmeFeatured} />
       {latestMagazine ? (
         <MagazinePromoFloat
           magazine={latestMagazine}

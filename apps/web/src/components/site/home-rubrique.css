@@ -4,10 +4,10 @@
   --opt-r-ink: #111111;
   --opt-r-muted: #6b6b6b;
   --opt-r-line: #e6e6e6;
-  --opt-r-teal: #0565ab;
-  --opt-r-tag: #ea580c;
+  --opt-r-teal: #e42320;
+  --opt-r-tag: #e42320;
   --opt-r-tag-yellow: #ca8a04;
-  --opt-r-red: #d63026;
+  --opt-r-red: #e42320;
 
   background: #fff;
   padding: 2.5rem 1.5rem 3rem;
@@ -55,27 +55,27 @@
 }
 
 .opt-rub__title.opt-rub__title--red {
-  color: #0462a9;
+  color: #e42320;
 }
 
 .opt-rub__title.opt-rub__title--blue {
-  color: #febb00;
+  color: #111111;
 }
 
 .opt-rub__title.opt-rub__title--gold {
-  color: #ff0c00;
+  color: #e42320;
 }
 
 .opt-rub__title.opt-rub__title--teal {
-  color: #022144;
+  color: #111111;
 }
 
 .opt-rub__title.opt-rub__title--dark {
-  color: #e1045c;
+  color: #111111;
 }
 
 .opt-rub__title.opt-rub__title--navy {
-  color: #00132b;
+  color: #111111;
 }
 
 .opt-rub__dot {

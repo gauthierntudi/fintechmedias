@@ -16,7 +16,6 @@ import {
   SubscriptionStatus,
 } from '@prisma/client';
 import { randomBytes } from 'crypto';
-import Stripe from 'stripe';
 import { ActivityService } from '../activity/activity.service';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -24,7 +23,6 @@ import { PrismaService } from '../prisma/prisma.service';
 @Injectable()
 export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name);
-  private stripe: Stripe | null = null;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -32,16 +30,6 @@ export class PaymentsService {
     private readonly activity: ActivityService,
     private readonly mail: MailService,
   ) {}
-
-  private getStripe(): Stripe {
-    if (this.stripe) return this.stripe;
-    const key = this.config.get<string>('STRIPE_SECRET_KEY')?.trim();
-    if (!key) {
-      throw new BadRequestException('Stripe non configuré');
-    }
-    this.stripe = new Stripe(key);
-    return this.stripe;
-  }
 
   async getStatus(paymentId: string, subscriberId: string) {
     const payment = await this.prisma.payment.findFirst({
@@ -69,303 +57,6 @@ export class PaymentsService {
     });
     if (!payment) throw new NotFoundException('Paiement introuvable');
     return this.toPublicPayment(payment);
-  }
-
-  async createStripeCheckout(subscriberId: string, planId: string) {
-    const { subscriber, plan } = await this.loadSubscriberAndPlan(
-      subscriberId,
-      planId,
-    );
-    const stripe = this.getStripe();
-
-    const payment = await this.prisma.payment.create({
-      data: {
-        provider: PaymentProvider.STRIPE,
-        amountCents: plan.priceCents,
-        currency: plan.currency,
-        status: PaymentStatus.PENDING,
-        purpose: PaymentPurpose.SUBSCRIPTION,
-        subscriberId: subscriber.id,
-        planId: plan.id,
-        metadata: { channel: 'elements' },
-      },
-    });
-
-    const intent = await stripe.paymentIntents.create({
-      amount: plan.priceCents,
-      currency: plan.currency.toLowerCase(),
-      payment_method_types: ['card'],
-      receipt_email: subscriber.email,
-      description: `Abonnement STUDRC — ${plan.name}`,
-      metadata: {
-        paymentId: payment.id,
-        planId: plan.id,
-        subscriberId: subscriber.id,
-        purpose: PaymentPurpose.SUBSCRIPTION,
-      },
-    });
-
-    if (!intent.client_secret) {
-      throw new BadRequestException('PaymentIntent Stripe invalide');
-    }
-
-    await this.prisma.payment.update({
-      where: { id: payment.id },
-      data: {
-        providerRef: intent.id,
-        metadata: {
-          channel: 'elements',
-          paymentIntentId: intent.id,
-        },
-      },
-    });
-
-    void this.activity.log({
-      actorType: ActivityActorType.SUBSCRIBER,
-      subscriberId: subscriber.id,
-      action: 'payment_checkout_started',
-      entity: 'payment',
-      entityId: payment.id,
-      meta: { provider: 'STRIPE', planId: plan.id, channel: 'elements' },
-    });
-
-    return {
-      paymentId: payment.id,
-      clientSecret: intent.client_secret,
-      publishableKey:
-        this.config.get<string>('STRIPE_PUBLISHABLE_KEY')?.trim() ||
-        this.config.get<string>('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY')?.trim() ||
-        null,
-    };
-  }
-
-  async createStripePurchase(subscriberId: string, magazineId: string) {
-    const { subscriber, magazine } = await this.loadSubscriberAndMagazine(
-      subscriberId,
-      magazineId,
-    );
-    const stripe = this.getStripe();
-    const amountCents = magazine.priceCents!;
-    const currency = magazine.currency;
-
-    const payment = await this.prisma.payment.create({
-      data: {
-        provider: PaymentProvider.STRIPE,
-        amountCents,
-        currency,
-        status: PaymentStatus.PENDING,
-        purpose: PaymentPurpose.PURCHASE,
-        subscriberId: subscriber.id,
-        magazineId: magazine.id,
-        metadata: { channel: 'elements' },
-      },
-    });
-
-    const intent = await stripe.paymentIntents.create({
-      amount: amountCents,
-      currency: currency.toLowerCase(),
-      payment_method_types: ['card'],
-      receipt_email: subscriber.email,
-      description: `Achat STUDRC — ${magazine.title}`,
-      metadata: {
-        paymentId: payment.id,
-        magazineId: magazine.id,
-        subscriberId: subscriber.id,
-        purpose: PaymentPurpose.PURCHASE,
-      },
-    });
-
-    if (!intent.client_secret) {
-      throw new BadRequestException('PaymentIntent Stripe invalide');
-    }
-
-    await this.prisma.payment.update({
-      where: { id: payment.id },
-      data: {
-        providerRef: intent.id,
-        metadata: {
-          channel: 'elements',
-          paymentIntentId: intent.id,
-        },
-      },
-    });
-
-    void this.activity.log({
-      actorType: ActivityActorType.SUBSCRIBER,
-      subscriberId: subscriber.id,
-      action: 'payment_checkout_started',
-      entity: 'payment',
-      entityId: payment.id,
-      meta: {
-        provider: 'STRIPE',
-        magazineId: magazine.id,
-        purpose: 'PURCHASE',
-        channel: 'elements',
-      },
-    });
-
-    return {
-      paymentId: payment.id,
-      clientSecret: intent.client_secret,
-      publishableKey:
-        this.config.get<string>('STRIPE_PUBLISHABLE_KEY')?.trim() ||
-        this.config.get<string>('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY')?.trim() ||
-        null,
-    };
-  }
-
-  async confirmStripePayment(
-    subscriberId: string,
-    paymentId: string,
-    opts: { paymentIntentId?: string; sessionId?: string },
-  ) {
-    const payment = await this.prisma.payment.findFirst({
-      where: {
-        id: paymentId,
-        subscriberId,
-        provider: PaymentProvider.STRIPE,
-      },
-    });
-    if (!payment) throw new NotFoundException('Paiement introuvable');
-    if (payment.status === PaymentStatus.SUCCESS) {
-      return this.getStatus(paymentId, subscriberId);
-    }
-
-    const stripe = this.getStripe();
-    const prevMeta =
-      typeof payment.metadata === 'object' && payment.metadata
-        ? (payment.metadata as Record<string, unknown>)
-        : {};
-
-    if (opts.paymentIntentId) {
-      const intent = await stripe.paymentIntents.retrieve(opts.paymentIntentId);
-      if (intent.metadata?.paymentId !== payment.id) {
-        throw new BadRequestException('PaymentIntent Stripe non concordant');
-      }
-      if (intent.status !== 'succeeded') {
-        return this.getStatus(paymentId, subscriberId);
-      }
-
-      await this.markPaymentSuccess(payment.id, {
-        providerRef: intent.id,
-        metadata: {
-          ...prevMeta,
-          paymentIntentId: intent.id,
-          confirmedVia: 'browser',
-        },
-      });
-      return this.getStatus(paymentId, subscriberId);
-    }
-
-    if (opts.sessionId) {
-      const session = await stripe.checkout.sessions.retrieve(opts.sessionId);
-      if (session.metadata?.paymentId !== payment.id) {
-        throw new BadRequestException('Session Stripe non concordante');
-      }
-      if (session.payment_status !== 'paid') {
-        return this.getStatus(paymentId, subscriberId);
-      }
-
-      await this.markPaymentSuccess(payment.id, {
-        providerRef: session.id,
-        metadata: {
-          ...prevMeta,
-          sessionId: session.id,
-          paymentIntent:
-            typeof session.payment_intent === 'string'
-              ? session.payment_intent
-              : null,
-          confirmedVia: 'browser',
-        },
-      });
-      return this.getStatus(paymentId, subscriberId);
-    }
-
-    throw new BadRequestException(
-      'paymentIntentId ou sessionId requis pour confirmer',
-    );
-  }
-
-  async handleStripeWebhook(rawBody: Buffer, signature: string | undefined) {
-    const secret = this.config.get<string>('STRIPE_WEBHOOK_SECRET')?.trim();
-    if (!secret) {
-      throw new BadRequestException('Webhook Stripe non configuré');
-    }
-    if (!signature) {
-      throw new BadRequestException('Signature Stripe manquante');
-    }
-
-    const stripe = this.getStripe();
-    let event: Stripe.Event;
-    try {
-      event = stripe.webhooks.constructEvent(rawBody, signature, secret);
-    } catch (err) {
-      this.logger.warn(
-        `Webhook Stripe invalide: ${err instanceof Error ? err.message : err}`,
-      );
-      throw new BadRequestException('Signature webhook invalide');
-    }
-
-    if (event.type === 'payment_intent.succeeded') {
-      const intent = event.data.object as Stripe.PaymentIntent;
-      const paymentId = intent.metadata?.paymentId;
-      if (paymentId) {
-        await this.markPaymentSuccess(paymentId, {
-          providerRef: intent.id,
-          metadata: {
-            paymentIntentId: intent.id,
-            eventType: event.type,
-            confirmedVia: 'webhook',
-          },
-        });
-      }
-    }
-
-    if (event.type === 'payment_intent.payment_failed') {
-      const intent = event.data.object as Stripe.PaymentIntent;
-      const paymentId = intent.metadata?.paymentId;
-      if (paymentId) {
-        await this.markPaymentFailed(paymentId, {
-          providerRef: intent.id,
-          metadata: {
-            paymentIntentId: intent.id,
-            eventType: event.type,
-            lastError: intent.last_payment_error?.message ?? null,
-          },
-        });
-      }
-    }
-
-    if (
-      event.type === 'checkout.session.completed' ||
-      event.type === 'checkout.session.async_payment_succeeded'
-    ) {
-      const session = event.data.object as Stripe.Checkout.Session;
-      const paymentId = session.metadata?.paymentId;
-      if (paymentId && session.payment_status === 'paid') {
-        await this.markPaymentSuccess(paymentId, {
-          providerRef: session.id,
-          metadata: {
-            sessionId: session.id,
-            eventType: event.type,
-            confirmedVia: 'webhook',
-          },
-        });
-      }
-    }
-
-    if (event.type === 'checkout.session.async_payment_failed') {
-      const session = event.data.object as Stripe.Checkout.Session;
-      const paymentId = session.metadata?.paymentId;
-      if (paymentId) {
-        await this.markPaymentFailed(paymentId, {
-          providerRef: session.id,
-          metadata: { eventType: event.type },
-        });
-      }
-    }
-
-    return { received: true };
   }
 
   async createFlexpaiePayment(
@@ -1043,11 +734,9 @@ export class PaymentsService {
     if (!subscriber?.email) return;
 
     const providerLabel =
-      payment.provider === PaymentProvider.STRIPE
-        ? 'Carte bancaire'
-        : payment.provider === PaymentProvider.FLEXPAIE
-          ? 'Mobile Money'
-          : 'Paiement';
+      payment.provider === PaymentProvider.FLEXPAIE
+        ? 'Mobile Money'
+        : 'Paiement';
 
     const appUrl = (
       this.config.get<string>('APP_URL') ?? 'http://localhost:3000'
@@ -1296,7 +985,7 @@ export class PaymentsService {
     bgColor: string;
     accentColor: string;
   } {
-    const fallback = { bgColor: '#0d203d', accentColor: '#02d0d1' };
+    const fallback = { bgColor: '#111111', accentColor: '#d63026' };
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return fallback;
     const obj = raw as Record<string, unknown>;
     const bg =

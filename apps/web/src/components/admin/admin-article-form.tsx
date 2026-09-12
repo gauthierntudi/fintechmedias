@@ -9,9 +9,11 @@ import {
   ArrowUp,
   Check,
   ChevronDown,
+  Image as ImageIcon,
   Plus,
   Search,
   Trash2,
+  Video,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { AdminDropzone } from "@/components/admin/admin-dropzone";
@@ -26,7 +28,22 @@ import {
   type AdminArticle,
   type AdminMagazine,
 } from "@/lib/api";
-import { isVideoRubrique } from "@/lib/rubriques";
+import { isShortRubrique, isVideoArticle } from "@/lib/rubriques";
+
+type MediaKind = "image" | "video";
+
+function articleHasVideo(article: AdminArticle | null | undefined): boolean {
+  return isVideoArticle(article);
+}
+
+function defaultMediaKind(
+  category: string,
+  article?: AdminArticle | null,
+): MediaKind {
+  if (isShortRubrique(category)) return "video";
+  if (articleHasVideo(article)) return "video";
+  return "image";
+}
 
 const MAG_FALLBACK_COVER = "/legacy/covers/1591457791.jpg";
 
@@ -163,6 +180,7 @@ export function AdminArticleForm({ mode, articleId }: AdminArticleFormProps) {
   const coverCropSrcRef = useRef<string | null>(null);
   const coverPreviewRef = useRef<string | null>(null);
   const [savedArticle, setSavedArticle] = useState<AdminArticle | null>(null);
+  const [mediaKind, setMediaKind] = useState<MediaKind>("image");
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUploadPercent, setVideoUploadPercent] = useState<number | null>(
     null,
@@ -243,6 +261,7 @@ export function AdminArticleForm({ mode, articleId }: AdminArticleFormProps) {
           return row.coverUrl;
         });
         setSavedArticle(row);
+        setMediaKind(defaultMediaKind(row.category ?? "", row));
         if (row.magazine) {
           const linked = row.magazine;
           setMagazines((prev) => {
@@ -257,7 +276,7 @@ export function AdminArticleForm({ mode, articleId }: AdminArticleFormProps) {
                 accessType: "PAID",
                 priceCents: null,
                 currency: "USD",
-                theme: { bgColor: "#00132b", accentColor: "#0565ab" },
+                theme: { bgColor: "#111111", accentColor: "#e42320" },
                 coverKey: null,
                 coverUrl: linked.coverUrl,
                 pdfKey: null,
@@ -388,7 +407,8 @@ export function AdminArticleForm({ mode, articleId }: AdminArticleFormProps) {
     const pendingCovers = form.blocks
       .map((b) => b.coverFile)
       .filter((file): file is File => Boolean(file));
-    const sendVideo = Boolean(videoFile && isVideoRubrique(form.category));
+    const wantsVideo = mediaKind === "video" || isShortRubrique(form.category);
+    const sendVideo = Boolean(videoFile && wantsVideo);
     const coverBytes = coverFile?.size ?? 0;
     const videoBytes = sendVideo && videoFile ? videoFile.size : 0;
     const blockBytes = pendingCovers.reduce((sum, file) => sum + file.size, 0);
@@ -436,6 +456,9 @@ export function AdminArticleForm({ mode, articleId }: AdminArticleFormProps) {
           },
         });
         completedWeight += videoBytes;
+      } else if (!wantsVideo && articleHasVideo(saved)) {
+        report("Retrait de la vidéo…");
+        saved = await adminArticlesApi.clearVideo(saved.id);
       }
       for (let i = 0; i < form.blocks.length; i++) {
         const file = form.blocks[i]?.coverFile;
@@ -609,19 +632,16 @@ export function AdminArticleForm({ mode, articleId }: AdminArticleFormProps) {
                       onChange={(e) => {
                         const category = e.target.value;
                         setForm((f) => ({ ...f, category }));
-                        if (!isVideoRubrique(category)) setVideoFile(null);
+                        if (isShortRubrique(category)) {
+                          setMediaKind("video");
+                        }
                       }}
                     >
                       <option value="">Sans rubrique</option>
                       {ARTICLE_CATEGORIES.map((c) => (
                         <option key={c.value} value={c.value}>
                           {c.label}
-                          {c.value === "stu-talk" ||
-                          c.value === "stu-stories"
-                            ? " — vidéo"
-                            : c.value === "stu-short"
-                              ? " — vidéo mobile"
-                              : ""}
+                          {c.value === "stu-short" ? " — vidéo mobile" : ""}
                         </option>
                       ))}
                     </select>
@@ -642,6 +662,49 @@ export function AdminArticleForm({ mode, articleId }: AdminArticleFormProps) {
                       <option value="1">Publié</option>
                     </select>
                   </label>
+                </div>
+                <div className="admin-dash__field">
+                  <span>Type de publication</span>
+                  <div
+                    className="admin-article__format"
+                    role="radiogroup"
+                    aria-label="Type de publication"
+                  >
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={mediaKind === "image"}
+                      className={`admin-article__format-btn${
+                        mediaKind === "image" ? " is-active" : ""
+                      }`}
+                      disabled={saving || isShortRubrique(form.category)}
+                      onClick={() => {
+                        setMediaKind("image");
+                        setVideoFile(null);
+                      }}
+                    >
+                      <ImageIcon size={16} aria-hidden />
+                      Article avec image
+                    </button>
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={mediaKind === "video"}
+                      className={`admin-article__format-btn${
+                        mediaKind === "video" ? " is-active" : ""
+                      }`}
+                      disabled={saving}
+                      onClick={() => setMediaKind("video")}
+                    >
+                      <Video size={16} aria-hidden />
+                      Vidéo
+                    </button>
+                  </div>
+                  <p className="admin-dash__switch-hint">
+                    {isShortRubrique(form.category)
+                      ? "SHORT reste un format vidéo vertical, visible uniquement dans l’app."
+                      : "Chaque rubrique peut publier un article illustré ou une vidéo."}
+                  </p>
                 </div>
                 <div className="admin-dash__field">
                   <span>Magazine lié (kiosque)</span>
@@ -833,22 +896,28 @@ export function AdminArticleForm({ mode, articleId }: AdminArticleFormProps) {
                 variant="image"
                 thumbRatio={form.category === "stu-short" ? "portrait" : "wide"}
                 accept="image/jpeg,image/png,image/webp"
-                label="Cover principale"
+                label={
+                  mediaKind === "video"
+                    ? "Cover / affiche"
+                    : "Cover principale"
+                }
                 hint={
                   form.category === "stu-short"
                     ? "Glisser-déposer ou cliquer · format vertical 9:16 · JPG, PNG, WEBP · max 5 Mo"
-                    : "Glisser-déposer ou cliquer · recadrage 16:9 · JPG, PNG, WEBP · max 5 Mo"
+                    : mediaKind === "video"
+                      ? "Glisser-déposer ou cliquer · recadrage 16:9 · affiche de la vidéo · max 5 Mo"
+                      : "Glisser-déposer ou cliquer · recadrage 16:9 · JPG, PNG, WEBP · max 5 Mo"
                 }
                 fileName={coverFile?.name ?? (coverPreview ? "cover" : null)}
                 previewUrl={coverPreview}
                 onFile={onCoverPick}
               />
-              {isVideoRubrique(form.category) ? (
+              {mediaKind === "video" || isShortRubrique(form.category) ? (
                 <div className="admin-dash__field">
                   <span>
                     {form.category === "stu-short"
                       ? "Vidéo SHORT (vertical 9:16 recommandé)"
-                      : "Vidéo (STU TALK / STU STORIES)"}
+                      : "Fichier vidéo"}
                   </span>
                   <AdminArticleVideo
                     articleId={articleId ?? savedArticle?.id}

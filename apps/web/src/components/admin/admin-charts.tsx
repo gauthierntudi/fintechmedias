@@ -32,7 +32,7 @@ function formatMoney(n: number, currency = "USD"): string {
 export function AdminBarChart({
   title,
   points,
-  color = "#0565ab",
+  color = "#e42320",
   currency = "USD",
 }: {
   title: string;

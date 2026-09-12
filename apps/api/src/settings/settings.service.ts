@@ -2,11 +2,18 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { UpdateContactSettingsDto } from './dto/update-contact-settings.dto';
 import {
   SOCIAL_NETWORKS,
   type SocialNetwork,
   type UpdateSiteSettingsDto,
 } from './dto/update-site-settings.dto';
+
+const DEFAULT_CONTACT = {
+  address: '8 Avenue Kalemie, Kinshasa-Gombe',
+  email: 'contact@lentrevuemag.com',
+  phone: '+243 813 212 772',
+} as const;
 
 export type SocialLink = {
   id: string;
@@ -62,6 +69,27 @@ export class SettingsService {
   async getSocial() {
     const row = await this.ensureRow();
     return this.toPublic(row);
+  }
+
+  async getContact() {
+    const row = await this.ensureRow();
+    return this.toContactPublic(row);
+  }
+
+  async updateContact(dto: UpdateContactSettingsDto) {
+    await this.ensureRow();
+    const address = dto.address?.trim() || null;
+    const email = dto.email?.trim().toLowerCase() || null;
+    const phone = dto.phone?.trim() || null;
+    const row = await this.prisma.siteSettings.update({
+      where: { id: 'default' },
+      data: {
+        contactAddress: address,
+        contactEmail: email,
+        contactPhone: phone,
+      },
+    });
+    return this.toContactPublic(row);
   }
 
   async updateSocial(dto: UpdateSiteSettingsDto) {
@@ -127,6 +155,20 @@ export class SettingsService {
     }
 
     return out;
+  }
+
+  private toContactPublic(row: {
+    contactAddress: string | null;
+    contactEmail: string | null;
+    contactPhone: string | null;
+    updatedAt: Date;
+  }) {
+    return {
+      address: row.contactAddress?.trim() || DEFAULT_CONTACT.address,
+      email: row.contactEmail?.trim() || DEFAULT_CONTACT.email,
+      phone: row.contactPhone?.trim() || DEFAULT_CONTACT.phone,
+      updatedAt: row.updatedAt.toISOString(),
+    };
   }
 
   private toPublic(row: { socialLinks: Prisma.JsonValue; updatedAt: Date }) {

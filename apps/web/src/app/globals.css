@@ -5,30 +5,32 @@
 
 
 :root {
-  --studrc-blue: #0565ab;
-  --studrc-red: #d63026;
-  --studrc-gold: #fdbd01;
-  --studrc-navy: #00132b;
+  --entrevue-black: #111111;
+  --entrevue-red: #e42320;
+  --entrevue-white: #ffffff;
+  --entrevue-navy: var(--entrevue-black);
+  --entrevue-blue: var(--entrevue-black);
+  --entrevue-gold: var(--entrevue-red);
 
-  --opt-cyan: var(--studrc-blue);
-  --opt-red: var(--studrc-red);
-  --opt-navy: var(--studrc-navy);
-  --opt-navy-deep: var(--studrc-navy);
-  --opt-gold: var(--studrc-gold);
-  --opt-cat-red: var(--studrc-red);
-  --opt-cat-blue: var(--studrc-blue);
-  --opt-cat-teal: var(--studrc-blue);
-  --opt-cat-dark: var(--studrc-navy);
-  --opt-cat-gold: var(--studrc-gold);
-  --opt-cat-orange: var(--studrc-gold);
+  --opt-cyan: var(--entrevue-red);
+  --opt-red: var(--entrevue-red);
+  --opt-navy: var(--entrevue-black);
+  --opt-navy-deep: var(--entrevue-black);
+  --opt-gold: var(--entrevue-red);
+  --opt-cat-red: var(--entrevue-red);
+  --opt-cat-blue: var(--entrevue-black);
+  --opt-cat-teal: var(--entrevue-black);
+  --opt-cat-dark: var(--entrevue-black);
+  --opt-cat-gold: var(--entrevue-red);
+  --opt-cat-orange: var(--entrevue-red);
 
-  /* Magazine sans — Google Fonts via next/font */
-  --opt-font-sans: var(--font-opt-sans), "Plus Jakarta Sans", system-ui, sans-serif;
-  --opt-font-display: var(--font-opt-display), Archivo, system-ui, sans-serif;
+  /* Identité typo ENTREVUE — Familjen Grotesk (corps + titres) */
+  --opt-font-sans: var(--font-familjen), "Familjen Grotesk", system-ui, sans-serif;
+  --opt-font-display: var(--font-familjen), "Familjen Grotesk", system-ui, sans-serif;
 
-  --admin-top-from: #021762;
-  --admin-top-mid: #023187;
-  --admin-top-to: #037d95;
+  --admin-top-from: #111111;
+  --admin-top-mid: #1a1a1a;
+  --admin-top-to: #e42320;
   --admin-page: #f4f6f9;
   --admin-nav: #607d8b;
 }
@@ -81,89 +83,80 @@ h6 {
   font-family: var(--opt-font-sans) !important;
 }
 
-.brand-logo--on-dark {
-  filter: brightness(0) invert(1);
-}
-
 /* Utilitaires admin / auth (hors CSS Material Pro complet) */
 .admin-topbar {
-  background: linear-gradient(
-    90deg,
-    rgba(2, 23, 98, 0.997) 0%,
-    rgba(2, 49, 135, 1) 35%,
-    rgba(3, 125, 149, 1) 100%
-  );
+  background: #111111;
 }
 
 .opt-top__badge--red,
 .opt-rub__tag--red,
 .opt-rsplit__tag--red {
-  background: #0462a9;
+  background: var(--entrevue-red);
   color: #fff;
 }
 
 .opt-top__badge--blue,
 .opt-rub__tag--blue,
 .opt-rsplit__tag--blue {
-  background: #febb00;
-  color: #00132b;
+  background: var(--entrevue-black);
+  color: #fff;
 }
 
 .opt-top__badge--teal,
 .opt-rub__tag--teal,
 .opt-rsplit__tag--teal {
-  background: #022144;
+  background: var(--entrevue-black);
   color: #fff;
 }
 
 .opt-top__badge--dark,
 .opt-rub__tag--dark,
 .opt-rsplit__tag--dark {
-  background: #e1045c;
+  background: var(--entrevue-black);
   color: #fff;
 }
 
 .opt-top__badge--gold,
 .opt-rub__tag--gold,
 .opt-rsplit__tag--gold {
-  background: #ff0c00;
+  background: var(--entrevue-red);
   color: #fff;
 }
 
 .opt-rub__tag--orange,
 .opt-rsplit__tag--orange {
-  background: var(--opt-cat-orange);
-  color: var(--studrc-navy, #00132b);
+  background: var(--entrevue-red);
+  color: #fff;
 }
 
 .opt-rub__tag--yellow {
   background: var(--opt-cat-gold);
-  color: #111;
+  color: #fff;
 }
 
 .opt-rub__title--teal,
 .opt-rsplit__title--teal {
-  color: #022144;
+  color: var(--entrevue-black);
 }
 
 .opt-rub__title--red,
 .opt-rsplit__title--red {
-  color: #0462a9;
+  color: var(--entrevue-red);
 }
 
 .opt-rub__title--blue,
 .opt-rsplit__title--blue {
-  color: #febb00;
+  color: var(--entrevue-black);
 }
 
 .opt-rub__title--dark,
 .opt-rsplit__title--dark {
-  color: #e1045c;
+  color: var(--entrevue-black);
 }
 
 .opt-rub__title--gold,
 .opt-rsplit__title--gold {
-  color: #ff0c00;
+  color: var(--entrevue-red);
 }
 
 .opt-rub__title--orange,
@@ -196,32 +189,32 @@ h6 {
 }
 
 .opt-rub__title--navy {
-  color: #00132b;
+  color: var(--entrevue-black);
 }
 
 .opt-rub__dot--teal,
 .opt-rsplit__title--teal .opt-rsplit__dot {
-  background: #022144;
+  background: var(--entrevue-black);
 }
 
 .opt-rub__dot--red,
 .opt-rsplit__title--red .opt-rsplit__dot {
-  background: #0462a9;
+  background: var(--entrevue-red);
 }
 
 .opt-rub__dot--blue,
 .opt-rsplit__title--blue .opt-rsplit__dot {
-  background: #febb00;
+  background: var(--entrevue-black);
 }
 
 .opt-rub__dot--dark,
 .opt-rsplit__title--dark .opt-rsplit__dot {
-  background: #e1045c;
+  background: var(--entrevue-black);
 }
 
 .opt-rub__dot--gold,
 .opt-rsplit__title--gold .opt-rsplit__dot {
-  background: #ff0c00;
+  background: var(--entrevue-red);
 }
 
 .opt-rub__dot--orange,
@@ -230,5 +223,5 @@ h6 {
 }
 
 .opt-rub__dot--navy {
-  background: #00132b;
+  background: var(--entrevue-black);
 }
