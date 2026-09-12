@@ -1577,7 +1577,7 @@
 .admin-dash__btn--primary {
   border-color: transparent;
   background: #e42320;
-  color: #0a0a0a;
+  color: #fff;
 }
 
 .admin-dash__btn--primary:hover:not(:disabled) {
@@ -2678,7 +2678,7 @@
 }
 
 .admin-dash__kpi-vivid--teal {
-  background: linear-gradient(145deg, #111111 0%, #e42320 70%, #e42320 100%) !important;
+  background: linear-gradient(145deg, #0b4f54 0%, #12727a 100%) !important;
   color: #fff !important;
 }
 
@@ -2688,7 +2688,7 @@
 }
 
 .admin-dash__kpi-vivid--green {
-  background: #1a1a1a !important;
+  background: #111111 !important;
   color: #fff !important;
 }
 
@@ -2698,7 +2698,7 @@
 }
 
 .admin-dash__kpi-vivid--coral {
-  background: #c21e1b !important;
+  background: #15803d !important;
   color: #fff !important;
 }
 
