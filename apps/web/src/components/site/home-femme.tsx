@@ -24,7 +24,9 @@ export function HomeFemme({
         <div className="opt-femme__copy">
           <p className="opt-femme__cat">{RUBRIQUE.label}</p>
           <h2 id="opt-femme-title" className="opt-femme__title">
-            <Link href={articleHref(featured)}>{featured.titre}</Link>
+            <Link href={articleHref(featured)} title={featured.titre}>
+              {featured.titre}
+            </Link>
           </h2>
           {featured.excerpt ? (
             <p className="opt-femme__excerpt">{featured.excerpt}</p>

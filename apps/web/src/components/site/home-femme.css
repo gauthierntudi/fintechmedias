@@ -82,10 +82,10 @@
 .opt-femme__title {
   margin: 0;
   font-family: var(--opt-font-display);
-  font-size: clamp(2rem, 4.6vw, 3.35rem);
+  font-size: clamp(1.7rem, 3.6vw, 2.75rem);
   font-weight: 600;
-  letter-spacing: -0.035em;
-  line-height: 1.08;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
   color: #fff;
 }
 
@@ -93,16 +93,24 @@
 .opt-femme__title a:hover,
 .opt-femme__title a:visited {
   color: #fff;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
 .opt-femme__excerpt {
   margin: 1.25rem 0 0;
   max-width: 34rem;
   font-family: var(--opt-font-sans);
-  font-size: 1.02rem;
+  font-size: clamp(1rem, 1.35vw, 1.15rem);
   font-weight: 400;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.78);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
 .opt-femme__explore {
@@ -206,6 +214,14 @@ a.opt-femme__cta-btn--black:hover {
     width: calc(100% - 2rem);
     margin: 0 1rem;
     padding: 5rem 0 2.25rem;
+  }
+
+  .opt-femme__title {
+    font-size: clamp(1.45rem, 6.4vw, 1.85rem);
+  }
+
+  .opt-femme__excerpt {
+    -webkit-line-clamp: 2;
   }
 
   .opt-femme__cta-inner {

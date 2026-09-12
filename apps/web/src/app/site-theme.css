@@ -345,8 +345,8 @@ html[data-theme="dark"] .opt-rsplit__title.opt-rsplit__title--dark {
   color: var(--site-ink);
 }
 
-html[data-theme="dark"] .opt-article__more-cat--dark {
-  color: var(--site-ink);
+html[data-theme="dark"] .opt-article__more-cat {
+  color: #fff;
 }
 
 html[data-theme="dark"] .opt-rub__excerpt,
