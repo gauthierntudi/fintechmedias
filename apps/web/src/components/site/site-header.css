@@ -855,6 +855,15 @@
     display: none;
   }
 
+  .opt-header__menu-btn {
+    padding: 0.4rem;
+  }
+
+  .opt-header__menu-btn svg {
+    width: 26px;
+    height: 26px;
+  }
+
   .opt-header__side--right {
     gap: 0.35rem;
   }
