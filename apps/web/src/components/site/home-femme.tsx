@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { DEMO_GAME_FEATURED, type RubriqueSplitStory } from "@/lib/legacy-demo";
 import { articleHref } from "@/lib/home-articles";
 import { CoverImage } from "@/components/site/cover-image";
+import { ArticleThumbSponsor } from "@/components/site/article-thumb-sponsor";
 import { RUBRIQUE_BY_SLUG } from "@/lib/rubriques";
 import { HomeFemmeCta } from "./home-femme-cta";
 import "./home-femme.css";
@@ -20,6 +21,7 @@ export function HomeFemme({
         <div className="opt-femme__media" aria-hidden>
           <CoverImage src={featured.cover} />
           <div className="opt-femme__shade" />
+          <ArticleThumbSponsor sponsor={featured.sponsor} />
         </div>
         <div className="opt-femme__copy">
           <p className="opt-femme__cat">{RUBRIQUE.label}</p>

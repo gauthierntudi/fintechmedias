@@ -14,6 +14,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DEMO_FEATURED, DEMO_TOP_GRID, type TopStory } from "@/lib/legacy-demo";
 import { articleHref } from "@/lib/home-articles";
 import { CoverImage } from "@/components/site/cover-image";
+import { ArticleThumbSponsor } from "@/components/site/article-thumb-sponsor";
 import "./top-stories.css";
 
 const AUTO_MS = 7000;
@@ -45,6 +46,7 @@ function FeaturedSlide({ story }: { story: TopStory }) {
       <div className="opt-top__media">
         <CoverImage src={story.cover} className="opt-top__cover" />
         <div className="opt-top__shade" aria-hidden />
+        <ArticleThumbSponsor sponsor={story.sponsor} />
       </div>
 
       <div className="opt-top__copy">

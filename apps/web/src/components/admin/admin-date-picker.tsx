@@ -98,6 +98,9 @@ export type AdminDatePickerProps = {
   max?: string;
   placeholder?: string;
   className?: string;
+  clearable?: boolean;
+  /** Champ déjà wrappé : le parent affiche le label. */
+  hideLabel?: boolean;
 };
 
 export function AdminDatePicker({
@@ -108,6 +111,8 @@ export function AdminDatePicker({
   max,
   placeholder = "Choisir…",
   className,
+  clearable = true,
+  hideLabel = false,
 }: AdminDatePickerProps) {
   const id = useId();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -165,11 +170,13 @@ export function AdminDatePicker({
     <div
       ref={rootRef}
       className={cn(
-        "admin-dash__field admin-dash__field--date admin-datepicker",
+        hideLabel
+          ? "admin-datepicker"
+          : "admin-dash__field admin-dash__field--date admin-datepicker",
         className,
       )}
     >
-      <span id={`${id}-label`}>{label}</span>
+      {hideLabel ? null : <span id={`${id}-label`}>{label}</span>}
       <div className="admin-datepicker__wrap">
         <button
           type="button"
@@ -181,13 +188,14 @@ export function AdminDatePicker({
           )}
           aria-haspopup="dialog"
           aria-expanded={open}
-          aria-labelledby={`${id}-label`}
+          aria-labelledby={hideLabel ? undefined : `${id}-label`}
+          aria-label={hideLabel ? label : undefined}
           onClick={() => setOpen((v) => !v)}
         >
           <CalendarDays size={15} strokeWidth={2} aria-hidden />
           <span>{value ? formatDisplay(value) : placeholder}</span>
         </button>
-        {value ? (
+        {clearable && open && value ? (
           <button
             type="button"
             className="admin-datepicker__clear"

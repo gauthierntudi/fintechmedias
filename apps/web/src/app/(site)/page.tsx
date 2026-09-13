@@ -45,11 +45,23 @@ async function HomeContent() {
           titre: s.titre,
           cover: s.cover,
           dateLabel: s.dateLabel,
+          sponsor: s.sponsor,
         }))}
       />
       <HomeRencontre
         featured={articles.rencontreFeatured}
         items={articles.rencontreGrid}
+      />
+      <HomeKiosque
+        rubriqueSlug="innovation"
+        items={articles.innovationStories.map((s) => ({
+          id: s.id,
+          slug: s.slug,
+          titre: s.titre,
+          cover: s.cover,
+          dateLabel: s.dateLabel,
+          sponsor: s.sponsor,
+        }))}
       />
       <HomeRubrique
         primary={{

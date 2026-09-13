@@ -17,7 +17,7 @@ export const FLAGSHIP_RUBRIQUE_SLUGS = [
   "entreprendre",
 ] as const;
 
-/** Cinq rubriques L'Entrevue — navigation, admin et filtres. */
+/** Rubriques L'Entrevue — navigation, admin et filtres. */
 export const RUBRIQUES: readonly Rubrique[] = [
   {
     slug: "qu-en-dit-l-expert",
@@ -60,6 +60,14 @@ export const RUBRIQUES: readonly Rubrique[] = [
     blurb:
       "Voix, parcours et combats des femmes qui transforment leur milieu.",
     tone: "dark",
+  },
+  {
+    slug: "innovation",
+    href: "/rubrique/innovation",
+    label: "Innovation",
+    blurb:
+      "Idées, technologies et usages qui font avancer l’entrepreneuriat.",
+    tone: "gold",
   },
 ] as const;
 

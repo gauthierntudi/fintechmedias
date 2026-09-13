@@ -82,6 +82,9 @@ export function toTopStory(a: PublicArticleCard): TopStory {
     author: a.authorName,
     dateLabel: a.dateLabel,
     featured: true,
+    sponsor: a.sponsor
+      ? { name: a.sponsor.name, logoUrl: a.sponsor.logoUrl }
+      : null,
   };
 }
 
@@ -99,6 +102,9 @@ export function toRubriqueStory(a: PublicArticleCard): RubriqueStory {
     videoPosterUrl: a.videoPosterUrl ?? null,
     videoStatus: a.videoStatus,
     viewCount: a.viewCount,
+    sponsor: a.sponsor
+      ? { name: a.sponsor.name, logoUrl: a.sponsor.logoUrl }
+      : null,
   };
 }
 
@@ -162,6 +168,7 @@ export type HomeArticlesView = {
   expertGrid: RubriqueStory[];
   femmeFeatured: RubriqueSplitStory;
   femmeGrid: RubriqueStory[];
+  innovationStories: RubriqueStory[];
   aNePasManquerFeatured: RubriqueStory;
   aNePasManquerList: RubriqueStory[];
 };
@@ -184,6 +191,7 @@ export function buildHomeArticlesView(
   const plusVus = (feed?.plusVus ?? []).map(toRubriqueStory);
   const expert = (feed?.expert ?? []).map(toRubriqueStory);
   const femme = (feed?.femme ?? []).map(toSplitStory);
+  const innovationStories = (feed?.innovation ?? []).map(toRubriqueStory);
   const miss = (feed?.aNePasManquer ?? []).map(toRubriqueStory);
 
   const featuredIds = new Set(featured.map((a) => String(a.id)));
@@ -233,6 +241,17 @@ export function buildHomeArticlesView(
     expertGrid: pick(expert.slice(1), DEMO_ZOOM_GRID, 1),
     femmeFeatured: pickOne(femme, DEMO_GAME_FEATURED),
     femmeGrid: pick(femme.slice(1), DEMO_GAME_GRID, 1),
+    innovationStories: pick(
+      innovationStories,
+      DEMO_DOSSIERS.map((s) => ({
+        ...s,
+        category: "Innovation",
+        author: "L'Entrevue",
+        dateLabel: "",
+        tagTone: "gold" as const,
+      })),
+      1,
+    ),
     aNePasManquerFeatured: pickOne(miss, DEMO_A_NE_PAS_MANQUER_FEATURED),
     aNePasManquerList: pick(miss.slice(1), DEMO_A_NE_PAS_MANQUER_LIST, 1).slice(
       0,

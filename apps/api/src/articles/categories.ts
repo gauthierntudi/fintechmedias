@@ -41,6 +41,10 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     label: 'Femme',
     tone: 'dark',
   },
+  innovation: {
+    label: 'Innovation',
+    tone: 'gold',
+  },
   [SHORT_CATEGORY_SLUG]: {
     label: 'SHORT',
     tone: 'gold',

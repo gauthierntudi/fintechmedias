@@ -173,8 +173,64 @@
 
 .opt-rub__featured:has(.opt-cover.is-loaded) .opt-rub__featured-shade,
 .opt-rub__featured:has(.opt-cover.is-loaded) .opt-rub__featured-body,
-.opt-rub__featured:has(.opt-cover.is-loaded) > .opt-rub__tag {
+.opt-rub__featured:has(.opt-cover.is-loaded) > .opt-rub__tag,
+.opt-rub__featured:has(.opt-cover.is-loaded) > .opt-rub__sponsor {
   opacity: 1;
+}
+
+.opt-rub__sponsor {
+  position: absolute;
+  z-index: 4;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: calc(100% - 1.5rem);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+
+.opt-rub__sponsor em {
+  font-style: normal;
+  font-family: var(--opt-font-sans);
+  font-size: 0.7rem;
+  font-weight: 650;
+  line-height: 1.2;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 75%),
+    0 0 10px rgb(0 0 0 / 45%);
+}
+
+.opt-rub__sponsor img {
+  display: block;
+  max-height: 1.7rem;
+  max-width: 4.8rem;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 40%));
+}
+
+.opt-rub__sponsor--tile {
+  position: static;
+  top: auto;
+  right: auto;
+  max-width: 100%;
+  margin: 0 0 0.35rem;
+  opacity: 1;
+}
+
+.opt-rub__sponsor--tile em {
+  font-size: 0.62rem;
+}
+
+.opt-rub__sponsor--tile img {
+  max-height: 1rem;
+  max-width: 2.5rem;
 }
 
 .opt-rub__tag {

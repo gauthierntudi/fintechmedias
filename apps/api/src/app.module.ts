@@ -15,6 +15,7 @@ import { ContactModule } from './contact/contact.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { SettingsModule } from './settings/settings.module';
+import { SponsorsModule } from './sponsors/sponsors.module';
 import { SubscribersModule } from './subscribers/subscribers.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { PaymentsModule } from './payments/payments.module';
@@ -46,6 +47,7 @@ if (existsSync(envRoot)) loadEnv({ path: envRoot, override: true });
     NewsletterModule,
     ContactModule,
     SettingsModule,
+    SponsorsModule,
     MonitoringModule,
   ],
 })

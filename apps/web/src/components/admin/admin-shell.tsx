@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   CreditCard,
+  Handshake,
   History,
   LayoutDashboard,
   LogOut,
@@ -49,6 +50,7 @@ const PAGE_LABEL: Record<string, string> = {
   "/admin/contact": "Contact",
   "/admin/reseaux": "Réseaux sociaux",
   "/admin/actualites": "Actualités",
+  "/admin/sponsors": "Sponsors",
   "/admin/publicite": "Publicité",
   "/admin/monitoring": "Monitoring",
   "/admin/staff": "Staff",
@@ -146,6 +148,7 @@ export function AdminShell({
     { href: "/admin/contact", label: "Contact", icon: Inbox },
     { href: "/admin/reseaux", label: "Réseaux sociaux", icon: Share2 },
     { href: "/admin/actualites", label: "Actualités", icon: Newspaper },
+    { href: "/admin/sponsors", label: "Sponsors", icon: Handshake },
     ...(isSuperAdmin
       ? [{ href: "/admin/monitoring", label: "Monitoring", icon: Activity }]
       : []),

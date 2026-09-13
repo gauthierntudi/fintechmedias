@@ -188,6 +188,20 @@ model Magazine {
   @@map("magazines")
 }
 
+/// Logo partenaire réutilisable sur les articles
+model Sponsor {
+  id        String   @id @default(cuid())
+  name      String
+  logoKey   String?
+  url       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  articles Article[]
+
+  @@map("sponsors")
+}
+
 model MagazinePage {
   id         String   @id @default(cuid())
   magazineId String
@@ -291,6 +305,8 @@ model Article {
   authorId    String?
   /// Magazine lié (affiché sur l’article + kiosque)
   magazineId  String?
+  /// Sponsor (logo réutilisable)
+  sponsorId   String?
   /// MP4 source (R2) — rubriques vidéo
   videoSourceKey   String?
   /// Playlist HLS master (R2)
@@ -306,12 +322,14 @@ model Article {
 
   author   AdminUser?    @relation(fields: [authorId], references: [id])
   magazine Magazine?     @relation(fields: [magazineId], references: [id], onDelete: SetNull)
+  sponsor  Sponsor?      @relation(fields: [sponsorId], references: [id], onDelete: SetNull)
   comments Comment[]
   blocks   ArticleBlock[]
 
   @@index([isPublished, publishedAt])
   @@index([isFeatured, isPublished])
   @@index([magazineId])
+  @@index([sponsorId])
   @@index([videoStatus])
   @@map("articles")
 }

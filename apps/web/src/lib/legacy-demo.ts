@@ -11,6 +11,7 @@ export type TopStory = {
   author: string;
   dateLabel: string;
   featured?: boolean;
+  sponsor?: { name: string; logoUrl: string | null } | null;
 };
 
 export type DemoMagazine = {
@@ -282,6 +283,7 @@ export type RubriqueStory = {
   videoPosterUrl?: string | null;
   videoStatus?: "NONE" | "PENDING" | "PROCESSING" | "READY" | "FAILED";
   viewCount?: number;
+  sponsor?: { name: string; logoUrl: string | null } | null;
 };
 
 export const DEMO_STARTUP_FEATURED: RubriqueStory = {

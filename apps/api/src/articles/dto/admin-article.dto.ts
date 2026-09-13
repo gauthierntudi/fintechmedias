@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
+  IsDateString,
   IsInt,
   IsOptional,
   IsString,
@@ -82,12 +83,24 @@ export class CreateArticleDto {
   @IsBoolean()
   isFeatured?: boolean;
 
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null && v !== undefined)
+  @IsDateString()
+  publishedAt?: string | null;
+
   /** Lien optionnel vers un magazine du kiosque (`null` / omit = aucun) */
   @IsOptional()
   @ValidateIf((_, v) => v !== null && v !== undefined)
   @IsString()
   @MaxLength(64)
   magazineId?: string | null;
+
+  /** Lien optionnel vers un sponsor (`null` / omit = aucun) */
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null && v !== undefined)
+  @IsString()
+  @MaxLength(64)
+  sponsorId?: string | null;
 
   @IsOptional()
   @IsArray()
@@ -139,12 +152,24 @@ export class UpdateArticleDto {
   @IsBoolean()
   isFeatured?: boolean;
 
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null && v !== undefined)
+  @IsDateString()
+  publishedAt?: string | null;
+
   /** Lien optionnel vers un magazine (`null` = détacher) */
   @IsOptional()
   @ValidateIf((_, v) => v !== null && v !== undefined)
   @IsString()
   @MaxLength(64)
   magazineId?: string | null;
+
+  /** Lien optionnel vers un sponsor (`null` = détacher) */
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null && v !== undefined)
+  @IsString()
+  @MaxLength(64)
+  sponsorId?: string | null;
 
   @IsOptional()
   @IsArray()

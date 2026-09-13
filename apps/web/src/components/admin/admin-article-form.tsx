@@ -16,7 +16,9 @@ import {
   Video,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { AdminDatePicker } from "@/components/admin/admin-date-picker";
 import { AdminDropzone } from "@/components/admin/admin-dropzone";
+import { AdminSponsorPicker } from "@/components/admin/admin-sponsor-picker";
 import { AdminArticleVideo } from "@/components/admin/admin-article-video";
 import { AdminProgressModal } from "@/components/admin/admin-progress-modal";
 import { AdminRichEditor } from "@/components/admin/admin-rich-editor";
@@ -72,9 +74,29 @@ type ArticleForm = {
   coverCaption: string;
   isPublished: boolean;
   isFeatured: boolean;
+  publishedAt: string;
   magazineId: string;
+  sponsorId: string;
   blocks: FormBlock[];
 };
+
+function todayYmd(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function toYmd(iso?: string | null): string {
+  if (!iso) return todayYmd();
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return todayYmd();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 function newBlock(partial?: Partial<FormBlock>): FormBlock {
   return {
@@ -97,7 +119,9 @@ function emptyForm(): ArticleForm {
     coverCaption: "",
     isPublished: false,
     isFeatured: false,
+    publishedAt: todayYmd(),
     magazineId: "",
+    sponsorId: "",
     blocks: [newBlock()],
   };
 }
@@ -136,7 +160,9 @@ function fromArticle(a: AdminArticle): ArticleForm {
     coverCaption: a.coverCaption ?? "",
     isPublished: a.isPublished,
     isFeatured: Boolean(a.isFeatured),
+    publishedAt: toYmd(a.publishedAt),
     magazineId: a.magazineId ?? "",
+    sponsorId: a.sponsorId ?? "",
     blocks,
   };
 }
@@ -150,7 +176,11 @@ function toPayload(form: ArticleForm) {
     coverCaption: form.coverCaption.trim() || null,
     isPublished: form.isPublished,
     isFeatured: form.isFeatured,
+    publishedAt: form.publishedAt
+      ? `${form.publishedAt}T12:00:00`
+      : todayYmd() + "T12:00:00",
     magazineId: form.magazineId.trim() || null,
+    sponsorId: form.sponsorId.trim() || null,
     blocks: form.blocks.map((b, i) => ({
       id: b.id,
       title: b.title.trim() || null,
@@ -706,9 +736,26 @@ export function AdminArticleForm({ mode, articleId }: AdminArticleFormProps) {
                       : "Chaque rubrique peut publier un article illustré ou une vidéo."}
                   </p>
                 </div>
-                <div className="admin-dash__field">
-                  <span>Magazine lié (kiosque)</span>
-                  <div className="admin-mag-picker" ref={magPickerRef}>
+                <div className="admin-dash__form-grid">
+                  <div className="admin-dash__field">
+                    <span>Date de publication</span>
+                    <AdminDatePicker
+                      label="Date de publication"
+                      value={form.publishedAt}
+                      placeholder="Aujourd’hui"
+                      clearable={false}
+                      hideLabel
+                      onChange={(next) =>
+                        setForm((f) => ({
+                          ...f,
+                          publishedAt: next || todayYmd(),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="admin-dash__field">
+                    <span>Magazine lié (kiosque)</span>
+                    <div className="admin-mag-picker" ref={magPickerRef}>
                     <button
                       type="button"
                       className="admin-mag-picker__trigger"
@@ -864,9 +911,25 @@ export function AdminArticleForm({ mode, articleId }: AdminArticleFormProps) {
                         </ul>
                       </div>
                     ) : null}
+                    </div>
+                    <span className="admin-dash__switch-hint">
+                      Affiché sur l’article avec un accès direct au kiosque
+                    </span>
                   </div>
+                </div>
+                <div className="admin-dash__field">
+                  <span>Sponsor (logo)</span>
+                  <AdminSponsorPicker
+                    value={form.sponsorId}
+                    linked={savedArticle?.sponsor}
+                    disabled={saving}
+                    onChange={(sponsorId) =>
+                      setForm((f) => ({ ...f, sponsorId }))
+                    }
+                  />
                   <span className="admin-dash__switch-hint">
-                    Affiché sur l’article avec un accès direct au kiosque
+                    Un nouveau sponsor reste disponible pour les prochains
+                    articles
                   </span>
                 </div>
                 <label className="admin-dash__switch">

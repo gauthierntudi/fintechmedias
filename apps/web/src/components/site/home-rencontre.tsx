@@ -24,6 +24,19 @@ function formatViews(count?: number) {
   return `${new Intl.NumberFormat("fr-FR").format(count)} vue${count > 1 ? "s" : ""}`;
 }
 
+function SponsorLine({ story }: { story: RubriqueSplitStory }) {
+  if (!story.sponsor?.name && !story.sponsor?.logoUrl) return null;
+  return (
+    <p className="opt-renc__sponsor">
+      <span>Sponsorisé Par</span>
+      {story.sponsor.logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={story.sponsor.logoUrl} alt="" />
+      ) : null}
+    </p>
+  );
+}
+
 function Meta({ story }: { story: RubriqueSplitStory }) {
   const views = formatViews(story.viewCount);
   return (
@@ -67,6 +80,18 @@ export function HomeRencontre({
           <article className="opt-renc__featured">
             <Link href={articleHref(featured)} className="opt-renc__featured-media">
               <CoverImage src={featured.cover} />
+              {featured.sponsor?.name || featured.sponsor?.logoUrl ? (
+                <span className="opt-renc__featured-sponsor">
+                  <em>Sponsorisé Par</em>
+                  {featured.sponsor.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={featured.sponsor.logoUrl}
+                      alt={featured.sponsor.name}
+                    />
+                  ) : null}
+                </span>
+              ) : null}
             </Link>
             <p className="opt-renc__cat">{featured.category}</p>
             <h3 className="opt-renc__featured-title">
@@ -91,6 +116,7 @@ export function HomeRencontre({
                   <CoverImage src={story.cover} />
                 </Link>
                 <div className="opt-renc__item-body">
+                  <SponsorLine story={story} />
                   <p className="opt-renc__cat">{story.category}</p>
                   <h3 className="opt-renc__item-title">
                     <Link href={articleHref(story)} title={story.titre}>

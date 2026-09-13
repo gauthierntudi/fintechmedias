@@ -66,6 +66,13 @@ const MAGAZINE_SUMMARY_SELECT = {
   theme: true,
 } satisfies Prisma.MagazineSelect;
 
+const SPONSOR_SUMMARY_SELECT = {
+  id: true,
+  name: true,
+  logoKey: true,
+  url: true,
+} satisfies Prisma.SponsorSelect;
+
 const ARTICLE_SELECT = {
   id: true,
   legacyId: true,
@@ -81,6 +88,7 @@ const ARTICLE_SELECT = {
   isFeatured: true,
   authorId: true,
   magazineId: true,
+  sponsorId: true,
   videoSourceKey: true,
   videoHlsKey: true,
   videoPosterKey: true,
@@ -99,6 +107,9 @@ const ARTICLE_SELECT = {
   },
   magazine: {
     select: MAGAZINE_SUMMARY_SELECT,
+  },
+  sponsor: {
+    select: SPONSOR_SUMMARY_SELECT,
   },
   blocks: {
     orderBy: { position: 'asc' as const },
@@ -124,6 +135,9 @@ const PUBLIC_CARD_SELECT = {
   videoStatus: true,
   videoDurationSec: true,
   author: { select: { name: true } },
+  sponsor: {
+    select: SPONSOR_SUMMARY_SELECT,
+  },
 } satisfies Prisma.ArticleSelect;
 
 @Injectable()
@@ -218,6 +232,7 @@ export class ArticlesService {
       rencontreAvec,
       expert,
       femme,
+      innovation,
       plusVus,
       aNePasManquer,
     ] = await Promise.all([
@@ -248,6 +263,7 @@ export class ArticlesService {
       this.byCategory('rencontre-avec', 4),
       this.byCategory('qu-en-dit-l-expert', 5),
       this.byCategory('femme', 5),
+      this.byCategory('innovation', 10),
       this.prisma.article.findMany({
         where: published,
         orderBy: [{ viewCount: 'desc' }, { publishedAt: 'desc' }],
@@ -293,6 +309,7 @@ export class ArticlesService {
       rencontreAvec: rencontreAvec.map((a) => this.toPublicCard(a)),
       expert: expert.map((a) => this.toPublicCard(a)),
       femme: femme.map((a) => this.toPublicCard(a)),
+      innovation: innovation.map((a) => this.toPublicCard(a)),
       plusVus: plusVus.map((a) => this.toPublicCard(a)),
       aNePasManquer: aNePasManquer.map((a) => this.toPublicCard(a)),
     };
@@ -609,6 +626,14 @@ export class ArticlesService {
       videoPosterUrl: this.resolveMediaUrl(article.videoPosterKey),
       videoStatus: article.videoStatus,
       videoDurationSec: article.videoDurationSec,
+      sponsor: article.sponsor
+        ? {
+            id: article.sponsor.id,
+            name: article.sponsor.name,
+            logoUrl: this.resolveMediaUrl(article.sponsor.logoKey),
+            url: article.sponsor.url,
+          }
+        : null,
     };
   }
 
@@ -626,6 +651,7 @@ export class ArticlesService {
       '';
 
     const magazineId = await this.resolveMagazineId(dto.magazineId);
+    const sponsorId = await this.resolveSponsorId(dto.sponsorId);
 
     const created = await this.prisma.$transaction(async (tx) => {
       const article = await tx.article.create({
@@ -638,9 +664,12 @@ export class ArticlesService {
           coverCaption: dto.coverCaption?.trim() || null,
           isPublished,
           isFeatured,
-          publishedAt: isPublished ? new Date() : null,
+          publishedAt:
+            this.parsePublishedAt(dto.publishedAt) ??
+            (isPublished ? new Date() : null),
           authorId: actorId,
           ...(magazineId ? { magazineId } : {}),
+          ...(sponsorId ? { sponsorId } : {}),
         },
         select: { id: true },
       });
@@ -720,9 +749,14 @@ export class ArticlesService {
 
     if (dto.isPublished !== undefined) {
       data.isPublished = dto.isPublished;
-      if (dto.isPublished && !existing.publishedAt) {
-        data.publishedAt = new Date();
-      }
+    }
+
+    if (dto.publishedAt !== undefined) {
+      const parsed = this.parsePublishedAt(dto.publishedAt);
+      if (parsed) data.publishedAt = parsed;
+      else if (dto.publishedAt === null) data.publishedAt = null;
+    } else if (dto.isPublished && !existing.publishedAt) {
+      data.publishedAt = new Date();
     }
 
     if (dto.isFeatured !== undefined) {
@@ -733,6 +767,13 @@ export class ArticlesService {
       const magazineId = await this.resolveMagazineId(dto.magazineId);
       data.magazine = magazineId
         ? { connect: { id: magazineId } }
+        : { disconnect: true };
+    }
+
+    if (dto.sponsorId !== undefined) {
+      const sponsorId = await this.resolveSponsorId(dto.sponsorId);
+      data.sponsor = sponsorId
+        ? { connect: { id: sponsorId } }
         : { disconnect: true };
     }
 
@@ -1166,6 +1207,16 @@ export class ArticlesService {
     throw new ConflictException('Impossible de générer un slug unique');
   }
 
+  private parsePublishedAt(raw?: string | null): Date | null {
+    if (raw == null || !raw.trim()) return null;
+    const value = raw.trim();
+    const parsed = /^\d{4}-\d{2}-\d{2}$/.test(value)
+      ? new Date(`${value}T12:00:00`)
+      : new Date(value);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return parsed;
+  }
+
   private slugify(input: string): string {
     return input
       .normalize('NFD')
@@ -1272,6 +1323,22 @@ export class ArticlesService {
     return mag.id;
   }
 
+  private async resolveSponsorId(
+    raw: string | null | undefined,
+  ): Promise<string | null> {
+    if (raw === undefined) return null;
+    if (raw === null || !raw.trim()) return null;
+    const id = raw.trim();
+    const sponsor = await this.prisma.sponsor.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!sponsor) {
+      throw new BadRequestException('Sponsor introuvable');
+    }
+    return sponsor.id;
+  }
+
   private toAdmin(
     article: Prisma.ArticleGetPayload<{ select: typeof ARTICLE_SELECT }>,
     opts?: { publicMagazineOnly?: boolean },
@@ -1288,6 +1355,8 @@ export class ArticlesService {
       blocks,
       magazine,
       magazineId,
+      sponsor,
+      sponsorId,
       ...rest
     } = article;
     const resolvedBlocks =
@@ -1321,6 +1390,7 @@ export class ArticlesService {
         : opts?.publicMagazineOnly
           ? null
           : magazineId,
+      sponsorId,
       coverKey,
       coverCaption,
       coverUrl: this.resolveMediaUrl(coverKey),
@@ -1341,6 +1411,14 @@ export class ArticlesService {
             isPublished: magazine.isPublished,
             isActive: magazine.isActive,
             theme: this.parseMagazineTheme(magazine.theme),
+          }
+        : null,
+      sponsor: sponsor
+        ? {
+            id: sponsor.id,
+            name: sponsor.name,
+            logoUrl: this.resolveMediaUrl(sponsor.logoKey),
+            url: sponsor.url,
           }
         : null,
       blocks:

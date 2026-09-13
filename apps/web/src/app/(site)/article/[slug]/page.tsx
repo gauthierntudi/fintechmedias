@@ -17,6 +17,7 @@ import { VideoPlay } from "@/components/site/video-play";
 import { HlsPlayer } from "@/components/site/hls-player";
 import { ArticleMagazineFloat } from "./article-magazine-float";
 import { ArticleShare } from "@/components/site/article-share";
+import { ArticleThumbSponsor } from "@/components/site/article-thumb-sponsor";
 import "./article.css";
 import { preconnect, preload } from "react-dom";
 import { BRAND } from "@/lib/brand";
@@ -250,7 +251,45 @@ export default async function ArticlePage({ params }: Props) {
               )}
           </div>
 
-          {shareBar}
+          {article.sponsor?.name || article.sponsor?.logoUrl ? (
+            <div className="opt-article__footer">
+              <p className="opt-article__sponsor">
+                <span className="opt-article__sponsor-label">
+                  Sponsorisé Par
+                </span>
+                {article.sponsor.url &&
+                /^https?:\/\//i.test(article.sponsor.url) ? (
+                  <a
+                    className="opt-article__sponsor-link"
+                    href={article.sponsor.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {article.sponsor.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={article.sponsor.logoUrl}
+                        alt={article.sponsor.name}
+                      />
+                    ) : (
+                      <span>{article.sponsor.name}</span>
+                    )}
+                  </a>
+                ) : article.sponsor.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={article.sponsor.logoUrl}
+                    alt={article.sponsor.name}
+                  />
+                ) : (
+                  <span>{article.sponsor.name}</span>
+                )}
+              </p>
+              {shareBar}
+            </div>
+          ) : (
+            shareBar
+          )}
 
           {related.length > 0 ? (
             <section
@@ -278,6 +317,7 @@ export default async function ArticlePage({ params }: Props) {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={item.coverUrl} alt="" />
                       ) : null}
+                      <ArticleThumbSponsor sponsor={item.sponsor} compact />
                       {isVideoArticle(item) ? (
                         <VideoPlay size={14} className="opt-video-play--xs" />
                       ) : null}

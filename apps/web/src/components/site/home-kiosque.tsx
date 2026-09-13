@@ -25,9 +25,8 @@ export type HomeStoriesItem = {
   dateLabel: string;
   videoHlsUrl?: string | null;
   videoPosterUrl?: string | null;
+  sponsor?: { name: string; logoUrl: string | null } | null;
 };
-
-const RUBRIQUE = RUBRIQUE_BY_SLUG["ecosysteme-pme"];
 
 const DEMO_ITEMS: HomeStoriesItem[] = DEMO_DOSSIERS.map((s) => ({
   id: s.id,
@@ -37,12 +36,17 @@ const DEMO_ITEMS: HomeStoriesItem[] = DEMO_DOSSIERS.map((s) => ({
   dateLabel: "",
 }));
 
-/** Carrousel Écosystème PME. */
+/** Carrousel rubrique (Écosystème PME, Innovation…). */
 export function HomeKiosque({
   items: incoming,
+  rubriqueSlug = "ecosysteme-pme",
 }: {
   items?: HomeStoriesItem[];
+  rubriqueSlug?: string;
 } = {}) {
+  const RUBRIQUE =
+    RUBRIQUE_BY_SLUG[rubriqueSlug] ?? RUBRIQUE_BY_SLUG["ecosysteme-pme"];
+  const titleId = `opt-kiosque-title-${RUBRIQUE.slug}`;
   const items = incoming && incoming.length > 0 ? incoming : DEMO_ITEMS;
   const swiperRef = useRef<SwiperType | null>(null);
   const [canPrev, setCanPrev] = useState(false);
@@ -54,11 +58,11 @@ export function HomeKiosque({
   };
 
   return (
-    <section className="opt-kiosque" aria-labelledby="opt-kiosque-title">
+    <section className="opt-kiosque" aria-labelledby={titleId}>
       <div className="opt-kiosque__inner">
         <header className="opt-kiosque__head">
           <div className="opt-kiosque__head-text">
-            <h2 id="opt-kiosque-title" className="opt-kiosque__title">
+            <h2 id={titleId} className="opt-kiosque__title">
               <Link href={RUBRIQUE.href} className="opt-kiosque__logo-link">
                 {RUBRIQUE.label}
               </Link>
@@ -144,6 +148,18 @@ export function HomeKiosque({
                       src={story.cover || FALLBACK_COVER}
                       className="opt-kiosque__cover"
                     />
+                    {story.sponsor?.name || story.sponsor?.logoUrl ? (
+                      <span className="opt-kiosque__sponsor">
+                        <em>Sponsorisé Par</em>
+                        {story.sponsor.logoUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={story.sponsor.logoUrl}
+                            alt={story.sponsor.name}
+                          />
+                        ) : null}
+                      </span>
+                    ) : null}
                   </div>
                   <div className="opt-kiosque__meta">
                     <div className="opt-kiosque__meta-top">

@@ -14,6 +14,7 @@ import {
   type HomeRubriqueSplitProps,
 } from "@/components/site/home-rubrique-split";
 import { CoverImage } from "@/components/site/cover-image";
+import { ArticleThumbSponsor } from "@/components/site/article-thumb-sponsor";
 import { VideoPlay } from "@/components/site/video-play";
 import "./home-rubrique.css";
 
@@ -59,12 +60,26 @@ function OverlayCard({
   tile?: boolean;
   hideMeta?: boolean;
 }) {
+  const sponsor =
+    story.sponsor?.name || story.sponsor?.logoUrl ? (
+      <span
+        className={`opt-rub__sponsor${tile ? " opt-rub__sponsor--tile" : ""}`}
+      >
+        <em>Sponsorisé Par</em>
+        {story.sponsor.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={story.sponsor.logoUrl} alt={story.sponsor.name} />
+        ) : null}
+      </span>
+    ) : null;
+
   return (
     <Link
       href={articleHref(story)}
       className={`opt-rub__featured${tile ? " opt-rub__featured--tile" : ""}`}
     >
       <CoverImage src={story.cover} className="opt-rub__featured-cover" />
+      {tile ? null : sponsor}
       {video ? (
         <VideoPlay
           size={tile ? 18 : 26}
@@ -74,6 +89,7 @@ function OverlayCard({
       <div className="opt-rub__featured-shade" aria-hidden />
       <Tag label={story.category} tone={story.tagTone} />
       <div className="opt-rub__featured-body">
+        {tile ? sponsor : null}
         <h3 className="opt-rub__featured-title">{story.titre}</h3>
         {tile || hideMeta ? null : (
           <Meta author={story.author} dateLabel={story.dateLabel} light />
@@ -118,6 +134,7 @@ function PlusVusItem({ story }: { story: RubriqueStory }) {
       <div className="opt-rub__pv-body">
         <span className="opt-rub__pv-cat">{story.category}</span>
         <h3 className="opt-rub__pv-title">{story.titre}</h3>
+        <ArticleThumbSponsor sponsor={story.sponsor} inline />
       </div>
     </Link>
   );
