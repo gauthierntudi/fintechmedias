@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth-hero-slides";
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
 import { BRAND } from "@/lib/brand";
+import { BrandLogo } from "./brand-logo";
 import { ThemeToggle } from "./theme-toggle";
 import "./auth-panel.css";
 
@@ -126,8 +127,7 @@ export function AuthPanel({
         <div className="opt-auth__panel">
           <div className="opt-auth__panel-top">
             <Link href="/" className="opt-auth__panel-logo" aria-label={`${BRAND.magazineName} — accueil`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={BRAND.logo} alt={BRAND.name} />
+              <BrandLogo height={28} />
             </Link>
             <div className="opt-auth__panel-top-actions">
               <ThemeToggle />

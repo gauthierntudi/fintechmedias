@@ -13,6 +13,8 @@ import { MagazinePromoFloat } from "@/components/site/magazine-promo-float";
 import { articlesPublicApi, magazinesPublicApi } from "@/lib/api";
 import { buildHomeArticlesView } from "@/lib/home-articles";
 
+export const dynamic = "force-dynamic";
+
 /** Accueil — articles + magazines dynamiques (API) avec repli démo */
 export default function HomePage() {
   return (
@@ -37,7 +39,7 @@ async function HomeContent() {
 
   return (
     <>
-      <TopStories featured={articles.featured} grid={articles.topGrid} />
+      <TopStories featured={articles.featured} />
       <HomeKiosque
         items={articles.ecosystemePmeStories.map((s) => ({
           id: s.id,

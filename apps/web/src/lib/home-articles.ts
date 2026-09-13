@@ -2,7 +2,6 @@ import type {
   PublicArticleCard,
   PublicHomeArticles,
 } from "@/lib/api";
-import { isFlagshipRubrique } from "@/lib/rubriques";
 import {
   DEMO_A_NE_PAS_MANQUER_FEATURED,
   DEMO_A_NE_PAS_MANQUER_LIST,
@@ -17,7 +16,6 @@ import {
   DEMO_PLUS_VUS_LIST,
   DEMO_STARTUP_FEATURED,
   DEMO_STARTUP_GRID,
-  DEMO_TOP_GRID,
   DEMO_ZOOM_FEATURED,
   DEMO_ZOOM_GRID,
   type DossierCard,
@@ -132,26 +130,6 @@ function pickOne<T>(api: T[], demo: T): T {
   return api[0] ?? demo;
 }
 
-function pickLatestPerRubrique(
-  groups: TopStory[][],
-  demo: TopStory[],
-  featuredIds: Set<string>,
-): TopStory[] {
-  const used = new Set(featuredIds);
-  const out: TopStory[] = [];
-  for (let i = 0; i < groups.length; i++) {
-    const group = groups[i] ?? [];
-    const article =
-      group.find((item) => !used.has(String(item.id))) ?? group[0] ?? demo[i];
-    if (!article) continue;
-    const id = String(article.id);
-    if (used.has(id) && out.some((row) => String(row.id) === id)) continue;
-    used.add(id);
-    out.push(article);
-  }
-  return out.slice(0, 5);
-}
-
 export type HomeArticlesView = {
   featured: TopStory[];
   topGrid: TopStory[];
@@ -176,9 +154,7 @@ export type HomeArticlesView = {
 export function buildHomeArticlesView(
   feed: PublicHomeArticles | null,
 ): HomeArticlesView {
-  const featured = (feed?.featured ?? [])
-    .filter((a) => isFlagshipRubrique(a.category, a.categoryLabel))
-    .map(toTopStory);
+  const featured = (feed?.featured ?? []).map(toTopStory);
   const ecosystemePmeCards = (feed?.ecosystemePme ?? []).map(toDossierCard);
   const ecosystemePmeStories = (feed?.ecosystemePme ?? []).map(toRubriqueStory);
   const filInfo = (feed?.filInfo ?? []).map((a) => ({
@@ -194,23 +170,9 @@ export function buildHomeArticlesView(
   const innovationStories = (feed?.innovation ?? []).map(toRubriqueStory);
   const miss = (feed?.aNePasManquer ?? []).map(toRubriqueStory);
 
-  const featuredIds = new Set(featured.map((a) => String(a.id)));
-
   return {
-    featured: pick(
-      featured,
-      DEMO_FEATURED.filter((s) => isFlagshipRubrique(s.category)),
-      1,
-    ),
-    topGrid: pickLatestPerRubrique(
-      [
-        (feed?.expert ?? []).map(toTopStory),
-        (feed?.rencontreAvec ?? []).map(toTopStory),
-        (feed?.entreprendre ?? []).map(toTopStory),
-      ],
-      DEMO_TOP_GRID.filter((s) => isFlagshipRubrique(s.category)),
-      featuredIds,
-    ),
+    featured: pick(featured, DEMO_FEATURED, 1),
+    topGrid: [],
     ecosystemePme: pick(ecosystemePmeCards, DEMO_DOSSIERS, 1),
     ecosystemePmeStories: pick(ecosystemePmeStories, DEMO_DOSSIERS.map((s) => ({
       ...s,

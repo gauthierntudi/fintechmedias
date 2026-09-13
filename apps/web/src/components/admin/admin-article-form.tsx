@@ -48,6 +48,32 @@ function defaultMediaKind(
 }
 
 const MAG_FALLBACK_COVER = "/legacy/covers/1591457791.jpg";
+const FEATURED_TTL_DAYS = 30;
+
+function featuredDaysLeft(iso?: string | null): number | null {
+  if (!iso) return null;
+  const end = new Date(iso).getTime() + FEATURED_TTL_DAYS * 86_400_000;
+  if (Number.isNaN(end)) return null;
+  return Math.ceil((end - Date.now()) / 86_400_000);
+}
+
+function featuredHint(
+  checked: boolean,
+  savedFeatured?: boolean,
+  featuredAt?: string | null,
+): string {
+  if (!checked) {
+    return "Visible 30 jours sur l’accueil, dans un ordre aléatoire à chaque visite.";
+  }
+  if (!savedFeatured) {
+    return "Visible 30 jours dès l’enregistrement. Plusieurs articles par rubrique peuvent être à la une.";
+  }
+  const left = featuredDaysLeft(featuredAt);
+  if (left == null || left <= 0) {
+    return "La fenêtre de 30 jours est expirée — décochez puis recochez pour relancer.";
+  }
+  return `Encore ${left} jour${left > 1 ? "s" : ""} sur l’accueil (30 jours au total).`;
+}
 
 function normalizeMagQuery(value: string): string {
   return value
@@ -936,7 +962,11 @@ export function AdminArticleForm({ mode, articleId }: AdminArticleFormProps) {
                   <span className="admin-dash__switch-meta">
                     <span className="admin-dash__switch-label">À la une</span>
                     <span className="admin-dash__switch-hint">
-                      Mettre en avant sur la page d’accueil
+                      {featuredHint(
+                        form.isFeatured,
+                        savedArticle?.isFeatured,
+                        savedArticle?.featuredAt,
+                      )}
                     </span>
                   </span>
                   <span className="admin-dash__switch-control">

@@ -27,6 +27,16 @@ function formatCount(value: number): string {
   return new Intl.NumberFormat("fr-FR").format(value);
 }
 
+const FEATURED_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+function isFeaturedActive(row: AdminArticle): boolean {
+  if (!row.isFeatured) return false;
+  if (!row.featuredAt) return false;
+  const start = new Date(row.featuredAt).getTime();
+  if (Number.isNaN(start)) return false;
+  return Date.now() - start < FEATURED_TTL_MS;
+}
+
 function formatWhen(iso: string | null): string {
   if (!iso) return "—";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -319,7 +329,9 @@ export default function AdminArticlesPage() {
                       </span>
                       {row.isFeatured ? (
                         <span className="admin-mag__badge admin-mag__badge--featured">
-                          À la une
+                          {isFeaturedActive(row)
+                            ? "À la une"
+                            : "À la une (expiré)"}
                         </span>
                       ) : null}
                     </div>

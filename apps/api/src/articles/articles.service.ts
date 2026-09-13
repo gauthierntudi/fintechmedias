@@ -31,9 +31,11 @@ import { enqueueArticleVideo } from './video/article-video.queue';
 import { videoSourcePrefix } from './video/process-article-video';
 import {
   CATEGORY_META,
+  FEATURED_TTL_DAYS,
   SHORT_CATEGORY_SLUG,
   categoryDisplay,
   categoryQuerySlugs,
+  publicSiteCategorySlugs,
   resolveCategorySlug,
 } from './categories';
 
@@ -86,6 +88,7 @@ const ARTICLE_SELECT = {
   viewCount: true,
   isPublished: true,
   isFeatured: true,
+  featuredAt: true,
   authorId: true,
   magazineId: true,
   sponsorId: true,
@@ -139,6 +142,45 @@ const PUBLIC_CARD_SELECT = {
     select: SPONSOR_SUMMARY_SELECT,
   },
 } satisfies Prisma.ArticleSelect;
+
+type PublicCardRow = Prisma.ArticleGetPayload<{
+  select: typeof PUBLIC_CARD_SELECT;
+}>;
+
+function featuredWindowStart(now = new Date()) {
+  return new Date(now.getTime() - FEATURED_TTL_DAYS * 24 * 60 * 60 * 1000);
+}
+
+function shuffleRows<T>(items: T[]): T[] {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const current = out[i];
+    const swap = out[j];
+    if (current === undefined || swap === undefined) continue;
+    out[i] = swap;
+    out[j] = current;
+  }
+  return out;
+}
+
+function pickLatestOnePerSiteCategory(groups: PublicCardRow[][]): PublicCardRow[] {
+  const picked = groups
+    .map((list) => list[0])
+    .filter((row): row is PublicCardRow => Boolean(row));
+  const seen = new Set<string>();
+  const unique = picked.filter((row) => {
+    if (seen.has(row.id)) return false;
+    seen.add(row.id);
+    return true;
+  });
+  unique.sort((a, b) => {
+    const da = (a.publishedAt ?? a.createdAt).getTime();
+    const db = (b.publishedAt ?? b.createdAt).getTime();
+    return db - da;
+  });
+  return unique;
+}
 
 @Injectable()
 export class ArticlesService {
@@ -224,8 +266,9 @@ export class ArticlesService {
       ...this.notShort,
     };
 
+    const featuredSince = featuredWindowStart();
     const [
-      featured,
+      featuredRows,
       recent,
       ecosystemePme,
       entreprendre,
@@ -240,16 +283,10 @@ export class ArticlesService {
         where: {
           ...published,
           isFeatured: true,
-          category: {
-            in: [
-              ...categoryQuerySlugs('qu-en-dit-l-expert'),
-              ...categoryQuerySlugs('rencontre-avec'),
-              ...categoryQuerySlugs('entreprendre'),
-            ],
-          },
+          featuredAt: { gte: featuredSince },
         },
-        orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
-        take: 3,
+        orderBy: [{ featuredAt: 'desc' }, { publishedAt: 'desc' }],
+        take: 60,
         select: this.publicCardSelect,
       }),
       this.prisma.article.findMany({
@@ -288,21 +325,25 @@ export class ArticlesService {
       }),
     ]);
 
-    const featuredIds = new Set(featured.map((a) => a.id));
-    const used = new Set(featuredIds);
-    const topGrid: typeof recent = [];
-    for (const list of [expert, rencontreAvec, entreprendre]) {
-      const article = list.find((a) => !used.has(a.id)) ?? list[0];
-      if (!article) continue;
-      if (topGrid.some((row) => row.id === article.id)) continue;
-      used.add(article.id);
-      topGrid.push(article);
-    }
+    const latestBySlug: Record<string, PublicCardRow[]> = {
+      'qu-en-dit-l-expert': expert,
+      'rencontre-avec': rencontreAvec,
+      entreprendre,
+      'ecosysteme-pme': ecosystemePme,
+      femme,
+      innovation,
+    };
+    const featured: PublicCardRow[] =
+      featuredRows.length > 0
+        ? shuffleRows(featuredRows)
+        : pickLatestOnePerSiteCategory(
+            publicSiteCategorySlugs().map((slug) => latestBySlug[slug] ?? []),
+          );
     const filInfo = recent.slice(0, 5);
 
     return {
       featured: featured.map((a) => this.toPublicCard(a)),
-      topGrid: topGrid.map((a) => this.toPublicCard(a)),
+      topGrid: [],
       ecosystemePme: ecosystemePme.map((a) => this.toPublicCard(a)),
       filInfo: filInfo.map((a) => this.toPublicCard(a)),
       entreprendre: entreprendre.map((a) => this.toPublicCard(a)),
@@ -664,6 +705,7 @@ export class ArticlesService {
           coverCaption: dto.coverCaption?.trim() || null,
           isPublished,
           isFeatured,
+          featuredAt: isFeatured ? new Date() : null,
           publishedAt:
             this.parsePublishedAt(dto.publishedAt) ??
             (isPublished ? new Date() : null),
@@ -717,6 +759,7 @@ export class ArticlesService {
         slug: true,
         isPublished: true,
         publishedAt: true,
+        isFeatured: true,
       },
     });
     if (!existing) {
@@ -761,6 +804,11 @@ export class ArticlesService {
 
     if (dto.isFeatured !== undefined) {
       data.isFeatured = dto.isFeatured;
+      if (dto.isFeatured && !existing.isFeatured) {
+        data.featuredAt = new Date();
+      } else if (!dto.isFeatured) {
+        data.featuredAt = null;
+      }
     }
 
     if (dto.magazineId !== undefined) {
@@ -1187,7 +1235,12 @@ export class ArticlesService {
       this.prisma.article.count(),
       this.prisma.article.count({ where: { isPublished: true } }),
       this.prisma.article.count({ where: { isPublished: false } }),
-      this.prisma.article.count({ where: { isFeatured: true } }),
+      this.prisma.article.count({
+        where: {
+          isFeatured: true,
+          featuredAt: { gte: featuredWindowStart() },
+        },
+      }),
     ]);
     return { total, published, drafts, featured };
   }

@@ -11,6 +11,16 @@ export type CategoryMeta = {
 
 export const SHORT_CATEGORY_SLUG = 'stu-short';
 
+/** Durée d’un article « À la une » sur l’accueil. */
+export const FEATURED_TTL_DAYS = 30;
+
+/** Rubriques du site public (hors SHORT mobile). */
+export function publicSiteCategorySlugs(): string[] {
+  return Object.entries(CATEGORY_META)
+    .filter(([, meta]) => !meta.mobileOnly)
+    .map(([slug]) => slug);
+}
+
 export const CATEGORY_META: Record<string, CategoryMeta> = {
   'qu-en-dit-l-expert': {
     label: "Qu'en dit l'expert",

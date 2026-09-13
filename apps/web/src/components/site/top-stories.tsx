@@ -11,7 +11,7 @@ import {
   type TransitionEvent,
 } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DEMO_FEATURED, DEMO_TOP_GRID, type TopStory } from "@/lib/legacy-demo";
+import { DEMO_FEATURED, type TopStory } from "@/lib/legacy-demo";
 import { articleHref } from "@/lib/home-articles";
 import { CoverImage } from "@/components/site/cover-image";
 import { ArticleThumbSponsor } from "@/components/site/article-thumb-sponsor";
@@ -26,16 +26,16 @@ function readingMinutes(story: TopStory) {
   return Math.min(12, Math.max(3, Math.round(words / 40) + 3));
 }
 
-function uniqueStories(featured: TopStory[], grid: TopStory[]) {
+function uniqueStories(featured: TopStory[]) {
   const seen = new Set<string>();
   const out: TopStory[] = [];
-  for (const story of [...featured, ...grid]) {
+  for (const story of featured) {
     const id = String(story.id);
     if (seen.has(id)) continue;
     seen.add(id);
     out.push(story);
   }
-  return out.slice(0, 6);
+  return out;
 }
 
 function FeaturedSlide({ story }: { story: TopStory }) {
@@ -366,15 +366,10 @@ function FeaturedSlider({ stories }: { stories: TopStory[] }) {
 /** Première section accueil — héros plein écran. */
 export function TopStories({
   featured = DEMO_FEATURED,
-  grid = DEMO_TOP_GRID,
 }: {
   featured?: TopStory[];
-  grid?: TopStory[];
 } = {}) {
-  const stories = useMemo(
-    () => uniqueStories(featured, grid),
-    [featured, grid],
-  );
+  const stories = useMemo(() => uniqueStories(featured), [featured]);
 
   if (!stories.length) return null;
 

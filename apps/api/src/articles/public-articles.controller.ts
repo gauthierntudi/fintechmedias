@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Header, Param, Query } from '@nestjs/common';
 import { ArticlesService } from './articles.service';
 
 @Controller('articles')
@@ -6,6 +6,7 @@ export class PublicArticlesController {
   constructor(private readonly articles: ArticlesService) {}
 
   @Get('home')
+  @Header('Cache-Control', 'no-store')
   home() {
     return this.articles.getHomeFeed();
   }

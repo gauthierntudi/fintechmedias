@@ -125,7 +125,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         ),
                   data: (data) {
                     final feed = data.feed;
-                    final une = _unique([...feed.featured, ...feed.topGrid]);
+                    final une = _unique([...feed.featured]);
                     final byRubrique = [
                       for (final r in kRubriques) feed.forSlug(r.slug),
                     ];

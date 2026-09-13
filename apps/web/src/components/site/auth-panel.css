@@ -730,10 +730,10 @@
     justify-content: space-between;
     padding: 0.75rem 1rem;
     padding-top: max(0.75rem, env(safe-area-inset-top));
-    background: rgba(255, 255, 255, 0.92);
+    background: color-mix(in srgb, var(--site-bg, #fff) 92%, transparent);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    border-bottom: 1px solid color-mix(in srgb, var(--site-line, #e2e8f0) 80%, transparent);
   }
 
   .opt-auth__panel-logo {
@@ -743,7 +743,7 @@
 
   .opt-auth__panel-logo img {
     display: block;
-    height: 44px;
+    height: 28px;
     width: auto;
     object-fit: contain;
   }

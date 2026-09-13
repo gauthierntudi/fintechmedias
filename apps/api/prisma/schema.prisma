@@ -302,6 +302,8 @@ model Article {
   isPublished Boolean  @default(false)
   /// Mis en avant sur l’accueil (« À la une »)
   isFeatured  Boolean  @default(false)
+  /// Début de la fenêtre « À la une » (30 jours)
+  featuredAt  DateTime?
   authorId    String?
   /// Magazine lié (affiché sur l’article + kiosque)
   magazineId  String?
@@ -328,6 +330,7 @@ model Article {
 
   @@index([isPublished, publishedAt])
   @@index([isFeatured, isPublished])
+  @@index([isFeatured, featuredAt])
   @@index([magazineId])
   @@index([sponsorId])
   @@index([videoStatus])

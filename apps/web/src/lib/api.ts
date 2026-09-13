@@ -1998,6 +1998,7 @@ export type AdminArticle = {
   viewCount: number;
   isPublished: boolean;
   isFeatured: boolean;
+  featuredAt?: string | null;
   magazineId: string | null;
   magazine: AdminArticleMagazine | null;
   sponsorId?: string | null;
