@@ -102,6 +102,13 @@ export class CreateArticleDto {
   @MaxLength(64)
   sponsorId?: string | null;
 
+  /** Auteur de byline (`null` / omit = l’admin connecté) */
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null && v !== undefined)
+  @IsString()
+  @MaxLength(64)
+  bylineAuthorId?: string | null;
+
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
@@ -170,6 +177,13 @@ export class UpdateArticleDto {
   @IsString()
   @MaxLength(64)
   sponsorId?: string | null;
+
+  /** Auteur de byline (`null` = l’admin qui enregistre) */
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null && v !== undefined)
+  @IsString()
+  @MaxLength(64)
+  bylineAuthorId?: string | null;
 
   @IsOptional()
   @IsArray()

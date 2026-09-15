@@ -15,6 +15,7 @@ import {
   Moon,
   Newspaper,
   Package,
+  PenLine,
   PanelLeft,
   PanelRight,
   ScrollText,
@@ -50,6 +51,7 @@ const PAGE_LABEL: Record<string, string> = {
   "/admin/contact": "Contact",
   "/admin/reseaux": "Réseaux sociaux",
   "/admin/actualites": "Actualités",
+  "/admin/auteurs": "Auteurs",
   "/admin/sponsors": "Sponsors",
   "/admin/publicite": "Publicité",
   "/admin/monitoring": "Monitoring",
@@ -148,6 +150,7 @@ export function AdminShell({
     { href: "/admin/contact", label: "Contact", icon: Inbox },
     { href: "/admin/reseaux", label: "Réseaux sociaux", icon: Share2 },
     { href: "/admin/actualites", label: "Actualités", icon: Newspaper },
+    { href: "/admin/auteurs", label: "Auteurs", icon: PenLine },
     { href: "/admin/sponsors", label: "Sponsors", icon: Handshake },
     ...(isSuperAdmin
       ? [{ href: "/admin/monitoring", label: "Monitoring", icon: Activity }]

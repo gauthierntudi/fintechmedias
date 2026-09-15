@@ -1985,6 +1985,38 @@ export type AdminArticleSponsor = {
   url: string | null;
 };
 
+export type AdminAuthor = {
+  id: string;
+  name: string;
+  title: string | null;
+  avatarKey: string | null;
+  avatarUrl: string | null;
+  adminUserId: string | null;
+  articlesCount?: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminAuthorInput = {
+  name: string;
+  title?: string | null;
+};
+
+export type AdminAuthorListResponse = {
+  items: AdminAuthor[];
+  total: number;
+  take: number;
+  skip: number;
+};
+
+export type AdminArticleAuthor = {
+  id: string;
+  name: string;
+  title: string | null;
+  avatarUrl: string | null;
+  adminUserId: string | null;
+};
+
 export type AdminArticle = {
   id: string;
   legacyId: number | null;
@@ -2006,6 +2038,8 @@ export type AdminArticle = {
   sponsor?: AdminArticleSponsor | null;
   authorId: string | null;
   author: { id: string; name: string; email: string; avatarUrl?: string | null } | null;
+  bylineAuthorId?: string | null;
+  bylineAuthor?: AdminArticleAuthor | null;
   commentsCount: number;
   blocks: AdminArticleBlock[];
   publishedAt: string | null;
@@ -2041,6 +2075,7 @@ export type AdminArticleInput = {
   publishedAt?: string | null;
   magazineId?: string | null;
   sponsorId?: string | null;
+  bylineAuthorId?: string | null;
   blocks?: AdminArticleBlockInput[];
 };
 
@@ -2095,6 +2130,47 @@ export const adminSponsorsApi = {
 
   remove(id: string) {
     return apiFetch<{ ok: boolean }>(`/admin/sponsors/${id}`, {
+      method: "DELETE",
+    });
+  },
+};
+
+export const adminAuthorsApi = {
+  list(params?: { q?: string; take?: number; skip?: number }) {
+    const qs = new URLSearchParams();
+    if (params?.q?.trim()) qs.set("q", params.q.trim());
+    if (params?.take != null) qs.set("take", String(params.take));
+    if (params?.skip != null) qs.set("skip", String(params.skip));
+    const suffix = qs.toString() ? `?${qs}` : "";
+    return apiFetch<AdminAuthorListResponse>(`/admin/authors${suffix}`);
+  },
+
+  get(id: string) {
+    return apiFetch<AdminAuthor>(`/admin/authors/${id}`);
+  },
+
+  create(input: AdminAuthorInput) {
+    return apiFetch<AdminAuthor>("/admin/authors", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  update(id: string, input: Partial<AdminAuthorInput>) {
+    return apiFetch<AdminAuthor>(`/admin/authors/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+  },
+
+  uploadAvatar(id: string, file: File) {
+    const body = new FormData();
+    body.append("file", file);
+    return apiFetchForm<AdminAuthor>(`/admin/authors/${id}/avatar`, body);
+  },
+
+  remove(id: string) {
+    return apiFetch<{ ok: boolean }>(`/admin/authors/${id}`, {
       method: "DELETE",
     });
   },

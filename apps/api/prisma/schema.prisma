@@ -131,8 +131,9 @@ model AdminUser {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  articles     Article[]
-  activityLogs ActivityLog[]
+  articles      Article[]
+  authorProfile Author?
+  activityLogs  ActivityLog[]
 
   @@map("admin_users")
 }
@@ -200,6 +201,22 @@ model Sponsor {
   articles Article[]
 
   @@map("sponsors")
+}
+
+/// Auteur de byline, réutilisable (staff ou invité)
+model Author {
+  id          String   @id @default(cuid())
+  name        String
+  title       String?
+  avatarKey   String?
+  adminUserId String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  adminUser AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+  articles  Article[]
+
+  @@map("authors")
 }
 
 model MagazinePage {
@@ -305,6 +322,8 @@ model Article {
   /// Début de la fenêtre « À la une » (30 jours)
   featuredAt  DateTime?
   authorId    String?
+  /// Auteur affiché sur l’article (staff ou invité)
+  bylineAuthorId String?
   /// Magazine lié (affiché sur l’article + kiosque)
   magazineId  String?
   /// Sponsor (logo réutilisable)
@@ -322,9 +341,10 @@ model Article {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  author   AdminUser?    @relation(fields: [authorId], references: [id])
-  magazine Magazine?     @relation(fields: [magazineId], references: [id], onDelete: SetNull)
-  sponsor  Sponsor?      @relation(fields: [sponsorId], references: [id], onDelete: SetNull)
+  author       AdminUser? @relation(fields: [authorId], references: [id])
+  bylineAuthor Author?    @relation(fields: [bylineAuthorId], references: [id], onDelete: SetNull)
+  magazine     Magazine?  @relation(fields: [magazineId], references: [id], onDelete: SetNull)
+  sponsor      Sponsor?   @relation(fields: [sponsorId], references: [id], onDelete: SetNull)
   comments Comment[]
   blocks   ArticleBlock[]
 
@@ -333,6 +353,7 @@ model Article {
   @@index([isFeatured, featuredAt])
   @@index([magazineId])
   @@index([sponsorId])
+  @@index([bylineAuthorId])
   @@index([videoStatus])
   @@map("articles")
 }
