@@ -107,9 +107,9 @@ html[data-theme="dark"] .opt-rubrique--dark {
   overflow: hidden;
   margin: 0;
   padding: 0;
-  --swiper-theme-color: var(--opt-tone);
-  --swiper-pagination-color: var(--opt-tone);
-  --swiper-pagination-bullet-inactive-color: var(--opt-tone);
+  --swiper-theme-color: var(--entrevue-red, #e42320);
+  --swiper-pagination-color: var(--entrevue-red, #e42320);
+  --swiper-pagination-bullet-inactive-color: var(--entrevue-red, #e42320);
 }
 
 .opt-rubrique__hero-card {
@@ -330,20 +330,22 @@ html[data-theme="dark"] .opt-rubrique--dark {
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--opt-tone) 32%, transparent);
+  background: var(--entrevue-red, #e42320);
+  opacity: 0.38;
   transition:
     width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    background 0.25s ease,
+    opacity 0.25s ease,
     box-shadow 0.2s ease;
 }
 
 .opt-rubrique__hero-bullet:hover::before {
-  background: color-mix(in srgb, var(--opt-tone) 62%, transparent);
+  opacity: 0.7;
 }
 
 .opt-rubrique__hero-bullet.is-active::before {
   width: 1.65rem;
-  background: var(--opt-tone);
+  opacity: 1;
+  background: var(--entrevue-red, #e42320);
 }
 
 .opt-rubrique__hero-bullet:focus-visible {
@@ -351,7 +353,7 @@ html[data-theme="dark"] .opt-rubrique--dark {
 }
 
 .opt-rubrique__hero-bullet:focus-visible::before {
-  box-shadow: 0 0 0 2px var(--opt-focus-ring), 0 0 0 4px var(--opt-tone);
+  box-shadow: 0 0 0 2px var(--opt-focus-ring), 0 0 0 4px var(--entrevue-red, #e42320);
 }
 
 /* —— Nos autres articles + plus lus —— */

@@ -106,6 +106,7 @@ const ARTICLE_SELECT = {
       id: true,
       name: true,
       email: true,
+      avatarKey: true,
     },
   },
   magazine: {
@@ -1491,7 +1492,12 @@ export class ArticlesService {
           : resolvedBlocks,
       commentsCount: _count.comments,
       author: author
-        ? { id: author.id, name: author.name, email: author.email }
+        ? {
+            id: author.id,
+            name: author.name,
+            email: author.email,
+            avatarUrl: this.resolveMediaUrl(author.avatarKey),
+          }
         : null,
       publishedAt: article.publishedAt?.toISOString() ?? null,
       createdAt: article.createdAt.toISOString(),

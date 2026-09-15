@@ -145,7 +145,19 @@ export default async function ArticlePage({ params }: Props) {
       ) : null}
       <h1 className="opt-article__title">{article.title}</h1>
       <p className="opt-article__meta">
-        {article.author?.name ? <span>Par {article.author.name}</span> : null}
+        {article.author?.name ? (
+          <span className="opt-article__meta-author">
+            {article.author.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={article.author.avatarUrl}
+                alt=""
+                className="opt-article__meta-avatar"
+              />
+            ) : null}
+            Par {article.author.name}
+          </span>
+        ) : null}
         {dateLabel ? <span>{dateLabel}</span> : null}
       </p>
       {article.excerpt ? (

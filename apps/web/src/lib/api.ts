@@ -2005,7 +2005,7 @@ export type AdminArticle = {
   sponsorId?: string | null;
   sponsor?: AdminArticleSponsor | null;
   authorId: string | null;
-  author: { id: string; name: string; email: string } | null;
+  author: { id: string; name: string; email: string; avatarUrl?: string | null } | null;
   commentsCount: number;
   blocks: AdminArticleBlock[];
   publishedAt: string | null;

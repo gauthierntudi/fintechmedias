@@ -57,11 +57,29 @@ html[data-theme="dark"] .opt-article {
 .opt-article__meta {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.75rem;
   margin: 0 0 1rem;
   font-family: var(--opt-font-sans);
   font-size: 0.85rem;
   color: var(--opt-article-muted);
+}
+
+.opt-article__meta-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.opt-article__meta-avatar {
+  display: block;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 999px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--entrevue-red, #e42320);
 }
 
 .opt-article__excerpt {
