@@ -317,6 +317,20 @@ html[data-theme="dark"] .opt-article__more-thumb {
   margin: 0 0 1rem;
 }
 
+.opt-article__html b,
+.opt-article__html strong {
+  font-weight: 700;
+}
+
+.opt-article__html i,
+.opt-article__html em {
+  font-style: italic;
+}
+
+.opt-article__html u {
+  text-decoration: underline;
+}
+
 .opt-article__html blockquote {
   position: relative;
   margin: 0.15rem 0 0.2rem;

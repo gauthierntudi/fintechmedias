@@ -1509,7 +1509,7 @@
   gap: 0.35rem;
 }
 
-.admin-dash__field span {
+.admin-dash__field > span {
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--snow-muted);
@@ -4559,6 +4559,20 @@ a.snow-dash__rail-item:hover {
 
 .admin-rich__content p {
   margin: 0 0 0.7rem;
+}
+
+.admin-rich__content b,
+.admin-rich__content strong {
+  font-weight: 700;
+}
+
+.admin-rich__content i,
+.admin-rich__content em {
+  font-style: italic;
+}
+
+.admin-rich__content u {
+  text-decoration: underline;
 }
 
 .admin-rich__content ul,
