@@ -24,6 +24,19 @@ function formatViews(count?: number) {
   return `${new Intl.NumberFormat("fr-FR").format(count)} vue${count > 1 ? "s" : ""}`;
 }
 
+const FEATURED_TITLE_MAX = 110;
+const FEATURED_EXCERPT_MAX = 180;
+
+function clipText(value: string, max: number): string {
+  const text = value.trim();
+  if (text.length <= max) return text;
+  let end = max;
+  while (end > 0 && text[end] && !/\s/.test(text[end]!)) end -= 1;
+  while (end > 0 && /[\s.,;:!?«»"“”‘’…-]+/.test(text[end - 1]!)) end -= 1;
+  const cut = (end > 24 ? text.slice(0, end) : text.slice(0, max)).trimEnd();
+  return `${cut}…`;
+}
+
 function SponsorLine({ story }: { story: RubriqueSplitStory }) {
   if (!story.sponsor?.name && !story.sponsor?.logoUrl) return null;
   return (
@@ -96,11 +109,13 @@ export function HomeRencontre({
             <p className="opt-renc__cat">{featured.category}</p>
             <h3 className="opt-renc__featured-title">
               <Link href={articleHref(featured)} title={featured.titre}>
-                {featured.titre}
+                {clipText(featured.titre, FEATURED_TITLE_MAX)}
               </Link>
             </h3>
             {featured.excerpt ? (
-              <p className="opt-renc__excerpt">{featured.excerpt}</p>
+              <p className="opt-renc__excerpt" title={featured.excerpt}>
+                {clipText(featured.excerpt, FEATURED_EXCERPT_MAX)}
+              </p>
             ) : null}
             <Meta story={featured} />
             <Link href={articleHref(featured)} className="opt-renc__read">

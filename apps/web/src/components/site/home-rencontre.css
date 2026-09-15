@@ -175,6 +175,13 @@
   line-height: 1.18;
 }
 
+.opt-renc__featured-title a {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
 .opt-renc__featured-title a:hover,
 .opt-renc__item-title a:hover {
   color: var(--renc-red);
@@ -306,20 +313,6 @@
   .opt-renc__featured-media .opt-cover__img {
     aspect-ratio: 16 / 9;
     height: auto;
-  }
-
-  .opt-renc__featured-title {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    overflow: hidden;
-  }
-
-  .opt-renc__excerpt {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
   }
 
   .opt-renc__item {
