@@ -343,7 +343,8 @@
   letter-spacing: 0.01em;
 }
 
-.opt-header__nav-list a:hover {
+.opt-header__nav-list a:hover,
+.opt-header__nav-list a.is-active {
   color: var(--opt-h-red);
 }
 
@@ -352,10 +353,6 @@
   height: 0.95rem;
   background: var(--opt-h-line);
   align-self: center;
-}
-
-.opt-header__featured {
-  color: var(--entrevue-red, #e42320) !important;
 }
 
 /* Drawer menu */
@@ -513,7 +510,8 @@
   text-decoration: none;
 }
 
-.opt-menu__links a:hover {
+.opt-menu__links a:hover,
+.opt-menu__links a.is-active {
   color: var(--opt-h-red);
 }
 

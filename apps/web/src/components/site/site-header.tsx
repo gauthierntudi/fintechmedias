@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Bell,
   BookOpen,
@@ -39,11 +39,16 @@ const FEATURED = {
   label: "Nous contactez",
 };
 
+function navIsActive(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 /**
  * Header presse — identité L'Entrevue, logo centré, CTA abonnement.
  */
 export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, loading, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [navHidden, setNavHidden] = useState(false);
@@ -339,14 +344,29 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
             aria-hidden={navHidden}
           >
             <ul className="opt-header__nav-list">
-              {NAV_PRIMARY.map((item) => (
-                <li key={item.href}>
-                  <Link href={item.href}>{item.label}</Link>
-                </li>
-              ))}
+              {NAV_PRIMARY.map((item) => {
+                const active = navIsActive(pathname, item.href);
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={active ? "is-active" : undefined}
+                      aria-current={active ? "page" : undefined}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
               <li className="opt-header__nav-sep" aria-hidden />
               <li>
-                <Link href={FEATURED.href} className="opt-header__featured">
+                <Link
+                  href={FEATURED.href}
+                  className={navIsActive(pathname, FEATURED.href) ? "is-active" : undefined}
+                  aria-current={
+                    navIsActive(pathname, FEATURED.href) ? "page" : undefined
+                  }
+                >
                   {FEATURED.label}
                 </Link>
               </li>
@@ -394,15 +414,32 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
                 Accueil
               </Link>
             </li>
-            {RUBRIQUES.map((item) => (
-              <li key={item.slug}>
-                <Link href={item.href} onClick={() => setMenuOpen(false)}>
-                  {item.label}
-                </Link>
-              </li>
-            ))}
+            {RUBRIQUES.map((item) => {
+              const active = navIsActive(pathname, item.href);
+              return (
+                <li key={item.slug}>
+                  <Link
+                    href={item.href}
+                    className={active ? "is-active" : undefined}
+                    aria-current={active ? "page" : undefined}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
             <li>
-              <Link href={FEATURED.href} onClick={() => setMenuOpen(false)}>
+              <Link
+                href={FEATURED.href}
+                className={
+                  navIsActive(pathname, FEATURED.href) ? "is-active" : undefined
+                }
+                aria-current={
+                  navIsActive(pathname, FEATURED.href) ? "page" : undefined
+                }
+                onClick={() => setMenuOpen(false)}
+              >
                 {FEATURED.label}
               </Link>
             </li>

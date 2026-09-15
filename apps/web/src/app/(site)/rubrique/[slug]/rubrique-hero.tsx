@@ -97,7 +97,16 @@ export function RubriqueHeroCarousel({ items }: Props) {
                 <h2 className="opt-rubrique__hero-title">{item.title}</h2>
                 <span className="opt-rubrique__hero-meta">
                   <span className="opt-rubrique__hero-avatar" aria-hidden>
-                    {initials(item.authorName)}
+                    {item.authorAvatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.authorAvatarUrl}
+                        alt=""
+                        className="opt-rubrique__hero-avatar-img"
+                      />
+                    ) : (
+                      initials(item.authorName)
+                    )}
                   </span>
                   <span className="opt-rubrique__hero-author">
                     {item.authorName}

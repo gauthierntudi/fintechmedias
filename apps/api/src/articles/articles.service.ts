@@ -137,7 +137,7 @@ const PUBLIC_CARD_SELECT = {
   videoPosterKey: true,
   videoStatus: true,
   videoDurationSec: true,
-  author: { select: { name: true } },
+  author: { select: { name: true, avatarKey: true } },
   sponsor: {
     select: SPONSOR_SUMMARY_SELECT,
   },
@@ -653,6 +653,7 @@ export class ArticlesService {
       categoryLabel: meta.label,
       categoryTone: meta.tone,
       authorName: article.author?.name?.trim() || "L'Entrevue",
+      authorAvatarUrl: this.resolveMediaUrl(article.author?.avatarKey ?? null),
       publishedAt: article.publishedAt?.toISOString() ?? null,
       dateLabel: new Intl.DateTimeFormat('fr-FR', {
         day: 'numeric',

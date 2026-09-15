@@ -1487,6 +1487,7 @@ export type PublicArticleCard = {
   categoryLabel: string;
   categoryTone: string;
   authorName: string;
+  authorAvatarUrl?: string | null;
   publishedAt: string | null;
   dateLabel: string;
   viewCount: number;
