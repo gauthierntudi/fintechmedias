@@ -234,7 +234,7 @@ export function AdminRichEditor({
         <ToolbarButton
           label="Citation"
           disabled={disabled}
-          onClick={() => run("formatBlock", "blockquote")}
+          onClick={() => run("formatBlock", "<blockquote>")}
         >
           <Quote size={15} />
         </ToolbarButton>
