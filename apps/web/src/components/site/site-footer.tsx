@@ -78,7 +78,7 @@ export function SiteFooter() {
       <div className="opt-ft__bottom">
         <div className="opt-ft__bottom-inner">
           <p className="opt-ft__copy">
-            © {year} <Link href="/">{BRAND.legalName}</Link>. Tous droits
+            © {year} <Link href="/">{BRAND.name}</Link>. Tous droits
             réservés.
           </p>
           <ul className="opt-ft__legal">
