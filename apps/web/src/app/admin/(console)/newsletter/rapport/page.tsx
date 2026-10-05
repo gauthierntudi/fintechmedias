@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Ban,
+  BarChart3,
+  CheckCircle2,
+  Clock3,
+  Inbox,
+  Mail,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { AdminPagination } from "@/components/admin/admin-pagination";
 import {
@@ -9,6 +17,7 @@ import {
   type AdminNewsletterSendItem,
   type AdminNewsletterSendStatus,
 } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 const TAKE = 20;
 
@@ -29,6 +38,10 @@ function formatWhen(iso: string | null): string {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(iso));
+}
+
+function formatCount(value: number): string {
+  return new Intl.NumberFormat("fr-FR").format(value);
 }
 
 function statusClass(status: AdminNewsletterSendStatus): string {
@@ -94,6 +107,93 @@ export default function AdminNewsletterReportPage() {
 
   const outbox = summary?.outbox;
   const sendingEnabled = outbox?.sendingEnabled === true;
+  const totalQueued = summary
+    ? summary.pending +
+      summary.sending +
+      summary.sent +
+      summary.skipped +
+      summary.failed
+    : 0;
+
+  const cards = useMemo(
+    () => [
+      {
+        key: "total",
+        label: "Total",
+        value: summary ? formatCount(totalQueued) : "—",
+        color: "teal" as const,
+        icon: Mail,
+        active: status === "",
+        interactive: true,
+        onSelect: () => {
+          setSkip(0);
+          setStatus("");
+        },
+      },
+      {
+        key: "sent",
+        label: "Envoyés",
+        value: summary ? formatCount(summary.sent) : "—",
+        color: "green" as const,
+        icon: CheckCircle2,
+        active: status === "SENT",
+        interactive: true,
+        onSelect: () => {
+          setSkip(0);
+          setStatus("SENT");
+        },
+      },
+      {
+        key: "pending",
+        label: "En attente",
+        value: summary ? formatCount(summary.pending) : "—",
+        color: "gold" as const,
+        icon: Clock3,
+        active: status === "PENDING",
+        interactive: true,
+        onSelect: () => {
+          setSkip(0);
+          setStatus("PENDING");
+        },
+      },
+      {
+        key: "failed",
+        label: "Échecs",
+        value: summary ? formatCount(summary.failed) : "—",
+        color: "coral" as const,
+        icon: Ban,
+        active: status === "FAILED",
+        interactive: true,
+        onSelect: () => {
+          setSkip(0);
+          setStatus("FAILED");
+        },
+      },
+      {
+        key: "today",
+        label: "Aujourd’hui",
+        value: outbox
+          ? `${formatCount(outbox.sentToday)}/${formatCount(outbox.dailyLimit)}`
+          : "—",
+        color: "blue" as const,
+        icon: BarChart3,
+        active: false,
+        interactive: false,
+        onSelect: () => undefined,
+      },
+      {
+        key: "remaining",
+        label: "Restant aujourd’hui",
+        value: outbox ? formatCount(outbox.remainingToday) : "—",
+        color: "violet" as const,
+        icon: Inbox,
+        active: false,
+        interactive: false,
+        onSelect: () => undefined,
+      },
+    ],
+    [outbox, status, summary, totalQueued],
+  );
 
   return (
     <div>
@@ -103,15 +203,12 @@ export default function AdminNewsletterReportPage() {
           <p className="admin-dash__muted">
             Chaque nouvel article publié crée un e-mail par inscrit actif. Le
             mail met en avant cet article, plus jusqu’à 3 autres textes récents
-            (4 au total). Maximum{" "}
-            <strong>{outbox?.dailyLimit ?? 70}</strong> e-mails / jour. Envois{" "}
+            (4 au total). Envois{" "}
             <strong>{sendingEnabled ? "activés" : "en pause"}</strong>
-            {outbox
-              ? ` · aujourd’hui ${outbox.sentToday}/${outbox.dailyLimit}`
+            {summary?.sending
+              ? ` · ${formatCount(summary.sending)} en cours`
               : ""}
-            {summary
-              ? ` · ${summary.pending} en attente · ${summary.sent} envoyés · ${summary.failed} échecs`
-              : ""}
+            .
           </p>
         </div>
         <div className="admin-dash__header-actions">
@@ -120,6 +217,42 @@ export default function AdminNewsletterReportPage() {
           </Link>
         </div>
       </header>
+
+      <section
+        className="admin-dash__kpis-row"
+        aria-label="Statistiques emailing"
+        style={{ ["--kpi-count" as string]: String(cards.length) }}
+      >
+        {cards.map((card) => (
+          <article
+            key={card.key}
+            role={card.interactive ? "button" : undefined}
+            tabIndex={card.interactive ? 0 : undefined}
+            aria-pressed={card.interactive ? card.active : undefined}
+            className={cn(
+              "snow-dash__kpi admin-dash__kpi-compact admin-dash__kpi-vivid",
+              `admin-dash__kpi-vivid--${card.color}`,
+              card.active && "admin-dash__kpi-vivid--active",
+            )}
+            onClick={card.interactive ? card.onSelect : undefined}
+            onKeyDown={
+              card.interactive
+                ? (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      card.onSelect();
+                    }
+                  }
+                : undefined
+            }
+          >
+            <p className="snow-dash__kpi-label">
+              <card.icon size={14} strokeWidth={2} aria-hidden /> {card.label}
+            </p>
+            <p className="snow-dash__kpi-value">{card.value}</p>
+          </article>
+        ))}
+      </section>
 
       <form className="admin-dash__filters" onSubmit={onSearch}>
         <label className="admin-dash__field">
