@@ -377,15 +377,15 @@ function socialIconImg(
 }
 
 const SOCIAL_ICON_FILES: Record<string, string> = {
-  instagram: 'instagram.svg',
-  twitter: 'twitter-x.svg',
-  linkedin: 'linkedin.svg',
-  youtube: 'youtube.svg',
-  whatsapp: 'whatsapp.svg',
-  facebook: 'facebook.svg',
-  telegram: 'telegram.svg',
-  tiktok: 'tiktok.svg',
-  threads: 'threads.svg',
+  instagram: 'instagram.png',
+  twitter: 'twitter-x.png',
+  linkedin: 'linkedin.png',
+  youtube: 'youtube.png',
+  whatsapp: 'whatsapp.png',
+  facebook: 'facebook.png',
+  telegram: 'telegram.png',
+  tiktok: 'tiktok.png',
+  threads: 'threads.png',
 };
 
 
