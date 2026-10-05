@@ -1255,6 +1255,14 @@ export const adminNewsletterApi = {
       { method: "POST" },
     );
   },
+
+  preview() {
+    return apiFetch<{
+      subject: string;
+      html: string;
+      articleTitle: string;
+    }>("/admin/newsletter/preview");
+  },
 };
 
 export type SocialNetwork =

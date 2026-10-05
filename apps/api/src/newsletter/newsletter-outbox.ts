@@ -3,7 +3,12 @@ import {
   Prisma,
   type PrismaClient,
 } from '@prisma/client';
-import { buildCampaignMail, type CampaignStory } from '../mail/campaign-mail';
+import {
+  buildCampaignMail,
+  type CampaignContact,
+  type CampaignSocialLink,
+  type CampaignStory,
+} from '../mail/campaign-mail';
 import {
   categoryDisplay,
   isMobileOnlyCategory,
@@ -392,43 +397,72 @@ async function claimPendingOutbox(
   return rows.map((row) => row.id);
 }
 
-async function buildArticleCampaignMail(
+const ARTICLE_SELECT = {
+  id: true,
+  slug: true,
+  title: true,
+  excerpt: true,
+  category: true,
+  coverKey: true,
+  publishedAt: true,
+} as const;
+
+export type CampaignArticle = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  category: string | null;
+  coverKey: string | null;
+  publishedAt: Date | null;
+};
+
+const DEFAULT_CONTACT: CampaignContact = {
+  address: '8 Avenue Kalemie, Kinshasa-Gombe',
+  email: 'contact@lentrevuemag.com',
+  phone: '+243 813 212 772',
+};
+
+export async function findLatestPublicArticle(
   prisma: NewsletterOutboxDb,
-  mailer: CampaignMailer,
-  row: {
-    article: {
-      id: string;
-      slug: string;
-      title: string;
-      excerpt: string | null;
-      category: string | null;
-      coverKey: string | null;
-      publishedAt: Date | null;
-    };
-    subscription: { unsubscribeToken: string };
+): Promise<CampaignArticle | null> {
+  return prisma.article.findFirst({
+    where: {
+      isPublished: true,
+      NOT: { category: 'stu-short' },
+    },
+    orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
+    select: ARTICLE_SELECT,
+  });
+}
+
+export async function composeArticleCampaign(
+  prisma: NewsletterOutboxDb,
+  article: CampaignArticle,
+  opts: {
+    appUrl: string;
+    r2PublicUrl: string | null;
+    unsubscribeUrl: string;
+    kicker?: string;
+    subjectPrefix?: string;
   },
-): Promise<{
-  subject: string;
-  html: string;
-  unsubscribeUrl: string;
-  listUnsubscribeUrl: string;
-}> {
-  const home = mailer.appUrl.replace(/\/$/, '') || 'https://lentrevuemag.com';
-  const href = `${home}/article/${encodeURIComponent(row.article.slug)}`;
+): Promise<{ subject: string; html: string; unsubscribeUrl: string }> {
+  const home = opts.appUrl.replace(/\/$/, '') || 'https://lentrevuemag.com';
+  const href = `${home}/article/${encodeURIComponent(article.slug)}`;
   const featured: CampaignStory = {
-    category: categoryDisplay(row.article.category).label,
-    title: row.article.title,
+    category: categoryDisplay(article.category).label,
+    title: article.title,
     excerpt:
-      row.article.excerpt?.trim() ||
+      article.excerpt?.trim() ||
       'Un nouvel article vient de paraître sur L’Entrevue.',
     href,
-    imageUrl: mediaUrl(row.article.coverKey, mailer.r2PublicUrl, home) ?? undefined,
+    imageUrl: mediaUrl(article.coverKey, opts.r2PublicUrl, home) ?? undefined,
   };
 
   const related = await prisma.article.findMany({
     where: {
       isPublished: true,
-      id: { not: row.article.id },
+      id: { not: article.id },
       NOT: { category: 'stu-short' },
     },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
@@ -449,29 +483,97 @@ async function buildArticleCampaignMail(
       title: item.title,
       excerpt: item.excerpt?.trim() || '',
       href: `${home}/article/${encodeURIComponent(item.slug)}`,
-      imageUrl: mediaUrl(item.coverKey, mailer.r2PublicUrl, home) ?? undefined,
+      imageUrl: mediaUrl(item.coverKey, opts.r2PublicUrl, home) ?? undefined,
     })),
   ];
 
-  const when = row.article.publishedAt ?? new Date();
-  const unsubscribeUrl = `${home}/newsletter/desinscription?token=${encodeURIComponent(row.subscription.unsubscribeToken)}`;
-  const apiHome = mailer.apiUrl.replace(/\/$/, '') || home;
-  const listUnsubscribeUrl = `${apiHome}/api/newsletter/unsubscribe?token=${encodeURIComponent(row.subscription.unsubscribeToken)}`;
-  const subject = `${row.article.title} — L'Entrevue`;
+  const footer = await loadCampaignFooter(prisma);
+  const when = article.publishedAt ?? new Date();
+  const subject = `${opts.subjectPrefix ?? ''}${article.title} — L'Entrevue`;
   const html = buildCampaignMail({
     appUrl: home,
     kind: 'article',
     subject,
     preheader: featured.excerpt,
-    kicker: 'Nouvel article',
+    kicker: opts.kicker ?? 'Nouvel article',
     dateLabel: formatMonthYear(when),
-    headline: row.article.title,
+    headline: article.title,
     lead: featured.excerpt,
     stories,
     cta: { label: "Lire l'article", href },
+    unsubscribeUrl: opts.unsubscribeUrl,
+    contact: footer.contact,
+    socials: footer.socials,
+  });
+  return { subject, html, unsubscribeUrl: opts.unsubscribeUrl };
+}
+
+async function loadCampaignFooter(prisma: NewsletterOutboxDb): Promise<{
+  contact: CampaignContact;
+  socials: CampaignSocialLink[];
+}> {
+  const row = await prisma.siteSettings.findUnique({
+    where: { id: 'default' },
+    select: {
+      contactAddress: true,
+      contactEmail: true,
+      contactPhone: true,
+      socialLinks: true,
+    },
+  });
+  return {
+    contact: {
+      address: row?.contactAddress?.trim() || DEFAULT_CONTACT.address,
+      email: row?.contactEmail?.trim() || DEFAULT_CONTACT.email,
+      phone: row?.contactPhone?.trim() || DEFAULT_CONTACT.phone,
+    },
+    socials: parseCampaignSocials(row?.socialLinks),
+  };
+}
+
+function parseCampaignSocials(value: Prisma.JsonValue | undefined | null): CampaignSocialLink[] {
+  if (!Array.isArray(value)) return [];
+  const out: CampaignSocialLink[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) continue;
+    const rec = item as Record<string, unknown>;
+    const url = String(rec.url ?? '').trim();
+    if (!/^https?:\/\//i.test(url)) continue;
+    const label =
+      (typeof rec.label === 'string' && rec.label.trim()) ||
+      String(rec.network ?? '').trim();
+    if (!label) continue;
+    out.push({ label, url });
+  }
+  return out;
+}
+
+async function buildArticleCampaignMail(
+  prisma: NewsletterOutboxDb,
+  mailer: CampaignMailer,
+  row: {
+    article: CampaignArticle;
+    subscription: { unsubscribeToken: string };
+  },
+): Promise<{
+  subject: string;
+  html: string;
+  unsubscribeUrl: string;
+  listUnsubscribeUrl: string;
+}> {
+  const home = mailer.appUrl.replace(/\/$/, '') || 'https://lentrevuemag.com';
+  const unsubscribeUrl = `${home}/newsletter/desinscription?token=${encodeURIComponent(row.subscription.unsubscribeToken)}`;
+  const apiHome = mailer.apiUrl.replace(/\/$/, '') || home;
+  const listUnsubscribeUrl = `${apiHome}/api/newsletter/unsubscribe?token=${encodeURIComponent(row.subscription.unsubscribeToken)}`;
+  const composed = await composeArticleCampaign(prisma, row.article, {
+    appUrl: home,
+    r2PublicUrl: mailer.r2PublicUrl,
     unsubscribeUrl,
   });
-  return { subject, html, unsubscribeUrl, listUnsubscribeUrl };
+  return {
+    ...composed,
+    listUnsubscribeUrl,
+  };
 }
 
 function mediaUrl(

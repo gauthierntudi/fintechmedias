@@ -1,9 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { BRAND } from "@/lib/brand";
+import {
+  adminNewsletterApi,
+  adminSettingsApi,
+  type SiteContactSettings,
+  type SiteSocialLink,
+} from "@/lib/api";
 import {
   buildCampaignMail,
   sampleCampaign,
@@ -19,7 +25,7 @@ const KINDS: { id: CampaignKind; label: string; hint: string }[] = [
   {
     id: "article",
     label: "Nouvel article",
-    hint: "Un titre, une photo, un bouton",
+    hint: "Dernier article publié, contact et réseaux issus de la base",
   },
   {
     id: "magazine",
@@ -29,12 +35,83 @@ const KINDS: { id: CampaignKind; label: string; hint: string }[] = [
 ];
 
 export default function AdminNewsletterTemplatePage() {
-  const [kind, setKind] = useState<CampaignKind>("digest");
-  const campaign = useMemo(
-    () => sampleCampaign(kind, BRAND.siteUrl),
-    [kind],
-  );
-  const html = useMemo(() => buildCampaignMail(campaign), [campaign]);
+  const [kind, setKind] = useState<CampaignKind>("article");
+  const [contact, setContact] = useState<SiteContactSettings | null>(null);
+  const [socials, setSocials] = useState<SiteSocialLink[]>([]);
+  const [live, setLive] = useState<{
+    subject: string;
+    html: string;
+    articleTitle: string;
+  } | null>(null);
+  const [liveError, setLiveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([adminSettingsApi.getContact(), adminSettingsApi.getSocial()])
+      .then(([nextContact, nextSocial]) => {
+        if (cancelled) return;
+        setContact(nextContact);
+        setSocials(nextSocial.links ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setContact(null);
+          setSocials([]);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    adminNewsletterApi
+      .preview()
+      .then((res) => {
+        if (!cancelled) {
+          setLive(res);
+          setLiveError(null);
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setLive(null);
+        setLiveError(
+          err instanceof Error
+            ? err.message
+            : "Impossible de charger l’aperçu depuis la base.",
+        );
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const campaign = useMemo(() => {
+    const base = sampleCampaign(kind, BRAND.siteUrl);
+    return {
+      ...base,
+      contact: contact
+        ? {
+            email: contact.email,
+            phone: contact.phone,
+            address: contact.address,
+          }
+        : undefined,
+      socials: socials.map((item) => ({
+        label: item.label,
+        url: item.url,
+      })),
+    };
+  }, [kind, contact, socials]);
+
+  const html =
+    kind === "article" && live?.html
+      ? live.html
+      : buildCampaignMail(campaign);
+  const subject =
+    kind === "article" && live?.subject ? live.subject : campaign.subject;
 
   return (
     <div className="admin-mail-preview">
@@ -46,9 +123,9 @@ export default function AdminNewsletterTemplatePage() {
           </Link>
           <h1>Modèle d’emailing</h1>
           <p className="admin-dash__muted">
-            Aperçu à valider. Rien n’est envoyé depuis cette page — le contenu
-            ci-dessous est un exemple, seuls le cadre et la mise en page sont
-            figés.
+            Aperçu du dernier article publié. Coordonnées et réseaux : ceux
+            enregistrés dans Contact et Réseaux sociaux. Rien n’est envoyé
+            depuis cette page.
           </p>
         </div>
       </header>
@@ -74,7 +151,13 @@ export default function AdminNewsletterTemplatePage() {
 
       <p className="admin-dash__muted admin-mail-preview__hint">
         {KINDS.find((item) => item.id === kind)?.hint}. Objet proposé :{" "}
-        <strong>{campaign.subject}</strong>
+        <strong>{subject}</strong>
+        {kind === "article" && liveError ? (
+          <>
+            {" "}
+            — {liveError}
+          </>
+        ) : null}
       </p>
 
       <div className="admin-mail-preview__stage">

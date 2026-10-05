@@ -6,12 +6,10 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  buildCampaignMail,
-  sampleCampaign,
-} from '../mail/campaign-mail';
 import type { SubscribeNewsletterDto } from './dto/subscribe-newsletter.dto';
 import {
+  composeArticleCampaign,
+  findLatestPublicArticle,
   outboxSummary,
   setNewsletterSendingEnabled,
   skipPendingForSubscription,
@@ -188,6 +186,29 @@ export class NewsletterService {
     };
   }
 
+  async previewCampaign() {
+    const appUrl =
+      this.config.get<string>('APP_URL')?.replace(/\/$/, '') ||
+      'https://lentrevuemag.com';
+    const article = await findLatestPublicArticle(this.prisma);
+    if (!article) {
+      throw new NotFoundException(
+        'Aucun article publié pour composer l’aperçu.',
+      );
+    }
+    const campaign = await composeArticleCampaign(this.prisma, article, {
+      appUrl,
+      r2PublicUrl:
+        this.config.get<string>('R2_PUBLIC_URL')?.replace(/\/$/, '') || null,
+      unsubscribeUrl: `${appUrl}/newsletter/desinscription`,
+    });
+    return {
+      subject: campaign.subject,
+      html: campaign.html,
+      articleTitle: article.title,
+    };
+  }
+
   async sendTest() {
     if (!this.mail.isConfigured) {
       throw new BadRequestException(
@@ -200,15 +221,25 @@ export class NewsletterService {
     const appUrl =
       this.config.get<string>('APP_URL')?.replace(/\/$/, '') ||
       'https://lentrevuemag.com';
-    const campaign = sampleCampaign('article', appUrl);
-    campaign.subject = `[TEST] ${campaign.subject}`;
-    campaign.preheader = `Mail test L'Entrevue — ${campaign.preheader}`;
-    campaign.kicker = 'Test';
-    const html = buildCampaignMail(campaign);
+    const article = await findLatestPublicArticle(this.prisma);
+    if (!article) {
+      throw new BadRequestException(
+        'Aucun article publié pour composer le mail test.',
+      );
+    }
+    const unsubscribeUrl = `${appUrl}/newsletter/desinscription`;
+    const campaign = await composeArticleCampaign(this.prisma, article, {
+      appUrl,
+      r2PublicUrl:
+        this.config.get<string>('R2_PUBLIC_URL')?.replace(/\/$/, '') || null,
+      unsubscribeUrl,
+      kicker: 'Test',
+      subjectPrefix: '[TEST] ',
+    });
     await this.mail.sendCampaign({
       to,
       subject: campaign.subject,
-      html,
+      html: campaign.html,
       unsubscribeUrl: campaign.unsubscribeUrl,
     });
     return {

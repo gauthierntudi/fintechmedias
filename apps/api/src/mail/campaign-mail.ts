@@ -24,6 +24,17 @@ export type CampaignStory = {
   imageUrl?: string;
 };
 
+export type CampaignContact = {
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+};
+
+export type CampaignSocialLink = {
+  label: string;
+  url: string;
+};
+
 export type CampaignMailInput = {
   appUrl: string;
   kind: CampaignKind;
@@ -36,6 +47,8 @@ export type CampaignMailInput = {
   stories: CampaignStory[];
   cta: { label: string; href: string };
   unsubscribeUrl: string;
+  contact?: CampaignContact;
+  socials?: CampaignSocialLink[];
 };
 
 export function isCampaignKind(value: string | undefined): value is CampaignKind {
@@ -209,7 +222,7 @@ export function buildCampaignMail(input: CampaignMailInput): string {
               ${button(input.cta.href, input.cta.label)}
             </td>
           </tr>
-          ${footerBlock(home, input.unsubscribeUrl)}
+          ${footerBlock(home, input.unsubscribeUrl, input.contact, input.socials)}
         </table>
       </td>
     </tr>
@@ -304,7 +317,52 @@ function magazineMark(): string {
   </tr>`;
 }
 
-function footerBlock(home: string, unsubscribeUrl: string): string {
+function contactBlock(contact?: CampaignContact): string {
+  const email = contact?.email?.trim();
+  const phone = contact?.phone?.trim();
+  const address = contact?.address?.trim();
+  const lines: string[] = [];
+  if (email) {
+    lines.push(
+      `<a href="mailto:${esc(email)}" style="color:${WHITE};text-decoration:none;">${esc(email)}</a>`,
+    );
+  }
+  if (phone) {
+    const tel = phone.replace(/[^\d+]/g, '');
+    lines.push(
+      `<a href="tel:${esc(tel)}" style="color:${WHITE};text-decoration:none;">${esc(phone)}</a>`,
+    );
+  }
+  const top = lines.length
+    ? `<p style="margin:18px 0 0;font-size:13px;line-height:1.65;color:${WHITE};">${lines.join('<br />')}</p>`
+    : '';
+  const addr = address
+    ? `<p style="margin:8px 0 0;font-size:13px;line-height:1.55;color:#a3a3a3;">${esc(address)}</p>`
+    : '';
+  return `${top}${addr}`;
+}
+
+function socialsRow(socials?: CampaignSocialLink[]): string {
+  const items = (socials ?? []).filter((item) => item.url?.trim() && item.label?.trim());
+  if (items.length === 0) return '';
+  const links = items
+    .map((item, i) => {
+      const sep =
+        i < items.length - 1
+          ? `<span style="color:#3f3f3f;">&nbsp;&nbsp;·&nbsp;&nbsp;</span>`
+          : '';
+      return `<a href="${esc(item.url.trim())}" style="color:${WHITE};text-decoration:none;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">${esc(item.label.trim())}</a>${sep}`;
+    })
+    .join('');
+  return `<p style="margin:14px 0 0;font-family:${FONT};line-height:1.7;">${links}</p>`;
+}
+
+function footerBlock(
+  home: string,
+  unsubscribeUrl: string,
+  contact?: CampaignContact,
+  socials?: CampaignSocialLink[],
+): string {
   const year = new Date().getFullYear();
   const logo = `${home}/brand/logo-Lentrevue-blanc.png`;
   return `<tr>
@@ -321,13 +379,8 @@ function footerBlock(home: string, unsubscribeUrl: string): string {
           <td style="border-top:1px solid #2a2a2a;font-size:0;line-height:0;height:1px;">&nbsp;</td>
         </tr>
       </table>
-      <p style="margin:18px 0 0;font-size:13px;line-height:1.65;color:${WHITE};">
-        <a href="mailto:info@lentrevuemag.com" style="color:${WHITE};text-decoration:none;">info@lentrevuemag.com</a><br />
-        <a href="tel:+243813212772" style="color:${WHITE};text-decoration:none;">+243 813 212 772</a>
-      </p>
-      <p style="margin:8px 0 0;font-size:13px;line-height:1.55;color:#a3a3a3;">
-        8 Avenue Kalemie, Kinshasa-Gombe
-      </p>
+      ${contactBlock(contact)}
+      ${socialsRow(socials)}
       <p style="margin:12px 0 0;">
         <a href="${esc(home)}" style="font-size:13px;font-weight:700;color:${WHITE};text-decoration:none;">lentrevuemag.com&nbsp;→</a>
       </p>

@@ -47,6 +47,12 @@ export class AdminNewsletterController {
     return this.newsletter.setSendingEnabled(dto.enabled);
   }
 
+  @Get('preview')
+  @Roles(AdminRole.SUPERADMIN, AdminRole.ADMIN)
+  preview() {
+    return this.newsletter.previewCampaign();
+  }
+
   @Post('test')
   @Roles(AdminRole.SUPERADMIN, AdminRole.ADMIN)
   sendTest() {
