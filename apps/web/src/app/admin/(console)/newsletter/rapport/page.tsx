@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import {
   Ban,
   BarChart3,
@@ -9,6 +9,7 @@ import {
   Clock3,
   Inbox,
   Mail,
+  type LucideIcon,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { AdminPagination } from "@/components/admin/admin-pagination";
@@ -43,6 +44,17 @@ function formatWhen(iso: string | null): string {
 function formatCount(value: number): string {
   return new Intl.NumberFormat("fr-FR").format(value);
 }
+
+type KpiCard = {
+  key: string;
+  label: string;
+  value: string;
+  color: "teal" | "green" | "gold" | "coral" | "blue" | "violet";
+  icon: LucideIcon;
+  active: boolean;
+  interactive: boolean;
+  onSelect?: () => void;
+};
 
 function statusClass(status: AdminNewsletterSendStatus): string {
   if (status === "SENT") return "admin-mag__badge";
@@ -115,85 +127,73 @@ export default function AdminNewsletterReportPage() {
       summary.failed
     : 0;
 
-  const cards = useMemo(
-    () => [
-      {
-        key: "total",
-        label: "Total",
-        value: summary ? formatCount(totalQueued) : "—",
-        color: "teal" as const,
-        icon: Mail,
-        active: status === "",
-        interactive: true,
-        onSelect: () => {
-          setSkip(0);
-          setStatus("");
-        },
-      },
-      {
-        key: "sent",
-        label: "Envoyés",
-        value: summary ? formatCount(summary.sent) : "—",
-        color: "green" as const,
-        icon: CheckCircle2,
-        active: status === "SENT",
-        interactive: true,
-        onSelect: () => {
-          setSkip(0);
-          setStatus("SENT");
-        },
-      },
-      {
-        key: "pending",
-        label: "En attente",
-        value: summary ? formatCount(summary.pending) : "—",
-        color: "gold" as const,
-        icon: Clock3,
-        active: status === "PENDING",
-        interactive: true,
-        onSelect: () => {
-          setSkip(0);
-          setStatus("PENDING");
-        },
-      },
-      {
-        key: "failed",
-        label: "Échecs",
-        value: summary ? formatCount(summary.failed) : "—",
-        color: "coral" as const,
-        icon: Ban,
-        active: status === "FAILED",
-        interactive: true,
-        onSelect: () => {
-          setSkip(0);
-          setStatus("FAILED");
-        },
-      },
-      {
-        key: "today",
-        label: "Aujourd’hui",
-        value: outbox
-          ? `${formatCount(outbox.sentToday)}/${formatCount(outbox.dailyLimit)}`
-          : "—",
-        color: "blue" as const,
-        icon: BarChart3,
-        active: false,
-        interactive: false,
-        onSelect: () => undefined,
-      },
-      {
-        key: "remaining",
-        label: "Restant aujourd’hui",
-        value: outbox ? formatCount(outbox.remainingToday) : "—",
-        color: "violet" as const,
-        icon: Inbox,
-        active: false,
-        interactive: false,
-        onSelect: () => undefined,
-      },
-    ],
-    [outbox, status, summary, totalQueued],
-  );
+  function selectStatus(next: "" | AdminNewsletterSendStatus): void {
+    setSkip(0);
+    setStatus(next);
+  }
+
+  const cards: KpiCard[] = [
+    {
+      key: "total",
+      label: "Total",
+      value: summary ? formatCount(totalQueued) : "—",
+      color: "teal",
+      icon: Mail,
+      active: status === "",
+      interactive: true,
+      onSelect: () => selectStatus(""),
+    },
+    {
+      key: "sent",
+      label: "Envoyés",
+      value: summary ? formatCount(summary.sent) : "—",
+      color: "green",
+      icon: CheckCircle2,
+      active: status === "SENT",
+      interactive: true,
+      onSelect: () => selectStatus("SENT"),
+    },
+    {
+      key: "pending",
+      label: "En attente",
+      value: summary ? formatCount(summary.pending) : "—",
+      color: "gold",
+      icon: Clock3,
+      active: status === "PENDING",
+      interactive: true,
+      onSelect: () => selectStatus("PENDING"),
+    },
+    {
+      key: "failed",
+      label: "Échecs",
+      value: summary ? formatCount(summary.failed) : "—",
+      color: "coral",
+      icon: Ban,
+      active: status === "FAILED",
+      interactive: true,
+      onSelect: () => selectStatus("FAILED"),
+    },
+    {
+      key: "today",
+      label: "Aujourd’hui",
+      value: outbox
+        ? `${formatCount(outbox.sentToday)}/${formatCount(outbox.dailyLimit)}`
+        : "—",
+      color: "blue",
+      icon: BarChart3,
+      active: false,
+      interactive: false,
+    },
+    {
+      key: "remaining",
+      label: "Restant aujourd’hui",
+      value: outbox ? formatCount(outbox.remainingToday) : "—",
+      color: "violet",
+      icon: Inbox,
+      active: false,
+      interactive: false,
+    },
+  ];
 
   return (
     <div>
@@ -240,7 +240,7 @@ export default function AdminNewsletterReportPage() {
                 ? (e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
-                      card.onSelect();
+                      card.onSelect?.();
                     }
                   }
                 : undefined
