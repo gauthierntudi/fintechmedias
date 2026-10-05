@@ -102,6 +102,7 @@ export default function AdminNewsletterTemplatePage() {
       socials: socials.map((item) => ({
         label: item.label,
         url: item.url,
+        network: item.network,
       })),
     };
   }, [kind, contact, socials]);

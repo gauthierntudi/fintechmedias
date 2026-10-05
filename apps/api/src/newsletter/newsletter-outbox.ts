@@ -539,11 +539,16 @@ function parseCampaignSocials(value: Prisma.JsonValue | undefined | null): Campa
     const rec = item as Record<string, unknown>;
     const url = String(rec.url ?? '').trim();
     if (!/^https?:\/\//i.test(url)) continue;
+    const network = String(rec.network ?? '').trim();
     const label =
       (typeof rec.label === 'string' && rec.label.trim()) ||
-      String(rec.network ?? '').trim();
-    if (!label) continue;
-    out.push({ label, url });
+      network ||
+      'Réseau';
+    out.push({
+      label,
+      url,
+      network: network || undefined,
+    });
   }
   return out;
 }
