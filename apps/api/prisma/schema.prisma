@@ -347,6 +347,7 @@ model Article {
   sponsor      Sponsor?   @relation(fields: [sponsorId], references: [id], onDelete: SetNull)
   comments Comment[]
   blocks   ArticleBlock[]
+  newsletterOutbox NewsletterOutbox[]
 
   @@index([isPublished, publishedAt])
   @@index([isFeatured, isPublished])
@@ -424,18 +425,50 @@ model ContactMessage {
 
 /** Inscriptions newsletter (formulaire accueil). */
 model NewsletterSubscription {
-  id             String    @id @default(cuid())
-  email          String    @unique
-  acceptedTerms  Boolean   @default(true)
-  isActive       Boolean   @default(true)
-  source         String?   @default("home")
-  unsubscribedAt DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  email             String    @unique
+  acceptedTerms     Boolean   @default(true)
+  isActive          Boolean   @default(true)
+  source            String?   @default("home")
+  unsubscribeToken  String    @unique @default(cuid())
+  unsubscribedAt    DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  outbox            NewsletterOutbox[]
 
   @@index([createdAt])
   @@index([isActive])
   @@map("newsletter_subscriptions")
+}
+
+enum NewsletterOutboxStatus {
+  PENDING
+  SENDING
+  SENT
+  SKIPPED
+  FAILED
+}
+
+/** File d’envoi « nouvel article » — 70 e-mails / jour max. */
+model NewsletterOutbox {
+  id             String                 @id @default(cuid())
+  articleId      String
+  subscriptionId String
+  email          String
+  status         NewsletterOutboxStatus @default(PENDING)
+  attempts       Int                    @default(0)
+  lastError      String?
+  sentAt         DateTime?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  article      Article                @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  subscription NewsletterSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, subscriptionId])
+  @@index([status, createdAt])
+  @@index([sentAt])
+  @@map("newsletter_outbox")
 }
 
 /** Réglages site (singleton) — réseaux sociaux footer, etc. */
@@ -446,6 +479,8 @@ model SiteSettings {
   contactAddress String?
   contactEmail   String?
   contactPhone   String?
+  /** File newsletter : le worker n’envoie que si true (bouton admin). */
+  newsletterSendingEnabled Boolean @default(false)
   updatedAt      DateTime @updatedAt
 
   @@map("site_settings")

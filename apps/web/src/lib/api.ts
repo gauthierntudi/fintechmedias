@@ -1154,6 +1154,14 @@ export const newsletterPublicApi = {
       body: JSON.stringify(body),
     });
   },
+  unsubscribe(token: string) {
+    const qs = new URLSearchParams({ token });
+    return apiFetch<{
+      ok: true;
+      alreadyUnsubscribed: boolean;
+      message: string;
+    }>(`/newsletter/unsubscribe?${qs}`, { method: "POST" });
+  },
 };
 
 export const contactPublicApi = {
@@ -1186,7 +1194,18 @@ export type AdminNewsletterListResponse = {
   total: number;
   take: number;
   skip: number;
-  summary: { total: number; active: number };
+  summary: {
+    total: number;
+    active: number;
+    outbox?: {
+      dailyLimit: number;
+      sentToday: number;
+      remainingToday: number;
+      pending: number;
+      failed: number;
+      sendingEnabled?: boolean;
+    };
+  };
 };
 
 export const adminNewsletterApi = {
@@ -1218,6 +1237,23 @@ export const adminNewsletterApi = {
       method: "PATCH",
       body: JSON.stringify({ isActive }),
     });
+  },
+
+  setSendingEnabled(enabled: boolean) {
+    return apiFetch<{ sendingEnabled: boolean; message: string }>(
+      "/admin/newsletter/sending",
+      {
+        method: "PATCH",
+        body: JSON.stringify({ enabled }),
+      },
+    );
+  },
+
+  sendTest() {
+    return apiFetch<{ ok: true; to: string; message: string }>(
+      "/admin/newsletter/test",
+      { method: "POST" },
+    );
   },
 };
 

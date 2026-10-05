@@ -3,13 +3,14 @@ import { AuthModule } from '../auth/auth.module';
 import { MailModule } from '../mail/mail.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AdminNewsletterController } from './admin-newsletter.controller';
+import { NewsletterOutboxService } from './newsletter-outbox.service';
 import { NewsletterService } from './newsletter.service';
 import { PublicNewsletterController } from './public-newsletter.controller';
 
 @Module({
   imports: [PrismaModule, AuthModule, MailModule],
   controllers: [PublicNewsletterController, AdminNewsletterController],
-  providers: [NewsletterService],
-  exports: [NewsletterService],
+  providers: [NewsletterService, NewsletterOutboxService],
+  exports: [NewsletterService, NewsletterOutboxService],
 })
 export class NewsletterModule {}

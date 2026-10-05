@@ -17,6 +17,10 @@ export class MailService {
   private readonly from: string;
   private readonly appUrl: string;
 
+  get isConfigured() {
+    return Boolean(this.resend);
+  }
+
   constructor(private readonly config: ConfigService) {
     const apiKey = this.config.get<string>('RESEND_API_KEY')?.trim();
     this.resend = apiKey ? new Resend(apiKey) : null;
@@ -252,11 +256,31 @@ export class MailService {
     });
   }
 
+  async sendCampaign(input: {
+    to: string;
+    subject: string;
+    html: string;
+    unsubscribeUrl?: string;
+  }) {
+    const headers: Record<string, string> = {};
+    if (input.unsubscribeUrl) {
+      headers['List-Unsubscribe'] = `<${input.unsubscribeUrl}>`;
+      headers['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click';
+    }
+    await this.send({
+      to: input.to,
+      subject: input.subject,
+      html: input.html,
+      headers: Object.keys(headers).length ? headers : undefined,
+    });
+  }
+
   private async send(input: {
     to: string;
     subject: string;
     html: string;
     replyTo?: string;
+    headers?: Record<string, string>;
   }) {
     if (!this.resend) {
       this.logger.error(
@@ -274,6 +298,7 @@ export class MailService {
         replyTo: input.replyTo,
         subject: input.subject,
         html: input.html,
+        headers: input.headers,
       });
       if (result.error) {
         this.logger.error(`Resend error: ${result.error.message}`);

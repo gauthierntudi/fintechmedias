@@ -47,6 +47,7 @@ const PAGE_LABEL: Record<string, string> = {
   "/admin/abonnements": "Abonnements",
   "/admin/paiements": "Historique paiements",
   "/admin/abonnes": "Abonnés",
+  "/admin/newsletter/modele": "Modèle emailing",
   "/admin/newsletter": "Newsletter",
   "/admin/contact": "Contact",
   "/admin/reseaux": "Réseaux sociaux",

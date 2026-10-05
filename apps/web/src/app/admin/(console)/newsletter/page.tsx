@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Power, PowerOff } from "lucide-react";
 import { toast } from "react-toastify";
@@ -67,12 +68,22 @@ export default function AdminNewsletterPage() {
   const [items, setItems] = useState<AdminNewsletterItem[]>([]);
   const [total, setTotal] = useState(0);
   const [activeCount, setActiveCount] = useState(0);
+  const [outbox, setOutbox] = useState<{
+    dailyLimit: number;
+    sentToday: number;
+    remainingToday: number;
+    pending: number;
+    failed: number;
+    sendingEnabled?: boolean;
+  } | null>(null);
   const [skip, setSkip] = useState(0);
   const [q, setQ] = useState("");
   const [qDraft, setQDraft] = useState("");
   const [activeFilter, setActiveFilter] = useState<"" | "1" | "0">("1");
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [sendingBusy, setSendingBusy] = useState(false);
+  const [testBusy, setTestBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -86,6 +97,7 @@ export default function AdminNewsletterPage() {
       setItems(res.items);
       setTotal(res.total);
       setActiveCount(res.summary.active);
+      setOutbox(res.summary.outbox ?? null);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Erreur chargement newsletter",
@@ -122,6 +134,37 @@ export default function AdminNewsletterPage() {
     }
   }
 
+  const sendingEnabled = outbox?.sendingEnabled === true;
+
+  async function toggleSending() {
+    setSendingBusy(true);
+    try {
+      const res = await adminNewsletterApi.setSendingEnabled(!sendingEnabled);
+      toast.success(res.message);
+      await load();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible de modifier les envois",
+      );
+    } finally {
+      setSendingBusy(false);
+    }
+  }
+
+  async function sendTest() {
+    setTestBusy(true);
+    try {
+      const res = await adminNewsletterApi.sendTest();
+      toast.success(res.message);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Impossible d’envoyer le test",
+      );
+    } finally {
+      setTestBusy(false);
+    }
+  }
+
   return (
     <div>
       <header className="admin-dash__header">
@@ -130,7 +173,51 @@ export default function AdminNewsletterPage() {
           <p className="admin-dash__muted">
             Inscriptions collectées via le formulaire de l’accueil —{" "}
             <strong>{activeCount}</strong> actives
+            {outbox ? (
+              <>
+                . Envois{" "}
+                <strong>{sendingEnabled ? "activés" : "en pause"}</strong>
+                {" · "}
+                aujourd’hui{" "}
+                <strong>
+                  {outbox.sentToday}/{outbox.dailyLimit}
+                </strong>
+                {outbox.pending > 0
+                  ? ` · ${outbox.pending} en attente`
+                  : ""}
+                {outbox.failed > 0 ? ` · ${outbox.failed} échecs` : ""}
+              </>
+            ) : null}
           </p>
+        </div>
+        <div className="admin-dash__header-actions">
+          <button
+            type="button"
+            className="admin-dash__btn"
+            disabled={testBusy || loading}
+            onClick={() => void sendTest()}
+          >
+            {testBusy ? "Envoi…" : "Envoyer un test"}
+          </button>
+          <button
+            type="button"
+            className={
+              sendingEnabled
+                ? "admin-dash__btn"
+                : "admin-dash__cta"
+            }
+            disabled={sendingBusy || loading}
+            onClick={() => void toggleSending()}
+          >
+            {sendingBusy
+              ? "…"
+              : sendingEnabled
+                ? "Suspendre les envois"
+                : "Activer les envois"}
+          </button>
+          <Link href="/admin/newsletter/modele" className="admin-dash__btn">
+            Voir le modèle d’e-mail
+          </Link>
         </div>
       </header>
 

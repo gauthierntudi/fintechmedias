@@ -5,6 +5,7 @@
  * - magazine-pages-urgent : lecture / aperçu
  * - magazine-pages        : upload + backfill
  * - article-video         : rubriques vidéo (expert, rencontre, short)
+ * - newsletter outbox     : 70 e-mails / jour, nouvel article
  */
 import { config as loadEnv } from 'dotenv';
 import { resolve } from 'path';
@@ -23,6 +24,7 @@ import {
 } from './articles/video/article-video.queue';
 import { processArticleVideoJob } from './articles/video/process-article-video';
 import { startArticleVideoRecoveryLoop } from './articles/video/recover-orphaned-videos';
+import { startNewsletterOutboxLoop } from './newsletter/newsletter-outbox.loop';
 import {
   WORKER_HEARTBEAT_KEY,
   WORKER_HEARTBEAT_TTL_SEC,
@@ -107,6 +109,7 @@ async function bootstrap() {
 
   const recovery = startMagazinePagesRecoveryLoop();
   const videoRecovery = startArticleVideoRecoveryLoop();
+  const newsletterOutbox = startNewsletterOutboxLoop();
 
   const writeHeartbeat = () => {
     const payload = JSON.stringify({
@@ -128,7 +131,7 @@ async function bootstrap() {
 
   // eslint-disable-next-line no-console
   console.log(
-    `ENTREVUE worker started — pages urgent×${urgentConcurrency} + bulk×${bulkConcurrency} · video×${videoConcurrency}`,
+    `ENTREVUE worker started — pages urgent×${urgentConcurrency} + bulk×${bulkConcurrency} · video×${videoConcurrency} · newsletter 70/j`,
   );
 
   const shutdown = async (signal: string) => {
@@ -137,6 +140,7 @@ async function bootstrap() {
     clearInterval(heartbeatTimer);
     recovery.stop();
     videoRecovery.stop();
+    newsletterOutbox.stop();
     await connection.del(WORKER_HEARTBEAT_KEY).catch(() => undefined);
     await Promise.all([
       urgentWorker.close(),

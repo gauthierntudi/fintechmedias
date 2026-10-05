@@ -40,6 +40,7 @@ services:
     env_file: .env
     environment:
       API_PORT: 3001
+      NEWSLETTER_SEND_IN_API: "0"
     command: node dist/main.js
     expose:
       - "3001"

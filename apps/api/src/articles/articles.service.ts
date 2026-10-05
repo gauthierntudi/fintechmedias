@@ -9,6 +9,7 @@ import { ActivityActorType, Prisma, VideoStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { extname } from 'path';
 import { ActivityService } from '../activity/activity.service';
+import { NewsletterOutboxService } from '../newsletter/newsletter-outbox.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   contentTypeForExt,
@@ -202,6 +203,7 @@ export class ArticlesService {
     private readonly prisma: PrismaService,
     private readonly activity: ActivityService,
     private readonly config: ConfigService,
+    private readonly newsletterOutbox: NewsletterOutboxService,
   ) {}
 
   async list(
@@ -768,6 +770,10 @@ export class ArticlesService {
       },
     });
 
+    if (created.isPublished) {
+      void this.newsletterOutbox.enqueueForArticle(created.id);
+    }
+
     return this.toAdmin(created);
   }
 
@@ -932,6 +938,10 @@ export class ArticlesService {
         blocks: updated.blocks.length,
       },
     });
+
+    if (updated.isPublished && !existing.isPublished) {
+      void this.newsletterOutbox.enqueueForArticle(updated.id);
+    }
 
     return this.toAdmin(updated);
   }
