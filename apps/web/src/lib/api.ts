@@ -1263,6 +1263,63 @@ export const adminNewsletterApi = {
       articleTitle: string;
     }>("/admin/newsletter/preview");
   },
+
+  listSends(params?: {
+    q?: string;
+    status?: string;
+    take?: number;
+    skip?: number;
+  }) {
+    const qs = new URLSearchParams();
+    if (params?.q?.trim()) qs.set("q", params.q.trim());
+    if (params?.status) qs.set("status", params.status);
+    if (params?.take != null) qs.set("take", String(params.take));
+    if (params?.skip != null) qs.set("skip", String(params.skip));
+    const suffix = qs.toString() ? `?${qs}` : "";
+    return apiFetch<AdminNewsletterSendsResponse>(
+      `/admin/newsletter/sends${suffix}`,
+    );
+  },
+};
+
+export type AdminNewsletterSendStatus =
+  | "PENDING"
+  | "SENDING"
+  | "SENT"
+  | "SKIPPED"
+  | "FAILED";
+
+export type AdminNewsletterSendItem = {
+  id: string;
+  email: string;
+  status: AdminNewsletterSendStatus;
+  attempts: number;
+  lastError: string | null;
+  sentAt: string | null;
+  createdAt: string;
+  article: { id: string; title: string; slug: string };
+};
+
+export type AdminNewsletterSendsResponse = {
+  items: AdminNewsletterSendItem[];
+  total: number;
+  take: number;
+  skip: number;
+  summary: {
+    pending: number;
+    sending: number;
+    sent: number;
+    skipped: number;
+    failed: number;
+    outbox: {
+      dailyLimit: number;
+      sentToday: number;
+      remainingToday: number;
+      pending: number;
+      failed: number;
+      sendingEnabled?: boolean;
+    };
+  };
 };
 
 export type SocialNetwork =

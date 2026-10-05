@@ -215,6 +215,9 @@ export default function AdminNewsletterPage() {
                 ? "Suspendre les envois"
                 : "Activer les envois"}
           </button>
+          <Link href="/admin/newsletter/rapport" className="admin-dash__btn">
+            Rapport des envois
+          </Link>
           <Link href="/admin/newsletter/modele" className="admin-dash__btn">
             Voir le modèle d’e-mail
           </Link>

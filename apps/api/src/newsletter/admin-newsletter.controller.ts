@@ -41,6 +41,22 @@ export class AdminNewsletterController {
     });
   }
 
+  @Get('sends')
+  @Roles(AdminRole.SUPERADMIN, AdminRole.ADMIN)
+  listSends(
+    @Query('q') q?: string,
+    @Query('status') status?: string,
+    @Query('take') take?: string,
+    @Query('skip') skip?: string,
+  ) {
+    return this.newsletter.listSends({
+      q,
+      status,
+      take: take ? Number(take) : undefined,
+      skip: skip ? Number(skip) : undefined,
+    });
+  }
+
   @Patch('sending')
   @Roles(AdminRole.SUPERADMIN, AdminRole.ADMIN)
   setSending(@Body() dto: UpdateNewsletterSendingDto) {

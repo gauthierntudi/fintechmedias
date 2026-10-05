@@ -17,8 +17,27 @@ import {
 export const NEWSLETTER_DAILY_LIMIT = 70;
 export const NEWSLETTER_TZ = 'Africa/Kinshasa';
 export const NEWSLETTER_SEND_INTERVAL_MS = 60_000;
+/** Première date prise en compte pour les campagnes « nouvel article ». */
+export const NEWSLETTER_ARTICLES_SINCE = new Date('2026-09-01T00:00:00+01:00');
 
 export type NewsletterOutboxDb = PrismaClient | Prisma.TransactionClient;
+
+function articleSinceWhere(): Prisma.ArticleWhereInput {
+  return {
+    OR: [
+      { publishedAt: { gte: NEWSLETTER_ARTICLES_SINCE } },
+      { publishedAt: null, createdAt: { gte: NEWSLETTER_ARTICLES_SINCE } },
+    ],
+  };
+}
+
+export function articleIsInNewsletterWindow(article: {
+  publishedAt: Date | null;
+  createdAt: Date;
+}): boolean {
+  const when = article.publishedAt ?? article.createdAt;
+  return when.getTime() >= NEWSLETTER_ARTICLES_SINCE.getTime();
+}
 
 export function readDailyLimit(): number {
   const raw = process.env.NEWSLETTER_DAILY_LIMIT?.trim();
@@ -80,9 +99,19 @@ export async function enqueueArticleNewsletter(
 ): Promise<{ queued: number; skipped: boolean }> {
   const article = await prisma.article.findUnique({
     where: { id: articleId },
-    select: { id: true, isPublished: true, category: true },
+    select: {
+      id: true,
+      isPublished: true,
+      category: true,
+      publishedAt: true,
+      createdAt: true,
+    },
   });
-  if (!article?.isPublished || isMobileOnlyCategory(article.category)) {
+  if (
+    !article?.isPublished ||
+    isMobileOnlyCategory(article.category) ||
+    !articleIsInNewsletterWindow(article)
+  ) {
     return { queued: 0, skipped: true };
   }
 
@@ -430,6 +459,7 @@ export async function findLatestPublicArticle(
     where: {
       isPublished: true,
       NOT: { category: 'stu-short' },
+      AND: [articleSinceWhere()],
     },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
     select: ARTICLE_SELECT,
@@ -464,6 +494,7 @@ export async function composeArticleCampaign(
       isPublished: true,
       id: { not: article.id },
       NOT: { category: 'stu-short' },
+      AND: [articleSinceWhere()],
     },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
     take: 3,

@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { NewsletterOutboxStatus, Prisma } from '@prisma/client';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import type { SubscribeNewsletterDto } from './dto/subscribe-newsletter.dto';
@@ -146,6 +147,100 @@ export class NewsletterService {
     };
   }
 
+  async listSends(opts: {
+    q?: string;
+    status?: string;
+    take?: number;
+    skip?: number;
+  }) {
+    const take = Math.min(Math.max(opts.take ?? 20, 1), 100);
+    const skip = Math.max(opts.skip ?? 0, 0);
+    const q = opts.q?.trim();
+    const status = parseOutboxStatus(opts.status);
+
+    const where: Prisma.NewsletterOutboxWhereInput = {
+      ...(status ? { status } : {}),
+      ...(q
+        ? {
+            OR: [
+              { email: { contains: q, mode: 'insensitive' as const } },
+              {
+                article: {
+                  title: { contains: q, mode: 'insensitive' as const },
+                },
+              },
+            ],
+          }
+        : {}),
+    };
+
+    const [total, items, grouped, outbox] = await Promise.all([
+      this.prisma.newsletterOutbox.count({ where }),
+      this.prisma.newsletterOutbox.findMany({
+        where,
+        orderBy: [
+          { sentAt: { sort: 'desc', nulls: 'last' } },
+          { createdAt: 'desc' },
+        ],
+        take,
+        skip,
+        select: {
+          id: true,
+          email: true,
+          status: true,
+          attempts: true,
+          lastError: true,
+          sentAt: true,
+          createdAt: true,
+          article: { select: { id: true, title: true, slug: true } },
+        },
+      }),
+      this.prisma.newsletterOutbox.groupBy({
+        by: ['status'],
+        _count: { _all: true },
+      }),
+      outboxSummary(this.prisma),
+    ]);
+
+    const byStatus = {
+      pending: 0,
+      sending: 0,
+      sent: 0,
+      skipped: 0,
+      failed: 0,
+    };
+    for (const row of grouped) {
+      const n = row._count._all;
+      if (row.status === NewsletterOutboxStatus.PENDING) byStatus.pending = n;
+      else if (row.status === NewsletterOutboxStatus.SENDING)
+        byStatus.sending = n;
+      else if (row.status === NewsletterOutboxStatus.SENT) byStatus.sent = n;
+      else if (row.status === NewsletterOutboxStatus.SKIPPED)
+        byStatus.skipped = n;
+      else if (row.status === NewsletterOutboxStatus.FAILED) byStatus.failed = n;
+    }
+
+    return {
+      items: items.map((row) => ({
+        id: row.id,
+        email: row.email,
+        status: row.status,
+        attempts: row.attempts,
+        lastError: row.lastError,
+        sentAt: row.sentAt?.toISOString() ?? null,
+        createdAt: row.createdAt.toISOString(),
+        article: row.article,
+      })),
+      total,
+      take,
+      skip,
+      summary: {
+        ...byStatus,
+        outbox,
+      },
+    };
+  }
+
   async setActive(id: string, isActive: boolean) {
     const row = await this.prisma.newsletterSubscription.findUnique({
       where: { id },
@@ -278,4 +373,14 @@ export class NewsletterService {
       message: 'Vous êtes désinscrit de la newsletter L’Entrevue.',
     };
   }
+}
+
+const OUTBOX_STATUSES = new Set<string>(Object.values(NewsletterOutboxStatus));
+
+function parseOutboxStatus(
+  value: string | undefined,
+): NewsletterOutboxStatus | undefined {
+  const raw = value?.trim().toUpperCase();
+  if (!raw || !OUTBOX_STATUSES.has(raw)) return undefined;
+  return raw as NewsletterOutboxStatus;
 }

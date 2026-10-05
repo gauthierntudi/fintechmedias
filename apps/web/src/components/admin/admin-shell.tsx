@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
+  BarChart3,
   CreditCard,
   Handshake,
   History,
@@ -47,6 +48,7 @@ const PAGE_LABEL: Record<string, string> = {
   "/admin/abonnements": "Abonnements",
   "/admin/paiements": "Historique paiements",
   "/admin/abonnes": "Abonnés",
+  "/admin/newsletter/rapport": "Rapport emailing",
   "/admin/newsletter/modele": "Modèle emailing",
   "/admin/newsletter": "Newsletter",
   "/admin/contact": "Contact",
@@ -148,6 +150,7 @@ export function AdminShell({
     { href: "/admin/paiements", label: "Historique paiements", icon: History },
     { href: "/admin/abonnes", label: "Abonnés", icon: Users },
     { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
+    { href: "/admin/newsletter/rapport", label: "Rapport emailing", icon: BarChart3 },
     { href: "/admin/contact", label: "Contact", icon: Inbox },
     { href: "/admin/reseaux", label: "Réseaux sociaux", icon: Share2 },
     { href: "/admin/actualites", label: "Actualités", icon: Newspaper },
@@ -186,7 +189,10 @@ export function AdminShell({
             const active =
               item.href === "/admin"
                 ? pathname === "/admin"
-                : pathname.startsWith(item.href);
+                : item.href === "/admin/newsletter"
+                  ? pathname === "/admin/newsletter"
+                  : pathname === item.href ||
+                    pathname.startsWith(`${item.href}/`);
             const Icon = item.icon;
             return (
               <Link
