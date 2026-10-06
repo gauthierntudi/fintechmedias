@@ -9,7 +9,7 @@ import {
 import { CoverImage } from "@/components/site/cover-image";
 import { ArticleThumbSponsor } from "@/components/site/article-thumb-sponsor";
 import { VideoPlay } from "@/components/site/video-play";
-import { isVideoArticle } from "@/lib/rubriques";
+import { isStoriesRubrique, isVideoArticle } from "@/lib/rubriques";
 
 const BATCH = 8;
 
@@ -106,7 +106,11 @@ export function RubriqueFeed({
     >
       {showHeading ? (
         <h2 id="opt-rubrique-more" className="opt-rubrique__more-title">
-          {video ? "Nos autres vidéos" : "Nos autres articles"}
+          {isStoriesRubrique(categorySlug)
+            ? "Nos autres rencontres"
+            : video
+              ? "Nos autres vidéos"
+              : "Nos autres articles"}
         </h2>
       ) : null}
 

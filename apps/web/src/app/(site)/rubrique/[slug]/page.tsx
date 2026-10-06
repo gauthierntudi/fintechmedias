@@ -80,7 +80,7 @@ export default async function RubriquePage({ params }: Props) {
             feed.total > packCount ||
             mostRead.length > 0 ? (
               <RubriqueFeed
-                categorySlug={feed.category}
+                categorySlug={slug}
                 categoryLabel={feed.label}
                 initialItems={more}
                 mostRead={mostRead}
