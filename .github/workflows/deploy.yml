@@ -1,32 +1,27 @@
-name: Deploy production
+# Ancien déploiement VPS OVH — désactivé.
+# La prod passe par Cloudflare : deploy-cloudflare.yml
+#
+# Pour le réactiver un jour : restaurer les triggers push / workflow_dispatch
+# et configurer VPS_HOST, VPS_USER, VPS_SSH_KEY, VPS_PORT.
+
+name: Deploy production (OVH — disabled)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "apps/web/**"
-      - "apps/api/**"
-      - "deploy/**"
-      - "docker-compose*.yml"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - ".npmrc"
-      - ".github/workflows/deploy.yml"
   workflow_dispatch:
-
-concurrency:
-  group: production-deploy
-  cancel-in-progress: false
-
-permissions:
-  contents: read
+    inputs:
+      confirm:
+        description: "Taper oui pour forcer un deploy OVH (secrets VPS_* requis)"
+        required: true
+        default: "non"
 
 jobs:
   deploy:
     name: Deploy to OVH VPS
+    if: ${{ github.event.inputs.confirm == 'oui' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v5
