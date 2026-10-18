@@ -100,25 +100,25 @@ export class SubscriptionsService {
       ...(q
         ? {
             OR: [
-              { transactionRef: { contains: q, mode: 'insensitive' } },
+              { transactionRef: { contains: q } },
               {
                 subscriber: {
-                  email: { contains: q, mode: 'insensitive' },
+                  email: { contains: q },
                 },
               },
               {
                 subscriber: {
-                  name: { contains: q, mode: 'insensitive' },
+                  name: { contains: q },
                 },
               },
               {
                 subscriber: {
-                  phone: { contains: q, mode: 'insensitive' },
+                  phone: { contains: q },
                 },
               },
               {
                 plan: {
-                  name: { contains: q, mode: 'insensitive' },
+                  name: { contains: q },
                 },
               },
             ],

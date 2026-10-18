@@ -55,8 +55,8 @@ export class AuthorsService {
     const where: Prisma.AuthorWhereInput = q
       ? {
           OR: [
-            { name: { contains: q, mode: 'insensitive' } },
-            { title: { contains: q, mode: 'insensitive' } },
+            { name: { contains: q } },
+            { title: { contains: q } },
           ],
         }
       : {};

@@ -68,9 +68,9 @@ export class ContactService {
       ...(q
         ? {
             OR: [
-              { name: { contains: q, mode: 'insensitive' } },
-              { email: { contains: q, mode: 'insensitive' } },
-              { subject: { contains: q, mode: 'insensitive' } },
+              { name: { contains: q } },
+              { email: { contains: q } },
+              { subject: { contains: q } },
             ],
           }
         : {}),

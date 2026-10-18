@@ -2,8 +2,8 @@
 
 .opt-account {
   --opt-navy: #111111;
-  --opt-red: #e42320;
-  --opt-teal: #e42320;
+  --opt-red: #4ed319;
+  --opt-teal: #4ed319;
   --opt-ink: var(--site-ink, var(--opt-navy));
   --opt-muted: var(--site-muted, #6c757d);
   --opt-border: var(--site-line, rgba(13, 32, 61, 0.1));

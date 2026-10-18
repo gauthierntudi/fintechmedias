@@ -21,7 +21,7 @@ export function AdminAuthGate({ children }: { children: React.ReactNode }) {
             height: 40,
             borderRadius: "50%",
             border: "2px solid rgba(255,255,255,0.2)",
-            borderTopColor: "#e42320",
+            borderTopColor: "#4ed319",
             animation: "admin-spin 0.8s linear infinite",
           }}
         />

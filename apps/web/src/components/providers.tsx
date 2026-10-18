@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { ToastContainer } from "react-toastify";
 import { AuthProvider } from "@/components/auth-provider";
+import { ScrollRestoration } from "@/components/site/scroll-restoration";
 import { ThemeProvider, useSiteTheme } from "@/components/site/theme-provider";
 import "react-toastify/dist/ReactToastify.css";
 import type { SiteTheme } from "@/lib/site-theme";
@@ -48,6 +49,7 @@ export function Providers({
     <QueryClientProvider client={queryClient}>
       <ThemeProvider initialTheme={initialTheme}>
         <AuthProvider>
+          <ScrollRestoration />
           {children}
           <ThemedToasts />
         </AuthProvider>

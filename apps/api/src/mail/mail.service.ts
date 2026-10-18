@@ -1,9 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
+import { mailLogoImg } from './mail-brand';
 
 const NAVY = '#111111';
-const GOLD = '#d63026';
+const GOLD = '#4ed319';
 const WHITE = '#ffffff';
 const INK = '#111111';
 const MUTED = '#5c6b7a';
@@ -25,7 +31,8 @@ export class MailService {
     const apiKey = this.config.get<string>('RESEND_API_KEY')?.trim();
     this.resend = apiKey ? new Resend(apiKey) : null;
     this.from =
-      this.config.get<string>('MAIL_FROM') ?? "L'Entrevue <noreply@lentrevuemag.com>";
+      this.config.get<string>('MAIL_FROM') ??
+      'Fintech Médias <noreply@fintechmedias.com>';
     this.appUrl = this.config.get<string>('APP_URL') ?? 'http://localhost:3000';
     if (this.resend && apiKey) {
       this.logger.log(
@@ -40,11 +47,11 @@ export class MailService {
     const url = `${this.appUrl.replace(/\/$/, '')}/verifier-email?token=${encodeURIComponent(token)}`;
     await this.send({
       to,
-      subject: 'Confirmez votre adresse e-mail — L\'Entrevue',
+      subject: 'Confirmez votre adresse e-mail — Fintech Médias',
       html: wrapTransactionalMail({
         appUrl: this.appUrl,
         title: 'Confirmez votre adresse',
-        preheader: 'Un clic pour activer votre compte L\'Entrevue.',
+        preheader: 'Un clic pour activer votre compte Fintech Médias.',
         bodyHtml: `
           <p style="margin:0 0 12px;font-size:16px;line-height:1.55;color:${INK};">Bonjour ${escapeHtml(name)},</p>
           <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:${MUTED};">
@@ -66,11 +73,11 @@ export class MailService {
   async sendPasswordResetOtp(to: string, name: string, otp: string) {
     await this.send({
       to,
-      subject: 'Code de réinitialisation — L\'Entrevue',
+      subject: 'Code de réinitialisation — Fintech Médias',
       html: wrapTransactionalMail({
         appUrl: this.appUrl,
         title: 'Réinitialiser le mot de passe',
-        preheader: 'Votre code L\'Entrevue expire dans 15 minutes.',
+        preheader: 'Votre code Fintech Médias expire dans 15 minutes.',
         bodyHtml: `
           <p style="margin:0 0 12px;font-size:16px;line-height:1.55;color:${INK};">Bonjour ${escapeHtml(name)},</p>
           <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:${MUTED};">
@@ -95,7 +102,7 @@ export class MailService {
   }) {
     await this.send({
       to: input.to,
-      subject: 'Code de confirmation admin — L\'Entrevue',
+      subject: 'Code de confirmation admin — Fintech Médias',
       html: wrapTransactionalMail({
         appUrl: this.appUrl,
         title: 'Action admin à confirmer',
@@ -125,11 +132,11 @@ export class MailService {
     const homeUrl = this.appUrl.replace(/\/$/, '');
     await this.send({
       to,
-      subject: 'Bienvenue dans la newsletter L\'Entrevue',
+      subject: 'Bienvenue dans la newsletter Fintech Médias',
       html: wrapTransactionalMail({
         appUrl: this.appUrl,
         title: 'Inscription confirmée',
-        preheader: 'Vous recevrez les actualités de L\'Entrevue dans votre boîte mail.',
+        preheader: 'Vous recevrez les actualités de Fintech Médias dans votre boîte mail.',
         bodyHtml: `
           <p style="margin:0 0 12px;font-size:16px;line-height:1.55;color:${INK};">Bonjour,</p>
           <p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:${MUTED};">
@@ -137,9 +144,9 @@ export class MailService {
             <strong style="color:${INK};">${escapeHtml(to)}</strong>.
           </p>
           <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:${MUTED};">
-            Vous recevrez nos actualités, analyses et portraits autour de l’entrepreneuriat.
+            Vous recevrez nos actualités et analyses sur la fintech et les paiements.
           </p>
-          ${mailButton(homeUrl, "Lire L'Entrevue")}
+          ${mailButton(homeUrl, 'Lire Fintech Médias')}
           <p style="margin:20px 0 0;font-size:13px;line-height:1.55;color:${MUTED};">
             Si vous n’êtes pas à l’origine de cette inscription, ignorez cet e-mail.
           </p>
@@ -168,8 +175,8 @@ export class MailService {
 
     const subject =
       input.purpose === 'PURCHASE'
-        ? `Paiement confirmé — ${input.productLabel} — L'Entrevue`
-        : `Abonnement activé — ${input.productLabel} — L'Entrevue`;
+        ? `Paiement confirmé — ${input.productLabel} — Fintech Médias`
+        : `Abonnement activé — ${input.productLabel} — Fintech Médias`;
 
     const intro =
       input.purpose === 'PURCHASE'
@@ -232,7 +239,7 @@ export class MailService {
       input.to?.trim() ||
       this.config.get<string>('CONTACT_EMAIL')?.trim() ||
       this.config.get<string>('MAIL_CONTACT')?.trim() ||
-      'contact@lentrevuemag.com';
+      'contact@fintechmedias.com';
     await this.send({
       to,
       replyTo: input.email,
@@ -286,8 +293,8 @@ export class MailService {
       this.logger.error(
         `RESEND_API_KEY manquant — email non envoyé à ${input.to}: ${input.subject}`,
       );
-      throw new Error(
-        'Envoi e-mail indisponible (RESEND_API_KEY manquant). Contactez un administrateur.',
+      throw new ServiceUnavailableException(
+        'Envoi e-mail indisponible : enregistrez RESEND_API_KEY dans .env, puis redémarrez l’API.',
       );
     }
 
@@ -303,24 +310,19 @@ export class MailService {
       if (result.error) {
         this.logger.error(`Resend error: ${result.error.message}`);
         const hint = /domain is not verified/i.test(result.error.message)
-          ? ' La clé chargée par Nest n’est pas celle du compte où lentrevuemag.com est Verified (souvent .env racine ≠ apps/api/.env).'
+          ? ' La clé chargée par Nest n’est pas celle du compte où fintechmedias.com est vérifié.'
           : '';
-        throw new Error(
+        throw new BadGatewayException(
           `Échec envoi e-mail (${result.error.message}).${hint} Vérifiez RESEND_API_KEY / MAIL_FROM.`,
         );
       }
     } catch (err) {
-      if (
-        err instanceof Error &&
-        err.message.startsWith('Échec envoi e-mail')
-      ) {
-        throw err;
-      }
+      if (err instanceof BadGatewayException) throw err;
       this.logger.error(
         `Échec envoi email à ${input.to}`,
         err instanceof Error ? err.stack : undefined,
       );
-      throw new Error(
+      throw new BadGatewayException(
         'Échec envoi e-mail. Réessayez plus tard ou contactez un administrateur.',
       );
     }
@@ -333,7 +335,7 @@ export function wrapTransactionalMail(input: {
   preheader?: string;
   bodyHtml: string;
 }): string {
-  const home = input.appUrl.replace(/\/$/, '') || 'https://lentrevuemag.com';
+  const home = input.appUrl.replace(/\/$/, '') || 'https://fintechmedias.com';
   const pre = input.preheader
     ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(input.preheader)}</div>`
     : '';
@@ -354,9 +356,9 @@ export function wrapTransactionalMail(input: {
           <tr>
             <td style="background:${NAVY};padding:22px 28px;">
               <a href="${escapeHtml(home)}" style="text-decoration:none;">
-                <img src="${escapeHtml(home)}/brand/logo-Lentrevue-blanc.png" alt="L'Entrevue" height="36" style="display:block;height:36px;width:auto;max-width:200px;border:0;outline:none;" />
+                ${mailLogoImg(232)}
               </a>
-              <p style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.72);">Autour de l’entrepreneuriat</p>
+              <p style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.72);">Guide dans l’univers de la FinTech en Afrique.</p>
             </td>
           </tr>
           <tr>
@@ -371,7 +373,7 @@ export function wrapTransactionalMail(input: {
           <tr>
             <td style="padding:8px 28px 24px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:${MUTED};">
               <p style="margin:0;padding-top:16px;border-top:1px solid ${LINE};">
-                Entrevue · 8 Avenue Kalemie, Kinshasa-Gombe<br />
+                Fintech Médias<br />
                 <a href="${escapeHtml(home)}" style="color:${NAVY};text-decoration:underline;">${escapeHtml(home.replace(/^https?:\/\//, ''))}</a>
               </p>
             </td>
@@ -388,7 +390,7 @@ function mailButton(url: string, label: string): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
     <tr>
       <td style="border-radius:10px;background:${GOLD};">
-        <a href="${escapeHtml(url)}" style="display:inline-block;padding:13px 22px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:${WHITE};text-decoration:none;">${escapeHtml(label)}</a>
+        <a href="${escapeHtml(url)}" style="display:inline-block;padding:13px 22px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:${INK};text-decoration:none;">${escapeHtml(label)}</a>
       </td>
     </tr>
   </table>`;

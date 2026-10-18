@@ -33,7 +33,7 @@ class EntrevueMasthead extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: Center(child: EntrevueLogo(height: 26, color: ink)),
+              child: Center(child: EntrevueLogo(height: 26, onDark: dark)),
             ),
             SizedBox(
               width: 48,

@@ -1,7 +1,7 @@
 .opt-lecture {
   --opt-navy: #111111;
-  --opt-red: #e42320;
-  --opt-teal: #e42320;
+  --opt-red: #4ed319;
+  --opt-teal: #4ed319;
   --opt-muted: var(--site-muted, #6b6b6b);
 
   --lecture-bg: var(--site-bg-soft, #f4f5f7);
@@ -960,7 +960,7 @@ body:has(.opt-lecture) {
   padding: 0 1.15rem;
   border-radius: 10px;
   background: var(--opt-teal);
-  color: #fff;
+  color: #111111;
   font-family: var(--opt-font-sans);
   font-size: 0.9rem;
   font-weight: 750;

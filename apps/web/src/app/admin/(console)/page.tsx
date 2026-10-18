@@ -21,7 +21,7 @@ const PURPOSE_LABEL: Record<string, string> = {
 };
 
 const PURPOSE_COLOR: Record<string, string> = {
-  SUBSCRIPTION: "#e42320",
+  SUBSCRIPTION: "#4ed319",
   PURCHASE: "#111111",
 };
 
@@ -157,7 +157,7 @@ export default function AdminHomePage() {
         <AdminBarChart
           title="Volume payé (14 jours)"
           points={volumePoints}
-          color="#e42320"
+          color="#4ed319"
           currency="USD"
         />
         <AdminDonutChart

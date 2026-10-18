@@ -23,7 +23,7 @@ import {
 import { BRAND } from "@/lib/brand";
 const TAKE = 10;
 const DEFAULT_BG = "#111111";
-const DEFAULT_ACCENT = "#e42320";
+const DEFAULT_ACCENT = "#4ed319";
 
 type MagForm = {
   title: string;

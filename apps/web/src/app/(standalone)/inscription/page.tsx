@@ -74,7 +74,7 @@ function RegisterForm() {
     <AuthPanel
       kicker={BRAND.magazineName}
       title="Créez votre compte"
-      subtitle="Suivez le magazine, les portraits et les enquêtes autour de l’entrepreneuriat."
+      subtitle="Suivez l’actualité fintech, les éditos et le magazine."
       brandKicker={BRAND.tagline}
       badge="Se connecter"
       badgeHref="/connexion"
@@ -208,7 +208,7 @@ export default function RegisterPage() {
         <AuthPanel
           kicker={BRAND.magazineName}
           title="Créez votre compte"
-          subtitle="Suivez le magazine, les portraits et les enquêtes autour de l’entrepreneuriat."
+          subtitle="Suivez l’actualité fintech, les éditos et le magazine."
           footer={null}
         >
           <p className="auth-error">Chargement…</p>

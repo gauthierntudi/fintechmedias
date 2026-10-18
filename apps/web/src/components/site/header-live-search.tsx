@@ -22,6 +22,9 @@ const ICON = { size: 18, strokeWidth: 1.75 } as const;
 const DEBOUNCE_MS = 280;
 const TAKE = 10;
 const COVER_FALLBACK = "/legacy/articles/1591543587.jpg";
+const CUE_FALLBACK = "Rechercher…";
+const CUE_MS = 2800;
+const CUE_TAKE = 8;
 
 type Props = {
   variant: "header" | "menu";
@@ -39,7 +42,14 @@ export function HeaderLiveSearch({ variant, onNavigate }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [focused, setFocused] = useState(false);
+  const [cues, setCues] = useState<string[]>([]);
+  const [cue, setCue] = useState(0);
+  const [leavingCue, setLeavingCue] = useState<number | null>(null);
+  const cueRef = useRef(0);
+  const cuesRef = useRef(cues);
   const reqId = useRef(0);
+  cuesRef.current = cues;
 
   const trimmed = query.trim();
   const isSearch = trimmed.length >= 2;
@@ -89,6 +99,42 @@ export function HeaderLiveSearch({ variant, onNavigate }: Props) {
     }, DEBOUNCE_MS);
     return () => window.clearTimeout(t);
   }, [open, isSearch, trimmed, loadSuggestions, runSearch]);
+
+  useEffect(() => {
+    let cancel = false;
+    articlesPublicApi
+      .recent(CUE_TAKE)
+      .then((res) => {
+        if (cancel) return;
+        const titles = res.items
+          .map((item) => item.title.trim())
+          .filter(Boolean);
+        if (titles.length === 0) return;
+        cueRef.current = 0;
+        setLeavingCue(null);
+        setCue(0);
+        setCues(titles);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancel = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (trimmed || focused || cues.length < 2) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const id = window.setInterval(() => {
+      const list = cuesRef.current;
+      if (list.length < 2) return;
+      const current = cueRef.current % list.length;
+      const next = (current + 1) % list.length;
+      if (!reduce) setLeavingCue(current);
+      cueRef.current = next;
+      setCue(next);
+    }, reduce ? 4000 : CUE_MS);
+    return () => window.clearInterval(id);
+  }, [trimmed, focused, cues.length]);
 
   useEffect(() => {
     if (!showPanel) return;
@@ -164,23 +210,45 @@ export function HeaderLiveSearch({ variant, onNavigate }: Props) {
         role="search"
         onClick={openPanel}
       >
-        <input
-          type="search"
-          name="q"
-          placeholder="Rechercher…"
-          value={query}
-          autoComplete="off"
-          aria-label="Rechercher"
-          aria-autocomplete="list"
-          aria-controls={listId}
-          aria-expanded={showPanel}
-          onFocus={openPanel}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setOpen(true);
-          }}
-          onKeyDown={onKeyDown}
-        />
+        <span className="opt-search-field">
+          {trimmed ? null : (
+            <span className="opt-search-ph" aria-hidden>
+              {leavingCue != null && cues[leavingCue] ? (
+                <span
+                  key={`out-${leavingCue}`}
+                  className="opt-search-ph__line is-out"
+                  onAnimationEnd={() => setLeavingCue(null)}
+                >
+                  <span>{cues[leavingCue]}</span>
+                </span>
+              ) : null}
+              <span key={cues[cue] ?? CUE_FALLBACK} className="opt-search-ph__line is-in">
+                <span>{cues[cue] ?? CUE_FALLBACK}</span>
+              </span>
+            </span>
+          )}
+          <input
+            type="search"
+            name="q"
+            placeholder=""
+            value={query}
+            autoComplete="off"
+            aria-label="Rechercher"
+            aria-autocomplete="list"
+            aria-controls={listId}
+            aria-expanded={showPanel}
+            onFocus={() => {
+              setFocused(true);
+              openPanel();
+            }}
+            onBlur={() => setFocused(false)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setOpen(true);
+            }}
+            onKeyDown={onKeyDown}
+          />
+        </span>
         <button
           type="submit"
           className={btnClass}

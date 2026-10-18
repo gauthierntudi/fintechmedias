@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../core/constants.dart';
 
 class AppTheme {
@@ -7,9 +9,33 @@ class AppTheme {
   static const red = Color(kBrandRed);
   static const blue = Color(kBrandBlue);
 
-  /// Identité typo ENTREVUE — corps et titres.
+  /// Identité typo Fintech Médias — corps et titres.
   static const sans = 'FamiljenGrotesk';
   static const display = 'FamiljenGrotesk';
+
+  /// Status bar adaptée au mode clair / sombre.
+  static SystemUiOverlayStyle statusBarForMode(Brightness brightness) {
+    final dark = brightness == Brightness.dark;
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+      statusBarBrightness: dark ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness:
+          dark ? Brightness.light : Brightness.dark,
+      systemNavigationBarContrastEnforced: false,
+    );
+  }
+
+  /// Icônes status bar blanches (lecture article, fonds sombres).
+  static const statusBarLightIcons = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.light,
+    systemNavigationBarContrastEnforced: false,
+  );
 
   static TextStyle displayText({
     double size = 22,
@@ -44,6 +70,54 @@ class AppTheme {
       color: color,
       letterSpacing: letterSpacing,
     );
+  }
+
+  /// Titre d’article (lecture) — Google Sans Bold.
+  static TextStyle articleTitleText({
+    double size = 28,
+    FontWeight weight = FontWeight.w700,
+    double height = 1.2,
+    Color? color,
+    double letterSpacing = -0.2,
+  }) {
+    final bold =
+        weight.value >= FontWeight.w700.value ? weight : FontWeight.w700;
+    return GoogleFonts.googleSans(
+      fontSize: size,
+      fontWeight: bold,
+      height: height,
+      color: color,
+      letterSpacing: letterSpacing,
+    );
+  }
+
+  /// Chapô + corps d’article (lecture) — Google Sans.
+  static TextStyle articleBodyText({
+    double size = 16,
+    FontWeight weight = FontWeight.w400,
+    double height = 1.55,
+    Color? color,
+    double letterSpacing = 0,
+    FontStyle? fontStyle,
+    TextStyle? textStyle,
+  }) {
+    return GoogleFonts.googleSans(
+      textStyle: textStyle,
+      fontSize: size,
+      fontWeight: weight,
+      height: height,
+      color: color,
+      letterSpacing: letterSpacing,
+      fontStyle: fontStyle,
+    );
+  }
+
+  /// Précharge Google Sans (lecture article).
+  static Future<void> preloadArticleFonts() {
+    GoogleFonts.googleSans();
+    GoogleFonts.googleSans(fontWeight: FontWeight.w700);
+    GoogleFonts.googleSans(fontStyle: FontStyle.italic);
+    return GoogleFonts.pendingFonts();
   }
 
   static ThemeData light() {
@@ -91,6 +165,7 @@ class AppTheme {
         foregroundColor: appBarForeground,
         elevation: 0,
         centerTitle: true,
+        systemOverlayStyle: statusBarForMode(scheme.brightness),
         titleTextStyle: displayText(
           size: 18,
           weight: FontWeight.w700,

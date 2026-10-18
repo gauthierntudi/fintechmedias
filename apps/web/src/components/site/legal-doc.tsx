@@ -53,12 +53,18 @@ export function LegalDoc({
         <aside className="opt-legal__contact">
           <p className="opt-legal__contact-label">Contact</p>
           <p className="opt-legal__contact-name">{BRAND.legalName}</p>
-          <p>{BRAND.address}</p>
-          <p>
-            <a href={`mailto:${BRAND.infoEmail}`}>{BRAND.infoEmail}</a>
-            <span aria-hidden> · </span>
-            <a href={`tel:${BRAND.phone.replace(/\s/g, "")}`}>{BRAND.phone}</a>
-          </p>
+          <ul className="opt-legal__contact-list">
+            <li>{BRAND.address}</li>
+            <li>
+              <a href={`mailto:${BRAND.infoEmail}`}>{BRAND.infoEmail}</a>
+            </li>
+            <li>
+              <a href={`tel:${BRAND.phone.replace(/\s/g, "")}`}>{BRAND.phone}</a>
+            </li>
+          </ul>
+          <a className="opt-legal__contact-cta" href={`mailto:${BRAND.infoEmail}`}>
+            Écrire à la rédaction
+          </a>
         </aside>
       </div>
     </article>

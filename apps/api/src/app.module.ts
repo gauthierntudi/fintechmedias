@@ -5,6 +5,7 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import { config as loadEnv } from 'dotenv';
 import { ActivityModule } from './activity/activity.module';
+import { AdsModule } from './ads/ads.module';
 import { ArticlesModule } from './articles/articles.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
@@ -21,6 +22,7 @@ import { SubscribersModule } from './subscribers/subscribers.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { PaymentsModule } from './payments/payments.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
+import { HomeVideoModule } from './home-video/home-video.module';
 
 const envApi = join(__dirname, '../.env');
 const envRoot = join(__dirname, '../../../.env');
@@ -39,6 +41,8 @@ if (existsSync(envRoot)) loadEnv({ path: envRoot, override: true });
     HealthModule,
     AuthModule,
     ActivityModule,
+    AdsModule,
+    HomeVideoModule,
     LibraryModule,
     MagazinesModule,
     ArticlesModule,

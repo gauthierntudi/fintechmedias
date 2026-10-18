@@ -7,7 +7,7 @@ import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
 export const metadata: Metadata = {
   title: "Politique de confidentialité",
   description:
-    "Comment Entrevue collecte, utilise et protège vos données personnelles.",
+    "Comment Fintech Médias collecte, utilise et protège vos données personnelles.",
 };
 
 export default function ConfidentialitePage() {
@@ -26,8 +26,8 @@ export default function ConfidentialitePage() {
 
       <h2 id="responsable">1. Responsable du traitement</h2>
       <p>
-        Le responsable du traitement est {BRAND.legalName}, média et
-        observatoire du système éducatif de la République démocratique du Congo.
+        Le responsable du traitement est {BRAND.legalName}, média dédié à
+        l’actualité fintech, aux services financiers numériques et au magazine.
       </p>
       <ul>
         <li>Adresse : {BRAND.address}</li>

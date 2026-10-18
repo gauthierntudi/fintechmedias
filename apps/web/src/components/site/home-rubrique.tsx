@@ -16,20 +16,29 @@ import {
 import { CoverImage } from "@/components/site/cover-image";
 import { ArticleThumbSponsor } from "@/components/site/article-thumb-sponsor";
 import { VideoPlay } from "@/components/site/video-play";
+import { SidebarFeaturedSwap } from "@/components/site/sidebar-featured-swap";
 import "./home-rubrique.css";
 
 function Meta({
   author,
+  avatarUrl,
   dateLabel,
   light,
 }: {
   author: string;
+  avatarUrl?: string | null;
   dateLabel: string;
   light?: boolean;
 }) {
   return (
     <p className={`opt-rub__meta${light ? " opt-rub__meta--light" : ""}`}>
-      <span>Par {author}</span>
+      <span className="opt-rub__meta-author">
+        {avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={avatarUrl} alt="" className="opt-rub__meta-avatar" />
+        ) : null}
+        <span>Par {author}</span>
+      </span>
       <span className="opt-rub__meta-date">{dateLabel}</span>
     </p>
   );
@@ -92,7 +101,12 @@ function OverlayCard({
         {tile ? sponsor : null}
         <h3 className="opt-rub__featured-title">{story.titre}</h3>
         {tile || hideMeta ? null : (
-          <Meta author={story.author} dateLabel={story.dateLabel} light />
+          <Meta
+            author={story.author}
+            avatarUrl={story.authorAvatarUrl}
+            dateLabel={story.dateLabel}
+            light
+          />
         )}
       </div>
     </Link>
@@ -160,6 +174,7 @@ export type HomeRubriqueBlockProps = {
     featured: RubriqueStory;
     list: RubriqueStory[];
   };
+  sideAd?: boolean;
 };
 
 /**
@@ -170,6 +185,7 @@ export function HomeRubriqueBlock({
   primary,
   split,
   sidebar,
+  sideAd = false,
 }: HomeRubriqueBlockProps) {
   return (
     <section className="opt-rub" aria-label={ariaLabel}>
@@ -227,11 +243,21 @@ export function HomeRubriqueBlock({
             </h2>
           </header>
 
-          <FeaturedCard
-            story={sidebar.featured}
-            video={isVideoArticle(sidebar.featured)}
-            hideMeta
-          />
+          {sideAd ? (
+            <SidebarFeaturedSwap>
+              <FeaturedCard
+                story={sidebar.featured}
+                video={isVideoArticle(sidebar.featured)}
+                hideMeta
+              />
+            </SidebarFeaturedSwap>
+          ) : (
+            <FeaturedCard
+              story={sidebar.featured}
+              video={isVideoArticle(sidebar.featured)}
+              hideMeta
+            />
+          )}
           <div className="opt-rub__pv-list">
             {sidebar.list.slice(0, 2).map((story) => (
               <PlusVusItem key={story.id} story={story} />
@@ -252,6 +278,7 @@ export function HomeRubrique({
   return (
     <HomeRubriqueBlock
       ariaLabel="Entreprendre et Juste pour toi"
+      sideAd
       primary={
         primary ?? {
           title: "Entreprendre",

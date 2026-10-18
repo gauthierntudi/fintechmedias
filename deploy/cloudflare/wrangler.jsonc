@@ -1,0 +1,81 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fintech-gateway",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-10-11",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": true,
+
+  // Après suppression du CNAME DNS manuel `api` :
+  // "routes": [
+  //   { "pattern": "api.fintechmedias.com", "custom_domain": true }
+  // ],
+
+  "triggers": {
+    "crons": ["*/5 * * * *"]
+  },
+
+  "containers": [
+    {
+      "class_name": "WebContainer",
+      "image": "../../apps/web/Dockerfile",
+      "image_build_context": "../..",
+      "max_instances": 4,
+      "instance_type": "standard-1",
+      "image_vars": {
+        "NEXT_PUBLIC_APP_URL": "https://fintechmedias.com",
+        "NEXT_PUBLIC_API_URL": "https://fintechmedias.com"
+      }
+    },
+    {
+      "class_name": "ApiContainer",
+      "image": "../../apps/api/Dockerfile",
+      "image_build_context": "../..",
+      "max_instances": 4,
+      "instance_type": "standard-2"
+    },
+    {
+      "class_name": "WorkerContainer",
+      "image": "../../apps/api/Dockerfile",
+      "image_build_context": "../..",
+      "max_instances": 2,
+      "instance_type": "standard-2",
+      "image_vars": {
+        "APP_ENTRY": "dist/worker.js"
+      }
+    }
+  ],
+
+  "durable_objects": {
+    "bindings": [
+      { "name": "WEB_CONTAINER", "class_name": "WebContainer" },
+      { "name": "API_CONTAINER", "class_name": "ApiContainer" },
+      { "name": "WORKER_CONTAINER", "class_name": "WorkerContainer" }
+    ]
+  },
+
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["WebContainer", "ApiContainer", "WorkerContainer"]
+    }
+  ],
+
+  // Après `pnpm d1:create` / wrangler d1 create, coller l’id ici aussi dans data-worker
+  // Le gateway n’attache pas D1 directement : service binding vers data-worker
+  "services": [
+    {
+      "binding": "DATA",
+      "service": "fintech-data"
+    }
+  ],
+
+  "vars": {
+    "APP_URL": "https://fintechmedias.com",
+    "API_URL": "https://api.fintechmedias.com"
+  }
+
+  // Secrets (wrangler secret put) :
+  // JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, RESEND_API_KEY, R2_*, FLEXPAIE_*, DATA_WORKER_SECRET
+}

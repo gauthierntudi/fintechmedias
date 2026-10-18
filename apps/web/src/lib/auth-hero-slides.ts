@@ -8,33 +8,33 @@ export type AuthHeroSlide = {
 export const AUTH_HERO_POOL: readonly AuthHeroSlide[] = [
   {
     cover: "/legacy/img/s1.jpg",
-    title: "L'Entrevue",
-    lead: "Portraits, enquêtes et le magazine — à lire sur tous vos écrans.",
+    title: "Fintech Médias",
+    lead: "Actualités, interviews et le magazine — à lire sur tous vos écrans.",
   },
   {
     cover: "/legacy/img/s2.jpg",
-    title: "Écosystème PME",
-    lead: "Le tissu des PME, leurs défis, leurs relais et leurs réussites.",
+    title: "Économie",
+    lead: "Marchés, politiques économiques et signaux à suivre.",
   },
   {
     cover: "/legacy/img/s3.jpg",
-    title: "Entreprendre",
-    lead: "Initiatives, projets et parcours de celles et ceux qui osent.",
+    title: "Entreprise",
+    lead: "Sociétés, levées, produits et stratégies.",
   },
   {
     cover: "/legacy/img/s4.jpg",
-    title: "Rencontre Avec",
-    lead: "Portraits et échanges avec celles et ceux qui font bouger les lignes.",
+    title: "Interview",
+    lead: "Entretiens avec celles et ceux qui font la fintech africaine.",
   },
   {
     cover: "/legacy/img/s5.jpg",
-    title: "L'Entrevue, partout",
+    title: "Le kiosque",
     lead: "Le magazine numérique, à lire sur tous vos écrans.",
   },
   {
     cover: "/legacy/img/s6.jpeg",
-    title: "Qu'en dit l'expert",
-    lead: "Analyses et paroles d’experts pour éclairer les enjeux du moment.",
+    title: "Édito",
+    lead: "La voix de la rédaction sur l’actualité finance et fintech.",
   },
 ];
 

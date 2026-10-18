@@ -33,10 +33,10 @@ class _SignedOut extends StatelessWidget {
       child: Column(
         children: [
           const Spacer(),
-          EntrevueLogo(height: 28, color: ink),
+          EntrevueLogo(height: 28, onDark: dark),
           const SizedBox(height: 20),
           Text(
-            'Votre espace ENTREVUE',
+            'Votre espace Fintech Médias',
             textAlign: TextAlign.center,
             style: AppTheme.displayText(
               size: 24,

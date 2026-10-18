@@ -21,16 +21,16 @@ class OnboardingPageData {
 
 const _pages = <OnboardingPageData>[
   OnboardingPageData(
-    title: 'Bienvenue sur ENTREVUE',
+    title: 'Bienvenue sur Fintech Médias',
     body:
-        'La plateforme média et observatoire qui éclaire le système éducatif de la République démocratique du Congo.',
+        'Le média qui décrypte la finance, l’innovation et l’économie en Afrique centrale.',
     image: 'assets/onboarding/1.jpg',
     alignment: Alignment(0, -0.12),
   ),
   OnboardingPageData(
-    title: 'L’actualité éducative',
+    title: 'L’actualité finance & tech',
     body:
-        'Stu News, Stu Data, Stu Stories et Stu Talk : information, données, histoires et voix de ceux qui transforment l’école.',
+        'Actualités, interviews, économie, éditos et entreprises : tout le fil Fintech Médias dans votre poche.',
     image: 'assets/onboarding/2.jpg',
     alignment: Alignment(0.12, -0.08),
   ),
@@ -92,7 +92,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final padding = MediaQuery.paddingOf(context);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: AppTheme.statusBarLightIcons,
       child: Scaffold(
         backgroundColor: AppTheme.navy,
         body: Stack(
@@ -113,7 +113,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 padding: EdgeInsets.fromLTRB(20, padding.top + 8, 8, 0),
                 child: Row(
                   children: [
-                    const EntrevueLogo(height: 42),
+                    const EntrevueLogo(height: 42, onDark: true),
                     const Spacer(),
                     if (!_last)
                       TextButton(

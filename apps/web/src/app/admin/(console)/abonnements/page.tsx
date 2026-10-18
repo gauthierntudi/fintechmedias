@@ -112,16 +112,16 @@ function initials(name: string): string {
 }
 
 const AVATAR_PALETTE = [
-  { bg: "#e42320", fg: "#ffffff" },
+  { bg: "#4ed319", fg: "#111111" },
   { bg: "#5b7cfa", fg: "#ffffff" },
-  { bg: "#f97366", fg: "#ffffff" },
+  { bg: "#64748b", fg: "#ffffff" },
   { bg: "#10b981", fg: "#ffffff" },
   { bg: "#f59e0b", fg: "#1a1408" },
   { bg: "#8b5cf6", fg: "#ffffff" },
-  { bg: "#ec4899", fg: "#ffffff" },
+  { bg: "#0ea5e9", fg: "#ffffff" },
   { bg: "#06b6d4", fg: "#041512" },
   { bg: "#84cc16", fg: "#14200a" },
-  { bg: "#f43f5e", fg: "#ffffff" },
+  { bg: "#111111", fg: "#ffffff" },
   { bg: "#6366f1", fg: "#ffffff" },
   { bg: "#14b8a6", fg: "#041512" },
 ] as const;

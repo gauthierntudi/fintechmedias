@@ -273,7 +273,7 @@ function LectureContent() {
   const previewMode = Boolean(session.preview || isPreview);
   const maxPages = session.maxPages ?? (previewMode ? 15 : null);
   const backHref = `/kiosque?magazine=${encodeURIComponent(session.id)}`;
-  const accent = session.theme?.accentColor ?? "#e42320";
+  const accent = session.theme?.accentColor ?? "#4ed319";
   const magazineBg = session.theme?.bgColor ?? "#111111";
   const lectureVars = {
     ["--cta-bg"]: magazineBg,

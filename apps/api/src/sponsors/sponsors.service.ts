@@ -49,8 +49,8 @@ export class SponsorsService {
     const where: Prisma.SponsorWhereInput = q
       ? {
           OR: [
-            { name: { contains: q, mode: 'insensitive' } },
-            { url: { contains: q, mode: 'insensitive' } },
+            { name: { contains: q } },
+            { url: { contains: q } },
           ],
         }
       : {};

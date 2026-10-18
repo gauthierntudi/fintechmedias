@@ -27,7 +27,11 @@ export function BrandLogo({
       alt={BRAND.name}
       className={classes}
       height={height}
-      style={{ height, width: "auto", display: "block" }}
+      style={{
+        height: `var(--brand-logo-h, ${height}px)`,
+        width: "auto",
+        display: "block",
+      }}
     />
   );
 }

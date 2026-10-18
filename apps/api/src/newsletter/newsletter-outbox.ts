@@ -134,7 +134,8 @@ export async function enqueueArticleNewsletter(
         status: NewsletterOutboxStatus.PENDING,
         updatedAt: now,
       })),
-      skipDuplicates: true,
+      // skipDuplicates non supporté sur SQLite/D1 — cast pour Postgres local
+      ...({ skipDuplicates: true } as object),
     });
     queued += result.count;
   }

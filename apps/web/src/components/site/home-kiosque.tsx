@@ -39,13 +39,13 @@ const DEMO_ITEMS: HomeStoriesItem[] = DEMO_DOSSIERS.map((s) => ({
 /** Carrousel rubrique (Écosystème PME, Innovation…). */
 export function HomeKiosque({
   items: incoming,
-  rubriqueSlug = "ecosysteme-pme",
+  rubriqueSlug = "actualites",
 }: {
   items?: HomeStoriesItem[];
   rubriqueSlug?: string;
 } = {}) {
   const RUBRIQUE =
-    RUBRIQUE_BY_SLUG[rubriqueSlug] ?? RUBRIQUE_BY_SLUG["ecosysteme-pme"];
+    RUBRIQUE_BY_SLUG[rubriqueSlug] ?? RUBRIQUE_BY_SLUG.actualites;
   const titleId = `opt-kiosque-title-${RUBRIQUE.slug}`;
   const items = incoming && incoming.length > 0 ? incoming : DEMO_ITEMS;
   const swiperRef = useRef<SwiperType | null>(null);

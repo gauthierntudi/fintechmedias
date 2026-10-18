@@ -4,10 +4,10 @@
   --opt-rs-ink: #111111;
   --opt-rs-muted: #6b6b6b;
   --opt-rs-line: #e6e6e6;
-  --opt-rs-accent: #e42320;
-  --opt-rs-panel: #e42320;
-  --opt-rs-tag: #e42320;
-  --opt-rs-red: #e42320;
+  --opt-rs-accent: #4ed319;
+  --opt-rs-panel: #4ed319;
+  --opt-rs-tag: #4ed319;
+  --opt-rs-red: #4ed319;
 
   margin-top: 2.5rem;
   padding-top: 0.25rem;
@@ -46,7 +46,7 @@
 }
 
 .opt-rsplit__title.opt-rsplit__title--red {
-  color: #e42320;
+  color: #4ed319;
 }
 
 .opt-rsplit__title.opt-rsplit__title--blue {
@@ -54,7 +54,7 @@
 }
 
 .opt-rsplit__title.opt-rsplit__title--gold {
-  color: #e42320;
+  color: #4ed319;
 }
 
 .opt-rsplit__title.opt-rsplit__title--teal {
@@ -126,7 +126,7 @@
   gap: 0.55rem;
   padding: 1.35rem 1.4rem;
   background: var(--opt-rs-panel);
-  color: #fff;
+  color: #111111;
 }
 
 .opt-rsplit__tag {
@@ -297,8 +297,8 @@
   left: 0.45rem;
   z-index: 2;
   padding: 0.16rem 0.38rem;
-  background: #e42320;
-  color: #fff;
+  background: #4ed319;
+  color: #111111;
   font-family: var(--opt-font-sans);
   font-size: 0.56rem;
   font-weight: 700;
@@ -328,8 +328,8 @@
   right: 0.45rem;
   z-index: 2;
   padding: 0.16rem 0.38rem;
-  background: #e42320;
-  color: #fff;
+  background: #4ed319;
+  color: #111111;
   font-family: var(--opt-font-sans);
   font-size: 0.58rem;
   font-weight: 700;

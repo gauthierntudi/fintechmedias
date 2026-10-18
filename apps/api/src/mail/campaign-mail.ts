@@ -1,13 +1,15 @@
 /**
- * Gabarit d’emailing éditorial L'Entrevue.
+ * Gabarit d’emailing éditorial Fintech Médias.
  * HTML tables + styles inline (Outlook, Gmail, Apple Mail).
  */
+
+import { mailLogoImg } from './mail-brand';
 
 export const CAMPAIGN_KINDS = ['digest', 'article', 'magazine'] as const;
 export type CampaignKind = (typeof CAMPAIGN_KINDS)[number];
 
 const BLACK = '#111111';
-const RED = '#e42320';
+const RED = '#4ed319';
 const WHITE = '#ffffff';
 const PAGE = '#f3f3f3';
 const INK = '#111111';
@@ -129,7 +131,7 @@ export function sampleCampaign(
       appUrl: home,
       kind,
       subject: "Le nouveau numéro de L'Entrevue est en kiosque",
-      preheader: 'Portraits, analyses et outils pour diriger autrement.',
+      preheader: 'Éditos, analyses et outils pour diriger autrement.',
       kicker: 'Kiosque',
       dateLabel: 'Nouveau numéro',
       headline: 'Le magazine du mois est en ligne',
@@ -157,8 +159,7 @@ export function sampleCampaign(
 }
 
 export function buildCampaignMail(input: CampaignMailInput): string {
-  const home = input.appUrl.replace(/\/$/, '') || 'https://lentrevuemag.com';
-  const logo = `${home}/brand/logo-Lentrevue-blanc.png`;
+  const home = input.appUrl.replace(/\/$/, '') || 'https://fintechmedias.com';
   const stories = input.stories.slice(0, MAX_STORIES);
   const featured = stories[0];
   const rest = stories.slice(1, MAX_STORIES);
@@ -184,9 +185,9 @@ export function buildCampaignMail(input: CampaignMailInput): string {
           <tr>
             <td style="background:${BLACK};padding:22px 28px 18px;">
               <a href="${esc(home)}" style="text-decoration:none;">
-                <img src="${esc(logo)}" alt="L'Entrevue" height="34" style="display:block;height:34px;width:auto;max-width:190px;border:0;outline:none;" />
+                ${mailLogoImg(232)}
               </a>
-              <p style="margin:10px 0 0;font-family:${FONT};font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.62);">Autour de l’entrepreneuriat</p>
+              <p style="margin:12px 0 0;font-family:${FONT};font-size:12px;line-height:1.4;color:rgba(255,255,255,0.72);">Guide dans l’univers de la FinTech en Afrique.</p>
             </td>
           </tr>
           <tr>
@@ -396,16 +397,15 @@ function footerBlock(
   socials?: CampaignSocialLink[],
 ): string {
   const year = new Date().getFullYear();
-  const logo = `${home}/brand/logo-Lentrevue-blanc.png`;
   return `<tr>
     <td style="height:4px;background:${RED};font-size:0;line-height:0;">&nbsp;</td>
   </tr>
   <tr>
     <td style="background:${BLACK};padding:28px 28px 24px;font-family:${FONT};">
       <a href="${esc(home)}" style="text-decoration:none;">
-        <img src="${esc(logo)}" alt="L'Entrevue" height="28" style="display:block;height:28px;width:auto;max-width:160px;border:0;outline:none;" />
+        ${mailLogoImg(180)}
       </a>
-      <p style="margin:10px 0 0;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.52);">Autour de l’entrepreneuriat</p>
+      <p style="margin:12px 0 0;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.72);">Guide dans l’univers de la FinTech en Afrique.</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 0;">
         <tr>
           <td style="border-top:1px solid #2a2a2a;font-size:0;line-height:0;height:1px;">&nbsp;</td>
@@ -419,7 +419,7 @@ function footerBlock(
         </tr>
       </table>
       <p style="margin:16px 0 0;font-size:11px;line-height:1.55;color:#8a8a8a;">
-        Envoyé aux inscrits de la newsletter L'Entrevue.
+        Envoyé aux inscrits de la newsletter Fintech Médias.
       </p>
       <p style="margin:8px 0 0;font-size:11px;line-height:1.55;">
         <a href="${esc(unsubscribeUrl)}" style="color:#d4d4d4;text-decoration:underline;">Se désinscrire</a>
@@ -429,7 +429,7 @@ function footerBlock(
         <a href="${esc(home)}/conditions-utilisation" style="color:#d4d4d4;text-decoration:underline;">Conditions</a>
       </p>
       <p style="margin:14px 0 0;font-size:11px;line-height:1.5;color:#6b6b6b;">
-        © ${year} L'Entrevue. Tous droits réservés.
+        © ${year} Fintech Médias. Tous droits réservés.
       </p>
     </td>
   </tr>`;
@@ -439,7 +439,7 @@ function button(href: string, label: string): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0">
     <tr>
       <td style="background:${RED};">
-        <a href="${esc(href)}" style="display:inline-block;padding:14px 22px;font-family:${FONT};font-size:14px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:${WHITE};text-decoration:none;">${esc(label)}</a>
+        <a href="${esc(href)}" style="display:inline-block;padding:14px 22px;font-family:${FONT};font-size:14px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#111111;text-decoration:none;">${esc(label)}</a>
       </td>
     </tr>
   </table>`;

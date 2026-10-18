@@ -73,7 +73,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     final pageLabel = pages.isEmpty ? '' : '${_index + 1} / ${pages.length}';
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: AppTheme.statusBarLightIcons,
       child: Scaffold(
         backgroundColor: AppTheme.navy,
         appBar: AppBar(

@@ -51,6 +51,8 @@ type LegacyArticle = {
   contenu: string | null;
   cover: string | null;
   description: string | null;
+  legende: string | null;
+  alaune: string | null;
   typeActu: string | null;
   video: string | null;
   vues: string | null;
@@ -58,9 +60,19 @@ type LegacyArticle = {
   idRedaction: number | null;
   status: number | null;
   dateAdd: Date | string | null;
+  createdAt: Date | string | null;
   NumArticle: string | null;
   extrait_mag: string | null;
   antidate: number | null;
+  statutPaiement: string | null;
+  statutValidation: string | null;
+};
+
+type LegacyUser = {
+  id: number;
+  nom: string | null;
+  titre: string | null;
+  cover: string | null;
 };
 
 function clip(value: string | null | undefined, max: number): string | null {
@@ -72,9 +84,9 @@ function clip(value: string | null | undefined, max: number): string | null {
 
 function decodeBasicEntities(input: string): string {
   return input
-    .replace(/\\r\\n/g, ' ')
-    .replace(/\\n/g, ' ')
-    .replace(/\r\n/g, ' ')
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\r\n/g, '\n')
     .replace(/&quot;/gi, '"')
     .replace(/&#0*39;/g, "'")
     .replace(/&apos;/gi, "'")
@@ -113,19 +125,34 @@ function slugify(input: string): string {
     .slice(0, 180);
 }
 
+const FINTECH_CATEGORY_SLUGS: Record<string, string> = {
+  actualites: 'actualites',
+  interview: 'interview',
+  economie: 'economie',
+  politique: 'politique',
+  international: 'international',
+  intl: 'international',
+  'int-l': 'international',
+  portrait: 'portrait',
+  entreprise: 'entreprise',
+  events: 'events',
+};
+
 function mapCategory(raw: string | null | undefined): string | null {
   const t = (raw ?? '').trim();
   if (!t) return null;
   if (CATEGORY_MAP[t]) return CATEGORY_MAP[t];
   const slug = slugify(t);
-  return slug || null;
+  return FINTECH_CATEGORY_SLUGS[slug] ?? (slug || null);
 }
 
 function coverKeyFromLegacy(raw: string | null | undefined): string | null {
   const t = clip(raw, 500);
   if (!t) return null;
   if (/^https?:\/\//i.test(t)) return t;
-  const name = basename(t.replace(/\\/g, '/'));
+  const normalized = t.replace(/\\/g, '/').replace(/^\//, '');
+  if (normalized.startsWith('uploads/')) return normalized;
+  const name = basename(normalized);
   if (!name) return null;
   return `articles/${name}`;
 }
@@ -192,6 +219,12 @@ function sqlLiteral(raw: string): string | null {
   return t;
 }
 
+function numOrNull(value: string | null | undefined): number | null {
+  if (value == null || value === '') return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
 function rowFromValues(cols: string[], values: string[]): LegacyArticle | null {
   const map = new Map<string, string | null>();
   for (let i = 0; i < cols.length; i++) {
@@ -205,22 +238,45 @@ function rowFromValues(cols: string[], values: string[]): LegacyArticle | null {
     contenu: map.get('contenu') ?? null,
     cover: map.get('cover') ?? null,
     description: map.get('description') ?? null,
-    typeActu: map.get('typeActu') ?? null,
-    video: map.get('video') ?? null,
+    legende: map.get('legende') ?? null,
+    alaune: map.get('alaune') ?? null,
+    typeActu: map.get('typeActu') ?? map.get('type_post') ?? null,
+    video: map.get('video') ?? map.get('videos') ?? null,
     vues: map.get('vues') ?? null,
     categorie: map.get('categorie') ?? null,
-    idRedaction:
-      map.get('idRedaction') != null ? Number(map.get('idRedaction')) : null,
-    status: map.get('status') != null ? Number(map.get('status')) : 1,
-    dateAdd: map.get('dateAdd') ?? null,
-    NumArticle: map.get('NumArticle') ?? null,
+    idRedaction: numOrNull(map.get('id_redaction') ?? map.get('idRedaction')),
+    status: numOrNull(map.get('status')) ?? 1,
+    dateAdd: map.get('date_add') ?? map.get('dateAdd') ?? null,
+    createdAt: map.get('created_at') ?? null,
+    NumArticle: map.get('num_article') ?? map.get('NumArticle') ?? null,
     extrait_mag: map.get('extrait_mag') ?? null,
-    antidate: map.get('antidate') != null ? Number(map.get('antidate')) : 0,
+    antidate: numOrNull(map.get('antidate')) ?? 0,
+    statutPaiement: map.get('statut_paiement') ?? null,
+    statutValidation: map.get('statut_validation') ?? null,
   };
 }
 
-function parseInsertTable(sql: string, table: string): LegacyArticle[] {
-  const rows: LegacyArticle[] = [];
+function userFromValues(cols: string[], values: string[]): LegacyUser | null {
+  const map = new Map<string, string | null>();
+  for (let i = 0; i < cols.length; i++) {
+    map.set(cols[i]!, sqlLiteral(values[i] ?? 'NULL'));
+  }
+  const id = Number(map.get('id'));
+  if (!Number.isFinite(id)) return null;
+  return {
+    id,
+    nom: map.get('nom') ?? null,
+    titre: map.get('Titre') ?? map.get('titre') ?? null,
+    cover: map.get('cover') ?? null,
+  };
+}
+
+function parseInsertTable<T>(
+  sql: string,
+  table: string,
+  mapRow: (cols: string[], values: string[]) => T | null,
+): T[] {
+  const rows: T[] = [];
   const insertRe = new RegExp(
     `INSERT\\s+INTO\\s+\`?${table}\`?\\s*\\(([^)]+)\\)\\s*VALUES\\s*`,
     'gi',
@@ -277,7 +333,7 @@ function parseInsertTable(sql: string, table: string): LegacyArticle[] {
 
       const tuple = sql.slice(start + 1, i - 1);
       const values = splitSqlValues(tuple);
-      const row = rowFromValues(cols, values);
+      const row = mapRow(cols, values);
       if (row) rows.push(row);
 
       while (i < sql.length && /\s/.test(sql[i]!)) i += 1;
@@ -297,7 +353,47 @@ function parseInsertTable(sql: string, table: string): LegacyArticle[] {
 }
 
 function loadFromSqlDump(filePath: string): LegacyArticle[] {
-  return parseInsertTable(readFileSync(filePath, 'utf8'), 'actualites');
+  return parseInsertTable(readFileSync(filePath, 'utf8'), 'actualites', rowFromValues);
+}
+
+function loadUsersFromSqlDump(filePath: string): Map<number, LegacyUser> {
+  const rows = parseInsertTable(
+    readFileSync(filePath, 'utf8'),
+    'users',
+    userFromValues,
+  );
+  return new Map(rows.map((user) => [user.id, user]));
+}
+
+function articleFromMysql(row: Record<string, unknown>): LegacyArticle {
+  return {
+    id: Number(row.id),
+    titre: (row.titre as string | null) ?? null,
+    contenu: (row.contenu as string | null) ?? null,
+    cover: (row.cover as string | null) ?? null,
+    description: (row.description as string | null) ?? null,
+    legende: (row.legende as string | null) ?? null,
+    alaune: (row.alaune as string | null) ?? null,
+    typeActu: ((row.type_post ?? row.typeActu) as string | null) ?? null,
+    video: ((row.videos ?? row.video) as string | null) ?? null,
+    vues: row.vues != null ? String(row.vues) : null,
+    categorie: (row.categorie as string | null) ?? null,
+    idRedaction: numOrNull(
+      row.id_redaction != null
+        ? String(row.id_redaction)
+        : row.idRedaction != null
+          ? String(row.idRedaction)
+          : null,
+    ),
+    status: numOrNull(row.status != null ? String(row.status) : null) ?? 1,
+    dateAdd: ((row.date_add ?? row.dateAdd) as Date | string | null) ?? null,
+    createdAt: (row.created_at as Date | string | null) ?? null,
+    NumArticle: ((row.num_article ?? row.NumArticle) as string | null) ?? null,
+    extrait_mag: (row.extrait_mag as string | null) ?? null,
+    antidate: numOrNull(row.antidate != null ? String(row.antidate) : null) ?? 0,
+    statutPaiement: (row.statut_paiement as string | null) ?? null,
+    statutValidation: (row.statut_validation as string | null) ?? null,
+  };
 }
 
 async function loadFromMysql(url: string): Promise<LegacyArticle[]> {
@@ -313,21 +409,42 @@ async function loadFromMysql(url: string): Promise<LegacyArticle[]> {
   }
 
   const conn = await mysql.createConnection(url);
-  const [rows] = await conn.query(
-    `SELECT
-      id, titre, contenu, cover, description, typeActu, video, vues,
-      categorie, idRedaction, status, dateAdd, NumArticle, extrait_mag, antidate
-     FROM actualites
-     ORDER BY id ASC`,
-  );
-  await conn.end();
-  return rows as LegacyArticle[];
+  try {
+    const [rows] = await conn.query(
+      `SELECT
+        id, titre, contenu, cover, legende, alaune, type_post, videos, vues,
+        categorie, id_redaction, status, date_add, created_at, num_article,
+        antidate, statut_paiement, statut_validation
+       FROM actualites
+       ORDER BY id ASC`,
+    );
+    return (rows as Record<string, unknown>[]).map(articleFromMysql);
+  } catch {
+    const [rows] = await conn.query(
+      `SELECT
+        id, titre, contenu, cover, description, typeActu, video, vues,
+        categorie, idRedaction, status, dateAdd, NumArticle, extrait_mag, antidate
+       FROM actualites
+       ORDER BY id ASC`,
+    );
+    return (rows as Record<string, unknown>[]).map(articleFromMysql);
+  } finally {
+    await conn.end();
+  }
 }
 
-async function loadRows(): Promise<{ rows: LegacyArticle[]; source: string }> {
+async function loadRows(): Promise<{
+  rows: LegacyArticle[];
+  users: Map<number, LegacyUser>;
+  source: string;
+}> {
   const mysqlUrl = process.env.LEGACY_MYSQL_URL?.trim();
   if (mysqlUrl) {
-    return { rows: await loadFromMysql(mysqlUrl), source: mysqlUrl };
+    return {
+      rows: await loadFromMysql(mysqlUrl),
+      users: new Map(),
+      source: mysqlUrl,
+    };
   }
 
   const dumpPath = resolve(
@@ -342,7 +459,48 @@ async function loadRows(): Promise<{ rows: LegacyArticle[]; source: string }> {
     );
   }
 
-  return { rows: loadFromSqlDump(dumpPath), source: dumpPath };
+  return {
+    rows: loadFromSqlDump(dumpPath),
+    users: loadUsersFromSqlDump(dumpPath),
+    source: dumpPath,
+  };
+}
+
+async function ensureAuthor(
+  redactionId: number | null,
+  users: Map<number, LegacyUser>,
+  cache: Map<number, string | null>,
+): Promise<string | null> {
+  if (!redactionId) return null;
+  if (cache.has(redactionId)) return cache.get(redactionId) ?? null;
+  const user = users.get(redactionId);
+  const name = clip(user?.nom, 180);
+  if (!name) {
+    cache.set(redactionId, null);
+    return null;
+  }
+  const existing = await prisma.author.findFirst({
+    where: { name },
+    select: { id: true },
+  });
+  if (existing) {
+    cache.set(redactionId, existing.id);
+    return existing.id;
+  }
+  if (DRY_RUN) {
+    cache.set(redactionId, null);
+    return null;
+  }
+  const created = await prisma.author.create({
+    data: {
+      name,
+      title: clip(user?.titre, 180),
+      avatarKey: coverKeyFromLegacy(user?.cover),
+    },
+    select: { id: true },
+  });
+  cache.set(redactionId, created.id);
+  return created.id;
 }
 
 async function ensureUniqueSlug(base: string, excludeId?: string) {
@@ -358,33 +516,55 @@ async function ensureUniqueSlug(base: string, excludeId?: string) {
   return `${slug}-${Date.now()}`;
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function bodyToHtml(raw: string): string {
+  const text = decodeBasicEntities(raw).trim();
+  if (!text) return '';
+  if (/<[a-z][\s\S]*>/i.test(text)) return text;
+  return text
+    .split(/\n{2,}/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => `<p>${escapeHtml(part).replace(/\n/g, '<br>')}</p>`)
+    .join('\n');
+}
+
 function toPayload(row: LegacyArticle) {
   const title = clip(row.titre, 240) || `Article #${row.id}`;
-  const description = decodeBasicEntities(row.description ?? '').trim();
-  /**
-   * Legacy = 1 seul corps HTML (`description`), pas de sections.
-   * On met tout le texte dans le chapeau (excerpt) pour ne rien tronquer,
-   * et on garde aussi le HTML dans la 1ʳᵉ section + miroir `content`.
-   */
-  const plainBody = htmlToPlain(description);
-  const legacyLead = decodeBasicEntities(row.contenu ?? '').trim();
+  const source = (row.description ?? '').trim() || (row.contenu ?? '');
+  const plainBody = htmlToPlain(source);
   const excerpt =
-    [legacyLead, plainBody].filter(Boolean).join('\n\n') ||
-    title;
-  const isPublished = row.status === 1 || row.status === null;
-  const createdAt = parseDate(row.dateAdd);
+    clip(plainBody.replace(/\s+/g, ' '), 280) || title;
+  const validation = (row.statutValidation ?? '').trim().toLowerCase();
+  const payment = (row.statutPaiement ?? '').trim().toLowerCase();
+  const isPublished =
+    (row.status === 1 || row.status === null) &&
+    (!validation || validation === 'valide') &&
+    (!payment || payment === 'paye' || payment === 'gratuit');
+  const createdAt = parseDate(row.dateAdd) ?? parseDate(row.createdAt);
   const viewCount = Math.max(0, Number(row.vues) || 0);
+  const isFeatured = isPublished && (row.alaune ?? '').trim().toUpperCase() === 'YES';
 
   return {
     title,
     excerpt,
-    content: description,
+    content: bodyToHtml(source),
     coverKey: coverKeyFromLegacy(row.cover),
+    coverCaption: clip(row.legende, 500),
     category: mapCategory(row.categorie),
     viewCount,
     isPublished,
+    isFeatured,
+    featuredAt: isFeatured ? createdAt ?? new Date() : null,
     publishedAt: isPublished ? createdAt ?? new Date() : null,
     createdAt,
+    idRedaction: row.idRedaction,
   };
 }
 
@@ -409,9 +589,10 @@ async function main() {
   console.log('— Migration actualités → Postgres —');
   console.log(`Mode : ${DRY_RUN ? 'DRY-RUN' : 'WRITE'}`);
 
-  const { rows, source } = await loadRows();
+  const { rows, users, source } = await loadRows();
   console.log(`Source : ${source}`);
   console.log(`Lignes lues : ${rows.length}`);
+  console.log(`Auteurs lus : ${users.size}`);
 
   const stats = {
     total: rows.length,
@@ -419,13 +600,34 @@ async function main() {
     updated: 0,
     skipped: 0,
   };
+  const authors = new Map<number, string | null>();
 
   for (const raw of rows) {
     const payload = toPayload(raw);
+    const bylineAuthorId = await ensureAuthor(
+      payload.idRedaction,
+      users,
+      authors,
+    );
     const existing = await prisma.article.findUnique({
       where: { legacyId: raw.id },
       select: { id: true, slug: true },
     });
+
+    const data = {
+      title: payload.title,
+      excerpt: payload.excerpt,
+      content: payload.content,
+      coverKey: payload.coverKey,
+      coverCaption: payload.coverCaption,
+      category: payload.category,
+      viewCount: payload.viewCount,
+      isPublished: payload.isPublished,
+      isFeatured: payload.isFeatured,
+      featuredAt: payload.featuredAt,
+      publishedAt: payload.publishedAt,
+      bylineAuthorId,
+    };
 
     if (DRY_RUN) {
       const action = existing ? 'update' : 'create';
@@ -444,38 +646,19 @@ async function main() {
       const slug = await ensureUniqueSlug(payload.title, existing.id);
       await prisma.article.update({
         where: { id: existing.id },
-        data: {
-          title: payload.title,
-          slug,
-          excerpt: payload.excerpt,
-          content: payload.content,
-          coverKey: payload.coverKey,
-          category: payload.category,
-          viewCount: payload.viewCount,
-          isPublished: payload.isPublished,
-          publishedAt: payload.publishedAt,
-        },
+        data: { ...data, slug },
       });
       await syncBodyBlock(existing.id, payload.content);
       stats.updated += 1;
       continue;
     }
 
-    const slug = await ensureUniqueSlug(
-      `${payload.title}-${raw.id}`,
-    );
+    const slug = await ensureUniqueSlug(`${payload.title}-${raw.id}`);
     const created = await prisma.article.create({
       data: {
         legacyId: raw.id,
-        title: payload.title,
+        ...data,
         slug,
-        excerpt: payload.excerpt,
-        content: payload.content,
-        coverKey: payload.coverKey,
-        category: payload.category,
-        viewCount: payload.viewCount,
-        isPublished: payload.isPublished,
-        publishedAt: payload.publishedAt,
         ...(payload.createdAt ? { createdAt: payload.createdAt } : {}),
       },
       select: { id: true },

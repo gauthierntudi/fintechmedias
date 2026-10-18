@@ -28,7 +28,7 @@ class AuthShell extends StatelessWidget {
     final bottomSafe = MediaQuery.viewPaddingOf(context).bottom;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: AppTheme.statusBarLightIcons,
       child: Scaffold(
         backgroundColor: AppTheme.navy,
         resizeToAvoidBottomInset: true,

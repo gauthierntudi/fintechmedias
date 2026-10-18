@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,6 +18,7 @@ import '../../core/models.dart';
 import '../../core/now_playing.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/cover.dart';
+import '../../widgets/justified_text.dart';
 import '../shorts/shorts_feed.dart';
 
 final articleProvider = FutureProvider.family((ref, String slug) {
@@ -26,8 +29,103 @@ final relatedProvider = FutureProvider.family((ref, String slug) {
   return ref.watch(apiClientProvider).related(slug);
 });
 
-class ArticleScreen extends ConsumerWidget {
+class ArticleScreen extends ConsumerStatefulWidget {
   const ArticleScreen({super.key, required this.slug, this.previewTone});
+
+  final String slug;
+  final String? previewTone;
+
+  @override
+  ConsumerState<ArticleScreen> createState() => _ArticleScreenState();
+}
+
+class _ArticleScreenState extends ConsumerState<ArticleScreen> {
+  late PageController _pager;
+  late List<ReadingQueueItem> _items;
+  late int _index;
+
+  @override
+  void initState() {
+    super.initState();
+    final queue = readingQueueFor(
+      widget.slug,
+      fallbackTone: widget.previewTone,
+    );
+    _items = queue.items;
+    _index = queue.index;
+    _pager = PageController(initialPage: _index);
+  }
+
+  @override
+  void didUpdateWidget(covariant ArticleScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.slug == widget.slug) return;
+    final i = _items.indexWhere((e) => e.slug == widget.slug);
+    if (i >= 0) {
+      _index = i;
+      if (_pager.hasClients && (_pager.page?.round() ?? _index) != i) {
+        _pager.jumpToPage(i);
+      }
+      return;
+    }
+    final queue = readingQueueFor(
+      widget.slug,
+      fallbackTone: widget.previewTone,
+    );
+    setState(() {
+      _items = queue.items;
+      _index = queue.index;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_pager.hasClients) return;
+      _pager.jumpToPage(_index);
+    });
+  }
+
+  @override
+  void dispose() {
+    _pager.dispose();
+    super.dispose();
+  }
+
+  void _onPageChanged(int i) {
+    if (i == _index) return;
+    setState(() => _index = i);
+    final item = _items[i];
+    rememberArticleTone(item.slug, item.tone);
+    setReadingQueueIndex(i);
+    HapticFeedback.selectionClick();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canSwipe = _items.length > 1;
+    return PageView.builder(
+      controller: _pager,
+      itemCount: _items.length,
+      allowImplicitScrolling: true,
+      physics: canSwipe
+          ? const BouncingScrollPhysics()
+          : const NeverScrollableScrollPhysics(),
+      onPageChanged: _onPageChanged,
+      itemBuilder: (context, i) {
+        final item = _items[i];
+        return _ArticleReaderPage(
+          key: ValueKey(item.slug),
+          slug: item.slug,
+          previewTone: item.tone ?? widget.previewTone,
+        );
+      },
+    );
+  }
+}
+
+class _ArticleReaderPage extends ConsumerWidget {
+  const _ArticleReaderPage({
+    super.key,
+    required this.slug,
+    this.previewTone,
+  });
 
   final String slug;
   final String? previewTone;
@@ -71,9 +169,7 @@ class _ArticleLoading extends StatelessWidget {
     final wash = AppTheme.toneColor(tone);
     final ink = wash.computeLuminance() > 0.45 ? AppTheme.navy : Colors.white;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: wash.computeLuminance() > 0.45
-          ? SystemUiOverlayStyle.dark
-          : SystemUiOverlayStyle.light,
+      value: AppTheme.statusBarLightIcons,
       child: Scaffold(
         backgroundColor: wash,
         body: Center(child: CircularProgressIndicator(color: ink)),
@@ -121,7 +217,14 @@ class _VideoWatchViewState extends ConsumerState<_VideoWatchView> {
   void _openRelated(ArticleCard article) {
     _openingRelated = true;
     ref.read(nowPlayingProvider.notifier).stop();
-    openArticleCard(context, article, replace: true);
+    final related =
+        ref.read(relatedProvider(widget.article.slug)).valueOrNull ?? const [];
+    openArticleCard(
+      context,
+      article,
+      replace: true,
+      playlist: related.isNotEmpty ? related : null,
+    );
   }
 
   Future<void> _restoreSaved() async {
@@ -268,11 +371,7 @@ class _VideoWatchViewState extends ConsumerState<_VideoWatchView> {
         _collapse();
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
-        ),
+        value: AppTheme.statusBarLightIcons,
         child: Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: Column(
@@ -351,9 +450,9 @@ class _VideoWatchViewState extends ConsumerState<_VideoWatchView> {
                               Expanded(
                                 child: Text(
                                   article.title,
-                                  style: AppTheme.displayText(
+                                  style: AppTheme.articleTitleText(
                                     size: 22,
-                                    weight: FontWeight.w800,
+                                    weight: FontWeight.w700,
                                     height: 1.2,
                                   ),
                                 ),
@@ -527,7 +626,8 @@ class _ArticleViewState extends ConsumerState<_ArticleView> {
   }
 
   void _onScroll() {
-    final threshold = MediaQuery.sizeOf(context).height * 0.7;
+    // Hero plus court (cover paysage) — chrome compact dès qu’on quitte l’image.
+    final threshold = MediaQuery.sizeOf(context).width * 9 / 16 * 1.48 * 0.65;
     final compact = _scroll.offset > threshold;
     if (compact != _compactChrome) {
       setState(() => _compactChrome = compact);
@@ -585,7 +685,6 @@ class _ArticleViewState extends ConsumerState<_ArticleView> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
     final date = _dateLabel(article.publishedAt);
     final related = ref.watch(relatedProvider(article.slug));
     final surface = Theme.of(context).scaffoldBackgroundColor;
@@ -597,9 +696,7 @@ class _ArticleViewState extends ConsumerState<_ArticleView> {
     final ink = wash.computeLuminance() > 0.45 ? AppTheme.navy : Colors.white;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: wash.computeLuminance() > 0.45
-          ? SystemUiOverlayStyle.dark
-          : SystemUiOverlayStyle.light,
+      value: AppTheme.statusBarLightIcons,
       child: Scaffold(
         backgroundColor: wash,
         body: Stack(
@@ -611,17 +708,14 @@ class _ArticleViewState extends ConsumerState<_ArticleView> {
               ),
               slivers: [
                 SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: size.height,
-                    child: _ArticleHero(
-                      article: article,
-                      date: date,
-                      saved: _saved,
-                      wash: wash,
-                      ink: ink,
-                      onSave: _toggleSaved,
-                      onShare: _share,
-                    ),
+                  child: _ArticleHero(
+                    article: article,
+                    date: date,
+                    saved: _saved,
+                    wash: wash,
+                    ink: ink,
+                    onSave: _toggleSaved,
+                    onShare: _share,
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -642,9 +736,9 @@ class _ArticleViewState extends ConsumerState<_ArticleView> {
                             children: [
                               if (article.excerpt != null &&
                                   article.excerpt!.trim().isNotEmpty) ...[
-                                Text(
-                                  article.excerpt!,
-                                  style: AppTheme.sansText(
+                                JustifiedText(
+                                  article.excerpt!.trim(),
+                                  style: AppTheme.articleBodyText(
                                     size: 17,
                                     height: 1.5,
                                     color: scheme.onSurface.withValues(
@@ -690,6 +784,14 @@ class _ArticleViewState extends ConsumerState<_ArticleView> {
                                     24,
                                     0,
                                   ),
+                                  onOpen: (article) {
+                                    openArticleCard(
+                                      context,
+                                      article,
+                                      replace: true,
+                                      playlist: items,
+                                    );
+                                  },
                                 ),
                                 const SizedBox(height: 48),
                               ],
@@ -727,7 +829,7 @@ class _ArticleViewState extends ConsumerState<_ArticleView> {
                               article.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: AppTheme.displayText(
+                              style: AppTheme.articleTitleText(
                                 size: 16,
                                 weight: FontWeight.w700,
                                 color: ink,
@@ -799,71 +901,75 @@ class _ArticleHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    const aspect = 16 / 9;
+    final coverH = width / aspect * 1.48;
+
     final url = article.coverUrl;
     final image = url == null || url.isEmpty
         ? ColoredBox(color: wash)
         : CachedNetworkImage(
             imageUrl: url,
             fit: BoxFit.cover,
-            alignment: const Alignment(0, -0.12),
+            alignment: Alignment.topCenter,
             width: double.infinity,
             height: double.infinity,
             placeholder: (_, _) => ColoredBox(color: wash),
             errorWidget: (_, _, _) => ColoredBox(color: wash),
           );
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        ColoredBox(color: wash),
-        Positioned.fill(
-          child: ShaderMask(
-            blendMode: BlendMode.dstIn,
-            shaderCallback: (rect) {
-              return const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFFFFFFF),
-                  Color(0xFFFFFFFF),
-                  Color(0x99FFFFFF),
-                  Color(0x00FFFFFF),
-                ],
-                stops: [0.0, 0.30, 0.52, 0.78],
-              ).createShader(rect);
-            },
-            child: image,
-          ),
-        ),
-        Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(
-                    alpha: ink == AppTheme.navy ? 0.08 : 0.38,
+    // Cover qui respire : date / titre / auteur juste sous l’image.
+    return ColoredBox(
+      color: wash,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            height: coverH,
+            width: width,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                image,
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(
+                          alpha: ink == AppTheme.navy ? 0.06 : 0.14,
+                        ),
+                        Colors.transparent,
+                        wash.withValues(alpha: 0.0),
+                        wash.withValues(alpha: 0.22),
+                        wash.withValues(alpha: 0.5),
+                        wash.withValues(alpha: 0.78),
+                        wash.withValues(alpha: 0.94),
+                        wash,
+                      ],
+                      stops: const [
+                        0.0,
+                        0.22,
+                        0.42,
+                        0.58,
+                        0.72,
+                        0.84,
+                        0.93,
+                        1.0,
+                      ],
+                    ),
                   ),
-                  Colors.transparent,
-                  wash.withValues(alpha: 0.08),
-                  wash.withValues(alpha: 0.55),
-                  wash.withValues(alpha: 0.92),
-                  wash,
-                ],
-                stops: const [0.0, 0.20, 0.42, 0.58, 0.72, 0.86],
-              ),
+                ),
+              ],
             ),
           ),
-        ),
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 56, 24, 18),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 14, 24, 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Spacer(),
-                if (date != null)
+                if (date != null) ...[
                   Text(
                     date!,
                     style: AppTheme.sansText(
@@ -872,54 +978,43 @@ class _ArticleHero extends StatelessWidget {
                       color: ink.withValues(alpha: 0.92),
                     ),
                   ),
-                const SizedBox(height: 10),
+                  const SizedBox(height: 10),
+                ],
                 Text(
                   article.title,
                   maxLines: 6,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTheme.displayText(
-                    size: 32,
-                    weight: FontWeight.w800,
+                  style: AppTheme.articleTitleText(
+                    size: 28,
+                    weight: FontWeight.w700,
                     height: 1.12,
                     letterSpacing: -0.4,
                     color: ink,
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 18),
                 Row(
                   children: [
-                    Container(
-                      width: 22,
-                      height: 22,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: ink == AppTheme.navy
-                            ? AppTheme.navy
-                            : AppTheme.gold,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
+                    _AuthorAvatar(
+                      name: article.authorName,
+                      avatarUrl: article.authorAvatarUrl,
+                      ink: ink,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
                       child: Text(
-                        'S',
-                        style: AppTheme.displayText(
+                        (article.authorName?.trim().isNotEmpty ?? false)
+                            ? article.authorName!.trim()
+                            : kMagazineName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTheme.sansText(
                           size: 13,
-                          weight: FontWeight.w800,
-                          height: 1,
-                          color: ink == AppTheme.navy
-                              ? Colors.white
-                              : AppTheme.navy,
+                          weight: FontWeight.w600,
+                          color: ink,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'ENTREVUE',
-                      style: AppTheme.sansText(
-                        size: 13,
-                        weight: FontWeight.w600,
-                        color: ink,
-                      ),
-                    ),
-                    const Spacer(),
                     _HeroIconButton(
                       icon: saved
                           ? LucideIcons.bookmarkCheck
@@ -941,8 +1036,83 @@ class _ArticleHero extends StatelessWidget {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AuthorAvatar extends StatelessWidget {
+  const _AuthorAvatar({
+    required this.name,
+    required this.avatarUrl,
+    required this.ink,
+  });
+
+  final String? name;
+  final String? avatarUrl;
+  final Color ink;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = avatarUrl?.trim();
+    final trimmed = name?.trim() ?? '';
+    final initial = trimmed.isNotEmpty ? trimmed[0].toUpperCase() : 'F';
+    final fallbackBg =
+        ink == AppTheme.navy ? AppTheme.navy : AppTheme.gold;
+    final fallbackFg =
+        ink == AppTheme.navy ? Colors.white : AppTheme.navy;
+
+    if (url != null && url.isNotEmpty) {
+      return ClipOval(
+        child: CachedNetworkImage(
+          imageUrl: url,
+          width: 28,
+          height: 28,
+          fit: BoxFit.cover,
+          placeholder: (_, _) => _initialDisc(
+            initial: initial,
+            background: fallbackBg,
+            foreground: fallbackFg,
+          ),
+          errorWidget: (_, _, _) => _initialDisc(
+            initial: initial,
+            background: fallbackBg,
+            foreground: fallbackFg,
+          ),
         ),
-      ],
+      );
+    }
+
+    return _initialDisc(
+      initial: initial,
+      background: fallbackBg,
+      foreground: fallbackFg,
+    );
+  }
+
+  Widget _initialDisc({
+    required String initial,
+    required Color background,
+    required Color foreground,
+  }) {
+    return Container(
+      width: 28,
+      height: 28,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: background,
+        shape: BoxShape.circle,
+      ),
+      child: Text(
+        initial,
+        style: AppTheme.displayText(
+          size: 13,
+          weight: FontWeight.w800,
+          height: 1,
+          color: foreground,
+        ),
+      ),
     );
   }
 }
@@ -1149,6 +1319,83 @@ class _ArticleHtml extends StatelessWidget {
 
   final ArticleDetail article;
 
+  static const _inlineTags = {
+    'a',
+    'abbr',
+    'b',
+    'br',
+    'em',
+    'i',
+    'span',
+    'strong',
+    'u',
+    's',
+    'small',
+    'sub',
+    'sup',
+  };
+
+  static final _fontFamilyRe = RegExp(
+    r'''font-family\s*:\s*[^;"]+;?''',
+    caseSensitive: false,
+  );
+
+  /// Retire les font-family du HTML CMS qui écrasent Google Sans.
+  static String _sanitize(String html) =>
+      html.replaceAll(_fontFamilyRe, '');
+
+  TextStyle _bodyStyle(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    return AppTheme.articleBodyText(
+      size: 16,
+      height: 1.55,
+      color: onSurface,
+      textStyle: const TextStyle(fontFamily: 'GoogleSans'),
+    );
+  }
+
+  Widget? _softJustifiedParagraph(dynamic element, TextStyle style) {
+    final tag = element.localName?.toString().toLowerCase();
+    if (tag != 'p' && tag != 'div') return null;
+    for (final child in element.children) {
+      final childTag = child.localName?.toString().toLowerCase();
+      if (childTag != null && !_inlineTags.contains(childTag)) {
+        return null;
+      }
+    }
+    final plain = '${element.text ?? ''}'.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (plain.isEmpty) return null;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: JustifiedText(plain, style: style),
+    );
+  }
+
+  Widget _body(BuildContext context, String html) {
+    final style = _bodyStyle(context);
+    final family = style.fontFamily;
+    return DefaultTextStyle(
+      style: style,
+      child: HtmlWidget(
+        _sanitize(html),
+        textStyle: style,
+        factoryBuilder: () => _ArticleHtmlFactory(style),
+        customWidgetBuilder: (element) =>
+            _softJustifiedParagraph(element, style),
+        customStylesBuilder: (element) {
+          final tag = element.localName?.toLowerCase();
+          final styles = <String, String>{
+            if (family != null) 'font-family': family,
+          };
+          if (tag == 'p' || tag == 'div' || tag == 'li') {
+            styles['text-align'] = 'justify';
+          }
+          return styles;
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (article.blocks.isNotEmpty) {
@@ -1166,9 +1413,9 @@ class _ArticleHtml extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
                         b.title!,
-                        style: AppTheme.displayText(
+                        style: AppTheme.articleTitleText(
                           size: 20,
-                          weight: FontWeight.w800,
+                          weight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -1176,10 +1423,7 @@ class _ArticleHtml extends StatelessWidget {
                     Cover(url: b.coverUrl, height: 180, radius: 8),
                     const SizedBox(height: 10),
                   ],
-                  HtmlWidget(
-                    b.content,
-                    textStyle: AppTheme.sansText(size: 16, height: 1.55),
-                  ),
+                  _body(context, b.content),
                 ],
               ),
             ),
@@ -1187,12 +1431,27 @@ class _ArticleHtml extends StatelessWidget {
       );
     }
     if (article.content.isNotEmpty) {
-      return HtmlWidget(
-        article.content,
-        textStyle: AppTheme.sansText(size: 16, height: 1.55),
-      );
+      return _body(context, article.content);
     }
     return const SizedBox.shrink();
+  }
+}
+
+/// Force Google Sans à la racine HtmlWidget (au lieu de Familjen du thème).
+class _ArticleHtmlFactory extends WidgetFactory {
+  _ArticleHtmlFactory(this.bodyStyle);
+
+  final TextStyle bodyStyle;
+
+  @override
+  Iterable<dynamic> getDependencies(BuildContext context) {
+    return [
+      CssWhitespace.normal,
+      Directionality.maybeOf(context) ?? ui.TextDirection.ltr,
+      bodyStyle,
+      // ignore: deprecated_member_use
+      TextScaleFactor(MediaQuery.textScaleFactorOf(context)),
+    ];
   }
 }
 
@@ -1267,17 +1526,17 @@ class _VideoDescriptionSheetState extends State<_VideoDescriptionSheet> {
           const SizedBox(height: 16),
           Text(
             article.title,
-            style: AppTheme.displayText(
+            style: AppTheme.articleTitleText(
               size: 20,
-              weight: FontWeight.w800,
+              weight: FontWeight.w700,
               height: 1.25,
             ),
           ),
           const SizedBox(height: 16),
           if (hasExcerpt) ...[
-            Text(
-              article.excerpt!,
-              style: AppTheme.sansText(
+            JustifiedText(
+              article.excerpt!.trim(),
+              style: AppTheme.articleBodyText(
                 size: 15,
                 height: 1.5,
                 color: scheme.onSurface.withValues(alpha: 0.82),

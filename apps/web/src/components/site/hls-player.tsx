@@ -156,7 +156,8 @@ export function HlsPlayer({
 
     async function attach() {
       if (!video) return;
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      const playlist = /\.m3u8(?:$|\?|#)/i.test(src);
+      if (!playlist || video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = src;
         if (wantPlayRef.current) {
           try {

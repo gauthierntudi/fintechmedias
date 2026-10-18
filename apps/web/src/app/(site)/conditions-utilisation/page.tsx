@@ -7,7 +7,7 @@ import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
 export const metadata: Metadata = {
   title: "Conditions d'utilisation",
   description:
-    "Conditions générales d’utilisation du site et des services Entrevue.",
+    "Conditions générales d’utilisation du site, du kiosque et des abonnements Fintech Médias.",
 };
 
 export default function ConditionsUtilisationPage() {

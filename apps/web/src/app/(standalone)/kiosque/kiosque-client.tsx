@@ -33,7 +33,7 @@ import "swiper/css/free-mode";
 import "./kiosque.css";
 
 const FALLBACK_COVER = "/legacy/covers/1591457791.jpg";
-const DEFAULT_THEME = { bgColor: "#111111", accentColor: "#e42320" };
+const DEFAULT_THEME = { bgColor: "#111111", accentColor: "#4ed319" };
 const PAGE_SIZE = 12;
 /** Carrousel mobile : charger tout (cap API publique). */
 const MOBILE_LIST_TAKE = 48;

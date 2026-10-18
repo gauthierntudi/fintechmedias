@@ -108,6 +108,9 @@ const ARTICLE_SELECT = {
   videoStatus: true,
   videoError: true,
   videoDurationSec: true,
+  youtubeUrl: true,
+  isPaid: true,
+  priceCents: true,
   publishedAt: true,
   createdAt: true,
   updatedAt: true,
@@ -227,11 +230,11 @@ export class ArticlesService {
       ...(q
         ? {
             OR: [
-              { title: { contains: q, mode: 'insensitive' } },
-              { slug: { contains: q, mode: 'insensitive' } },
-              { excerpt: { contains: q, mode: 'insensitive' } },
-              { category: { contains: q, mode: 'insensitive' } },
-              { blocks: { some: { title: { contains: q, mode: 'insensitive' } } } },
+              { title: { contains: q } },
+              { slug: { contains: q } },
+              { excerpt: { contains: q } },
+              { category: { contains: q } },
+              { blocks: { some: { title: { contains: q } } } },
             ],
           }
         : {}),
@@ -283,15 +286,18 @@ export class ArticlesService {
     };
 
     const featuredSince = featuredWindowStart();
+    const missSince = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
     const [
       featuredRows,
       recent,
-      ecosystemePme,
-      entreprendre,
-      rencontreAvec,
-      expert,
-      femme,
-      innovation,
+      actualites,
+      interview,
+      economie,
+      politique,
+      international,
+      portrait,
+      entreprise,
+      events,
       plusVus,
       aNePasManquer,
     ] = await Promise.all([
@@ -311,12 +317,14 @@ export class ArticlesService {
         take: 16,
         select: this.publicCardSelect,
       }),
-      this.byCategory('ecosysteme-pme', 10),
-      this.byCategory('entreprendre', 5),
-      this.byCategory('rencontre-avec', 4),
-      this.byCategory('qu-en-dit-l-expert', 5),
-      this.byCategory('femme', 5),
-      this.byCategory('innovation', 10),
+      this.byCategory('actualites', 10),
+      this.byCategory('interview', 4),
+      this.byCategory('economie', 10),
+      this.byCategory('politique', 5),
+      this.byCategory('international', 5),
+      this.byCategory('portrait', 5),
+      this.byCategory('entreprise', 5),
+      this.byCategory('events', 5),
       this.prisma.article.findMany({
         where: published,
         orderBy: [{ viewCount: 'desc' }, { publishedAt: 'desc' }],
@@ -326,14 +334,7 @@ export class ArticlesService {
       this.prisma.article.findMany({
         where: {
           ...published,
-          category: {
-            in: [
-              ...categoryQuerySlugs('qu-en-dit-l-expert'),
-              ...categoryQuerySlugs('rencontre-avec'),
-              ...categoryQuerySlugs('entreprendre'),
-              ...categoryQuerySlugs('femme'),
-            ],
-          },
+          publishedAt: { gte: missSince },
         },
         orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
         take: 3,
@@ -342,12 +343,14 @@ export class ArticlesService {
     ]);
 
     const latestBySlug: Record<string, PublicCardRow[]> = {
-      'qu-en-dit-l-expert': expert,
-      'rencontre-avec': rencontreAvec,
-      entreprendre,
-      'ecosysteme-pme': ecosystemePme,
-      femme,
-      innovation,
+      actualites,
+      interview,
+      economie,
+      politique,
+      international,
+      portrait,
+      entreprise,
+      events,
     };
     const featured: PublicCardRow[] =
       featuredRows.length > 0
@@ -356,17 +359,31 @@ export class ArticlesService {
             publicSiteCategorySlugs().map((slug) => latestBySlug[slug] ?? []),
           );
     const filInfo = recent.slice(0, 5);
+    const featuredIds = new Set(featured.map((a) => a.id));
+    const topGridRows =
+      featured.length > 1
+        ? featured.slice(1, 5)
+        : recent.filter((a) => !featuredIds.has(a.id)).slice(0, 4);
 
     return {
       featured: featured.map((a) => this.toPublicCard(a)),
-      topGrid: [],
-      ecosystemePme: ecosystemePme.map((a) => this.toPublicCard(a)),
+      topGrid: topGridRows.map((a) => this.toPublicCard(a)),
+      actualites: actualites.map((a) => this.toPublicCard(a)),
+      interview: interview.map((a) => this.toPublicCard(a)),
+      economie: economie.map((a) => this.toPublicCard(a)),
+      politique: politique.map((a) => this.toPublicCard(a)),
+      international: international.map((a) => this.toPublicCard(a)),
+      portrait: portrait.map((a) => this.toPublicCard(a)),
+      entreprise: entreprise.map((a) => this.toPublicCard(a)),
+      events: events.map((a) => this.toPublicCard(a)),
       filInfo: filInfo.map((a) => this.toPublicCard(a)),
-      entreprendre: entreprendre.map((a) => this.toPublicCard(a)),
-      rencontreAvec: rencontreAvec.map((a) => this.toPublicCard(a)),
-      expert: expert.map((a) => this.toPublicCard(a)),
-      femme: femme.map((a) => this.toPublicCard(a)),
-      innovation: innovation.map((a) => this.toPublicCard(a)),
+      // Clés historiques lues par l’app mobile encore sur l’ancien découpage.
+      ecosystemePme: actualites.map((a) => this.toPublicCard(a)),
+      entreprendre: entreprise.map((a) => this.toPublicCard(a)),
+      rencontreAvec: interview.map((a) => this.toPublicCard(a)),
+      expert: international.map((a) => this.toPublicCard(a)),
+      femme: portrait.map((a) => this.toPublicCard(a)),
+      innovation: economie.map((a) => this.toPublicCard(a)),
       plusVus: plusVus.map((a) => this.toPublicCard(a)),
       aNePasManquer: aNePasManquer.map((a) => this.toPublicCard(a)),
     };
@@ -445,12 +462,12 @@ export class ArticlesService {
         ? { category: { in: categoryQuerySlugs(category) } }
         : this.notShort),
       OR: [
-        { title: { contains: q, mode: 'insensitive' } },
-        { slug: { contains: q, mode: 'insensitive' } },
-        { excerpt: { contains: q, mode: 'insensitive' } },
+        { title: { contains: q } },
+        { slug: { contains: q } },
+        { excerpt: { contains: q } },
         ...(category
           ? []
-          : [{ category: { contains: q, mode: 'insensitive' as const } }]),
+          : [{ category: { contains: q } }]),
       ],
     };
 
@@ -623,7 +640,25 @@ export class ArticlesService {
     };
   }
 
-  async getPublishedBySlug(slug: string) {
+  async getPublishedSlugByLegacyId(raw: string) {
+    const legacyId = Number(raw);
+    if (!Number.isInteger(legacyId) || legacyId <= 0) {
+      throw new NotFoundException('Article introuvable');
+    }
+    const article = await this.prisma.article.findFirst({
+      where: { legacyId, isPublished: true },
+      select: { slug: true },
+    });
+    if (!article) {
+      throw new NotFoundException('Article introuvable');
+    }
+    return { slug: article.slug };
+  }
+
+  async getPublishedBySlug(
+    slug: string,
+    reader?: { subscriberId?: string | null; staff?: boolean },
+  ) {
     const article = await this.prisma.article.findFirst({
       where: { slug, isPublished: true },
       select: ARTICLE_SELECT,
@@ -631,14 +666,146 @@ export class ArticlesService {
     if (!article) {
       throw new NotFoundException('Article introuvable');
     }
-    // Incrémente les vues sans bloquer la réponse
     void this.prisma.article
       .update({
         where: { id: article.id },
         data: { viewCount: { increment: 1 } },
       })
       .catch(() => undefined);
-    return this.toAdmin(article, { publicMagazineOnly: true });
+
+    const bodyPlain = htmlToPlain(
+      [article.content, ...article.blocks.map((b) => `${b.title ?? ''} ${b.content}`)]
+        .filter(Boolean)
+        .join(' '),
+    );
+    const plain = bodyPlain;
+    const corpus = [
+      article.youtubeUrl,
+      article.content,
+      ...article.blocks.map((b) => b.content),
+    ]
+      .filter(Boolean)
+      .join('\n');
+    const storedVideo = article.youtubeUrl?.trim() ?? '';
+    const storedKind = classifyStoredVideo(storedVideo);
+    const youtubeUrl =
+      storedKind === 'hosted'
+        ? null
+        : storedKind === 'youtube'
+          ? youtubeUrlFromText(storedVideo)
+          : youtubeUrlFromText(corpus);
+    const hostedVideoUrl =
+      storedKind === 'hosted'
+        ? storedVideo
+        : youtubeUrl
+          ? null
+          : hostedVideoFromText(corpus);
+    const tags = articleTags(article.title, plain);
+    const readingMinutes = Math.max(1, Math.ceil(wordCount(plain) / 200));
+    const [previous, next] = await this.neighborArticles(article);
+    const locked = article.isPaid
+      ? !(
+          reader?.staff ||
+          (await this.readerCanAccessPaidArticle(
+            article.id,
+            reader?.subscriberId ?? null,
+          ))
+        )
+      : false;
+
+    const view = this.toAdmin(article, { publicMagazineOnly: true });
+    const teaser = locked ? `${plain.replace(/\s+/g, ' ').trim().slice(0, 350)}…` : null;
+
+    return {
+      ...view,
+      youtubeUrl,
+      videoHlsUrl: view.videoHlsUrl || hostedVideoUrl,
+      tags,
+      readingMinutes,
+      isPaid: article.isPaid,
+      priceCents: article.priceCents ?? 100,
+      locked,
+      content: teaser ? `<p>${escapeHtml(teaser)}</p>` : view.content,
+      blocks: teaser
+        ? [
+            {
+              id: null,
+              position: 0,
+              title: null,
+              coverKey: null,
+              coverCaption: null,
+              coverUrl: null,
+              content: `<p>${escapeHtml(teaser)}</p>`,
+              createdAt: view.createdAt,
+              updatedAt: view.updatedAt,
+            },
+          ]
+        : view.blocks,
+      previous: previous
+        ? {
+            slug: previous.slug,
+            title: previous.title,
+            coverUrl: this.resolveMediaUrl(previous.coverKey),
+          }
+        : null,
+      next: next
+        ? {
+            slug: next.slug,
+            title: next.title,
+            coverUrl: this.resolveMediaUrl(next.coverKey),
+          }
+        : null,
+    };
+  }
+
+  private async neighborArticles(article: {
+    id: string;
+    publishedAt: Date | null;
+    createdAt: Date;
+  }) {
+    const cursor = article.publishedAt ?? article.createdAt;
+    const base = { isPublished: true, ...this.notShort, id: { not: article.id } };
+    return Promise.all([
+      this.prisma.article.findFirst({
+        where: { ...base, publishedAt: { lt: cursor } },
+        orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
+        select: { slug: true, title: true, coverKey: true },
+      }),
+      this.prisma.article.findFirst({
+        where: { ...base, publishedAt: { gt: cursor } },
+        orderBy: [{ publishedAt: 'asc' }, { id: 'asc' }],
+        select: { slug: true, title: true, coverKey: true },
+      }),
+    ]);
+  }
+
+  private async readerCanAccessPaidArticle(
+    articleId: string,
+    subscriberId: string | null,
+  ) {
+    if (!subscriberId) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const [subscription, purchase] = await Promise.all([
+      this.prisma.subscription.findFirst({
+        where: {
+          subscriberId,
+          status: 'ACTIVE',
+          paymentStatus: 'SUCCESS',
+          expiresAt: { gte: today },
+        },
+        select: { id: true },
+      }),
+      this.prisma.articlePurchase.findFirst({
+        where: {
+          subscriberId,
+          articleId,
+          paymentStatus: 'SUCCESS',
+        },
+        select: { id: true },
+      }),
+    ]);
+    return Boolean(subscription || purchase);
   }
 
   private byCategory(category: string, take: number) {
@@ -669,7 +836,7 @@ export class ArticlesService {
       category: article.category,
       categoryLabel: meta.label,
       categoryTone: meta.tone,
-      authorName: byline?.name?.trim() || "L'Entrevue",
+      authorName: byline?.name?.trim() || 'Fintech Médias',
       authorAvatarUrl: this.resolveMediaUrl(byline?.avatarKey ?? null),
       publishedAt: article.publishedAt?.toISOString() ?? null,
       dateLabel: new Intl.DateTimeFormat('fr-FR', {
@@ -1556,6 +1723,7 @@ export class ArticlesService {
 
     return {
       ...rest,
+      content: restoreImportedParagraphs(article.content),
       magazineId: magazineVisible
         ? magazineId
         : opts?.publicMagazineOnly
@@ -1602,11 +1770,14 @@ export class ArticlesService {
               coverKey: b.coverKey,
               coverCaption: b.coverCaption,
               coverUrl: this.resolveMediaUrl(b.coverKey),
-              content: b.content,
+              content: restoreImportedParagraphs(b.content),
               createdAt: b.createdAt.toISOString(),
               updatedAt: b.updatedAt.toISOString(),
             }))
-          : resolvedBlocks,
+          : resolvedBlocks.map((b) => ({
+              ...b,
+              content: restoreImportedParagraphs(b.content),
+            })),
       commentsCount: _count.comments,
       bylineAuthor: bylineAuthor
         ? {
@@ -1628,11 +1799,19 @@ export class ArticlesService {
     if (!key) return null;
     const trimmed = key.trim();
     if (!trimmed) return null;
+    // Les clés `uploads/...` passent par le CDN dès que R2 est configuré.
     if (/^https?:\/\//i.test(trimmed)) return trimmed;
 
-    const r2 = this.config.get<string>('R2_PUBLIC_URL')?.replace(/\/$/, '');
-    if (trimmed.includes('/')) {
-      return r2 ? `${r2}/${trimmed.replace(/^\//, '')}` : null;
+    const r2 = (
+      this.config.get<string>('R2_PUBLIC_URL') ||
+      this.config.get<string>('R2_URL') ||
+      ''
+    ).replace(/\/$/, '');
+    if (r2 && trimmed.includes('/')) {
+      return `${r2}/${trimmed.replace(/^\//, '')}`;
+    }
+    if (trimmed.startsWith('/uploads/') || trimmed.startsWith('uploads/')) {
+      return `/${trimmed.replace(/^\//, '')}`;
     }
 
     return `/legacy/articles/${encodeURIComponent(trimmed)}`;
@@ -1642,7 +1821,7 @@ export class ArticlesService {
     bgColor: string;
     accentColor: string;
   } {
-    const fallback = { bgColor: '#111111', accentColor: '#d63026' };
+    const fallback = { bgColor: '#111111', accentColor: '#4ed319' };
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return fallback;
     const obj = raw as Record<string, unknown>;
     const bg =
@@ -1661,6 +1840,91 @@ export class ArticlesService {
             : fallback.accentColor;
     return { bgColor: bg, accentColor: accent };
   }
+}
+
+const TAG_STOP_WORDS = new Set([
+  'le', 'la', 'les', 'un', 'une', 'des', 'de', 'du', 'et', 'ou', 'mais', 'donc', 'or', 'ni', 'car',
+  'ce', 'cette', 'ces', 'mon', 'ton', 'son', 'notre', 'votre', 'leur', 'mes', 'tes', 'ses', 'nos', 'vos', 'leurs',
+  'je', 'tu', 'il', 'elle', 'nous', 'vous', 'ils', 'elles', 'on',
+  'dans', 'sur', 'sous', 'avec', 'sans', 'pour', 'par', 'contre', 'vers', 'chez', 'entre',
+  'qui', 'que', 'quoi', 'dont', 'où', 'ou', 'si', 'plus', 'moins', 'très', 'tres', 'trop', 'assez',
+  'est', 'sont', 'être', 'etre', 'avoir', 'fait', 'faire', 'dit', 'dire', 'peut', 'pouvoir',
+  'au', 'aux', 'ne', 'pas', 'non', 'oui', 'bien', 'mal', 'tout', 'tous', 'toute', 'toutes',
+  'cela', 'ceci', 'comment', 'quand', 'pourquoi', 'aussi', 'encore', 'déjà', 'deja', 'alors',
+  'après', 'apres', 'avant', 'depuis', 'pendant', 'comme', 'même', 'meme', 'autre', 'plusieurs', 'quelques',
+  'cette', 'cet', 'dans', 'rdc', 'afin', 'ainsi', 'dont', 'leur', 'leurs',
+]);
+
+/** L’import a aplati les lignes vides en doubles espaces, dans un seul <p>. */
+function restoreImportedParagraphs(html: string): string {
+  const trimmed = html.trim();
+  const match = trimmed.match(/^<p>([\s\S]*)<\/p>$/i);
+  if (!match) return html;
+  const inner = match[1] ?? '';
+  if (/<(?:br|p|div|ul|ol|li|blockquote|h[1-6])\b/i.test(inner)) return html;
+  if (!/ {2,}/.test(inner)) return html;
+  const parts = inner
+    .split(/ {2,}/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (parts.length < 2) return html;
+  return parts.map((part) => `<p>${part}</p>`).join('\n');
+}
+
+function htmlToPlain(value: string): string {
+  return value
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function wordCount(value: string): number {
+  if (!value) return 0;
+  return value.split(/\s+/).filter(Boolean).length;
+}
+
+function classifyStoredVideo(url: string): 'youtube' | 'hosted' | 'other' {
+  if (!url) return 'other';
+  if (/youtu\.be|youtube\.com/i.test(url)) return 'youtube';
+  if (/\.(?:m3u8|mp4|webm|m4v|mov)(?:$|\?|#)/i.test(url)) return 'hosted';
+  return 'other';
+}
+
+function hostedVideoFromText(text: string): string | null {
+  const match = text.match(
+    /https?:\/\/[^\s"'<>]+?\.(?:m3u8|mp4|webm|m4v|mov)(?:\?[^\s"'<>]*)?/i,
+  );
+  return match?.[0] ?? null;
+}
+
+function youtubeUrlFromText(text: string): string | null {
+  const match = text.match(
+    /(?:youtube\.com\/(?:watch\?(?:[^"'&\s]+&)*v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/i,
+  );
+  return match?.[1] ? `https://www.youtube.com/embed/${match[1]}` : null;
+}
+
+function articleTags(title: string, plain: string): string[] {
+  const score = new Map<string, number>();
+  const add = (word: string, weight: number) => {
+    const key = word.toLocaleLowerCase('fr-FR');
+    if (key.length < 4 || TAG_STOP_WORDS.has(key) || /^\d+$/.test(key)) return;
+    score.set(key, (score.get(key) ?? 0) + weight);
+  };
+  for (const word of title.toLocaleLowerCase('fr-FR').split(/[^\p{L}\p{N}]+/u)) {
+    add(word, 3);
+  }
+  for (const word of plain.toLocaleLowerCase('fr-FR').split(/[^\p{L}\p{N}]+/u)) {
+    add(word, 1);
+  }
+  return [...score.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'fr'))
+    .slice(0, 5)
+    .map(([word]) => word.charAt(0).toLocaleUpperCase('fr-FR') + word.slice(1));
 }
 
 function escapeHtml(input: string): string {

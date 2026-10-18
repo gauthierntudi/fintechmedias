@@ -8,7 +8,9 @@ import { ARTICLE_CATEGORY_OPTIONS } from "@/lib/rubriques";
  */
 const API_URL =
   (typeof window === "undefined"
-    ? process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL
+    ? process.env.API_INTERNAL_URL ||
+      process.env.APP_URL ||
+      process.env.NEXT_PUBLIC_API_URL
     : process.env.NEXT_PUBLIC_API_URL) ?? "http://localhost:3001";
 
 /** Après une mutation admin réussie, le rail d’activités se rafraîchit. */
@@ -1612,6 +1614,14 @@ export type PublicCategoryFeed = {
 export type PublicHomeArticles = {
   featured: PublicArticleCard[];
   topGrid: PublicArticleCard[];
+  actualites?: PublicArticleCard[];
+  interview?: PublicArticleCard[];
+  economie?: PublicArticleCard[];
+  politique?: PublicArticleCard[];
+  international?: PublicArticleCard[];
+  portrait?: PublicArticleCard[];
+  entreprise?: PublicArticleCard[];
+  events?: PublicArticleCard[];
   ecosystemePme: PublicArticleCard[];
   filInfo: PublicArticleCard[];
   entreprendre: PublicArticleCard[];
@@ -1626,6 +1636,12 @@ export type PublicHomeArticles = {
 export const articlesPublicApi = {
   home() {
     return apiFetch<PublicHomeArticles>("/articles/home");
+  },
+
+  byLegacyId(legacyId: string) {
+    return apiFetch<{ slug: string }>(
+      `/articles/legacy/${encodeURIComponent(legacyId)}`,
+    );
   },
 
   recent(take = 3) {
@@ -1694,6 +1710,84 @@ export const articlesPublicApi = {
     return apiFetch<AdminArticle>(
       `/articles/${encodeURIComponent(slug)}`,
     );
+  },
+};
+
+export type PublicAd = {
+  id: number;
+  title: string;
+  imageUrl: string;
+  href: string;
+  format: string;
+};
+
+export const adsPublicApi = {
+  pick(format: string, emplacement: string, exclude: number[] = []) {
+    const qs = new URLSearchParams();
+    qs.set("format", format);
+    qs.set("emplacement", emplacement);
+    if (exclude.length > 0) qs.set("exclude", exclude.join(","));
+    return apiFetch<{ ad: PublicAd | null }>(`/ads?${qs}`);
+  },
+};
+
+export type PublicHomeVideo = {
+  id: string;
+  youtubeId: string;
+  title: string;
+  subtitle: string;
+  websiteUrl: string | null;
+  embedUrl: string;
+};
+
+export const homeVideoPublicApi = {
+  active() {
+    return apiFetch<{ video: PublicHomeVideo | null }>("/home-video");
+  },
+};
+
+export type AdminHomeVideo = PublicHomeVideo & {
+  legacyId: number | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminHomeVideoInput = {
+  youtubeId: string;
+  title: string;
+  subtitle?: string;
+  websiteUrl?: string | null;
+  isActive?: boolean;
+};
+
+export const adminHomeVideosApi = {
+  list() {
+    return apiFetch<{ items: AdminHomeVideo[]; total: number }>(
+      "/admin/home-videos",
+    );
+  },
+  create(input: AdminHomeVideoInput) {
+    return apiFetch<AdminHomeVideo>("/admin/home-videos", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+  update(id: string, input: Partial<AdminHomeVideoInput>) {
+    return apiFetch<AdminHomeVideo>(`/admin/home-videos/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+  },
+  toggle(id: string) {
+    return apiFetch<AdminHomeVideo>(`/admin/home-videos/${id}/toggle`, {
+      method: "PATCH",
+    });
+  },
+  remove(id: string) {
+    return apiFetch<{ ok: boolean }>(`/admin/home-videos/${id}`, {
+      method: "DELETE",
+    });
   },
 };
 
@@ -2079,6 +2173,156 @@ export type AdminSponsorListResponse = {
   skip: number;
 };
 
+export type AdValidationStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type AdPaymentStatus = "FREE" | "PAID" | "PENDING";
+export type AdDiffusionStatus = "ACTIVE" | "INACTIVE" | "ENDED";
+
+export type AdminAd = {
+  id: string;
+  legacyId: number | null;
+  title: string;
+  format: string;
+  placement: string | null;
+  dimensions: string;
+  imageUrl: string | null;
+  targetUrl: string;
+  startsOn: string;
+  endsOn: string;
+  impressions: number;
+  views: number;
+  clicks: number;
+  amountPaid: number;
+  paymentStatus: AdPaymentStatus;
+  validationStatus: AdValidationStatus;
+  refusalReason: string | null;
+  diffusionStatus: AdDiffusionStatus;
+  isLocked: boolean;
+  createdByAdmin: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminAdInput = {
+  title: string;
+  placement: string;
+  targetUrl: string;
+  startsOn: string;
+  endsOn: string;
+  isLocked?: boolean;
+};
+
+export type AdminAdListResponse = {
+  items: AdminAd[];
+  total: number;
+  take: number;
+  skip: number;
+  summary: {
+    pending: number;
+    approved: number;
+    active: number;
+    revenue: number;
+  };
+};
+
+export type AdminAdRate = {
+  id: string;
+  format: string;
+  dimensions: string;
+  price7Days: number;
+  price15Days: number;
+  price30Days: number;
+  isActive: boolean;
+};
+
+export const adminAdsApi = {
+  list(params?: {
+    q?: string;
+    validation?: string;
+    payment?: string;
+    diffusion?: string;
+    placement?: string;
+    take?: number;
+    skip?: number;
+  }) {
+    const qs = new URLSearchParams();
+    if (params?.q?.trim()) qs.set("q", params.q.trim());
+    if (params?.validation) qs.set("validation", params.validation);
+    if (params?.payment) qs.set("payment", params.payment);
+    if (params?.diffusion) qs.set("diffusion", params.diffusion);
+    if (params?.placement) qs.set("placement", params.placement);
+    if (params?.take != null) qs.set("take", String(params.take));
+    if (params?.skip != null) qs.set("skip", String(params.skip));
+    const suffix = qs.toString() ? `?${qs}` : "";
+    return apiFetch<AdminAdListResponse>(`/admin/ads${suffix}`);
+  },
+
+  create(input: AdminAdInput) {
+    return apiFetch<AdminAd>("/admin/ads", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  update(id: string, input: Partial<AdminAdInput>) {
+    return apiFetch<AdminAd>(`/admin/ads/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+  },
+
+  uploadImage(id: string, file: File) {
+    const body = new FormData();
+    body.append("file", file);
+    return apiFetchForm<AdminAd>(`/admin/ads/${id}/image`, body);
+  },
+
+  validate(id: string) {
+    return apiFetch<AdminAd>(`/admin/ads/${id}/validate`, {
+      method: "POST",
+      body: "{}",
+    });
+  },
+
+  refuse(id: string, reason: string) {
+    return apiFetch<AdminAd>(`/admin/ads/${id}/refuse`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    });
+  },
+
+  activate(id: string) {
+    return apiFetch<AdminAd>(`/admin/ads/${id}/activate`, {
+      method: "POST",
+      body: "{}",
+    });
+  },
+
+  deactivate(id: string) {
+    return apiFetch<AdminAd>(`/admin/ads/${id}/deactivate`, {
+      method: "POST",
+      body: "{}",
+    });
+  },
+
+  remove(id: string) {
+    return apiFetch<{ ok: boolean }>(`/admin/ads/${id}`, { method: "DELETE" });
+  },
+
+  rates() {
+    return apiFetch<{ items: AdminAdRate[] }>("/admin/ads/rates");
+  },
+
+  updateRate(
+    id: string,
+    input: Partial<Pick<AdminAdRate, "price7Days" | "price15Days" | "price30Days" | "isActive">>,
+  ) {
+    return apiFetch<AdminAdRate>(`/admin/ads/rates/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+  },
+};
+
 export type AdminArticleSponsor = {
   id: string;
   name: string;
@@ -2154,6 +2398,14 @@ export type AdminArticle = {
   videoStatus?: "NONE" | "PENDING" | "PROCESSING" | "READY" | "FAILED";
   videoError?: string | null;
   videoDurationSec?: number | null;
+  youtubeUrl?: string | null;
+  tags?: string[];
+  readingMinutes?: number;
+  isPaid?: boolean;
+  priceCents?: number | null;
+  locked?: boolean;
+  previous?: { slug: string; title: string; coverUrl: string | null } | null;
+  next?: { slug: string; title: string; coverUrl: string | null } | null;
 };
 
 export type AdminArticleBlockInput = {

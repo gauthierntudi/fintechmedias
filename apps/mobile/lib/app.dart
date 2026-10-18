@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router.dart';
 import 'features/splash/splash_view.dart';
@@ -25,39 +26,62 @@ class _EntrevueAppState extends ConsumerState<EntrevueApp> {
     SystemChrome.setPreferredOrientations(const [
       DeviceOrientation.portraitUp,
     ]);
-    if (!widget.showSplash) return;
-    Future<void>.delayed(const Duration(milliseconds: 1100), () {
-      if (mounted) setState(() => _splash = false);
+    if (!widget.showSplash) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        FlutterNativeSplash.remove();
+      });
+      return;
+    }
+    // 1) Laisser peindre SplashView (même logo que le natif)
+    // 2) Retirer le splash natif dessous — plus de flash d’un autre logo
+    // 3) Garder SplashView un court instant, puis entrer dans l’app
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FlutterNativeSplash.remove();
+      Future<void>.delayed(const Duration(milliseconds: 900), _hideSplash);
     });
+    // Filet si le 1er frame est retardé (debug iOS).
+    Future<void>.delayed(const Duration(milliseconds: 2200), _hideSplash);
+  }
+
+  void _hideSplash() {
+    if (!mounted || !_splash) return;
+    setState(() => _splash = false);
+    FlutterNativeSplash.remove();
   }
 
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
     return MaterialApp.router(
-      title: 'ENTREVUE',
+      title: 'Fintech Médias',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
       routerConfig: router,
       builder: (context, child) {
-        return NowPlayingOverlayHost(
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              child ?? const SizedBox.shrink(),
-              IgnorePointer(
-                ignoring: !_splash,
-                child: AnimatedOpacity(
-                  opacity: _splash ? 1 : 0,
-                  duration: MediaQuery.of(context).disableAnimations
-                      ? Duration.zero
-                      : const Duration(milliseconds: 280),
-                  child: const SplashView(),
+        final overlay = AppTheme.statusBarForMode(
+          Theme.of(context).brightness,
+        );
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: overlay,
+          child: NowPlayingOverlayHost(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                child ?? const SizedBox.shrink(),
+                IgnorePointer(
+                  ignoring: !_splash,
+                  child: AnimatedOpacity(
+                    opacity: _splash ? 1 : 0,
+                    duration: MediaQuery.of(context).disableAnimations
+                        ? Duration.zero
+                        : const Duration(milliseconds: 280),
+                    child: const SplashView(),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

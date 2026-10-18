@@ -216,7 +216,8 @@ export class LibraryService {
           subscriberId,
           notificationId: i.id,
         })),
-        skipDuplicates: true,
+        // skipDuplicates non supporté sur SQLite/D1 — cast pour Postgres local
+        ...({ skipDuplicates: true } as object),
       });
     }
     const now = new Date();
@@ -515,13 +516,13 @@ export class LibraryService {
     const q = opts.q?.trim();
     if (q) {
       where.OR = [
-        { providerRef: { contains: q, mode: 'insensitive' } },
-        { id: { contains: q, mode: 'insensitive' } },
-        { plan: { name: { contains: q, mode: 'insensitive' } } },
-        { magazine: { title: { contains: q, mode: 'insensitive' } } },
+        { providerRef: { contains: q } },
+        { id: { contains: q } },
+        { plan: { name: { contains: q } } },
+        { magazine: { title: { contains: q } } },
         {
           magazine: {
-            issueNumber: { contains: q, mode: 'insensitive' },
+            issueNumber: { contains: q },
           },
         },
       ];

@@ -56,7 +56,7 @@
 }
 
 html[data-theme="dark"] .opt-switch__track {
-  background: var(--entrevue-red, #e42320);
+  background: var(--entrevue-red, #4ed319);
   box-shadow: none;
 }
 
@@ -79,7 +79,7 @@ html[data-theme="dark"] .opt-switch__icon--moon {
 }
 
 .opt-switch:focus-visible .opt-switch__track {
-  outline: 2px solid var(--entrevue-red, #e42320);
+  outline: 2px solid var(--entrevue-red, #4ed319);
   outline-offset: 2px;
 }
 

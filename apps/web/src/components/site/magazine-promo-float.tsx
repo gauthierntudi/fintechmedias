@@ -6,7 +6,7 @@ import { Maximize2, X } from "lucide-react";
 import "./magazine-promo-float.css";
 
 const FALLBACK_COVER = "/legacy/covers/1591457791.jpg";
-const DEFAULT_THEME = { bgColor: "#111111", accentColor: "#e42320" };
+const DEFAULT_THEME = { bgColor: "#111111", accentColor: "#4ed319" };
 const MOBILE_MQ = "(max-width: 640px)";
 
 function contrastOn(hex: string): string {

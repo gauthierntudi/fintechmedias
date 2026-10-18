@@ -12,6 +12,7 @@ import '../../widgets/article_tile.dart';
 import '../../widgets/cover.dart';
 import '../../widgets/studrc_filter_tabs.dart';
 import '../../widgets/studrc_masthead.dart';
+import '../news/category_feed.dart';
 import '../shorts/shorts_feed.dart';
 
 final homeProvider = FutureProvider((ref) async {
@@ -113,46 +114,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           Expanded(
             child: Stack(
               children: [
-                async.when(
-                  loading: () => shortTab
-                      ? ShortsFeedView(active: true)
-                      : const _HomeSkeleton(),
-                  error: (e, _) => shortTab
-                      ? ShortsFeedView(active: true)
-                      : _Retry(
-                          message: ref.read(apiClientProvider).apiError(e),
-                          onRetry: () => ref.refresh(homeProvider),
-                        ),
-                  data: (data) {
-                    final feed = data.feed;
-                    final une = _unique([...feed.featured]);
-                    final byRubrique = [
-                      for (final r in kRubriques) feed.forSlug(r.slug),
-                    ];
-                    return TabBarView(
-                      controller: _tabs,
-                      physics: shortTab
-                          ? const NeverScrollableScrollPhysics()
-                          : null,
-                      children: [
-                        _UnePage(
+                TabBarView(
+                  controller: _tabs,
+                  physics: shortTab
+                      ? const NeverScrollableScrollPhysics()
+                      : null,
+                  children: [
+                    async.when(
+                      loading: () => const _HomeSkeleton(),
+                      error: (e, _) => _Retry(
+                        message: ref.read(apiClientProvider).apiError(e),
+                        onRetry: () => ref.refresh(homeProvider),
+                      ),
+                      data: (data) {
+                        final feed = data.feed;
+                        final une = _unique([...feed.featured]);
+                        return _UnePage(
                           une: une,
                           feed: feed,
                           magazines: data.magazines,
                           onRefresh: () async =>
                               ref.refresh(homeProvider.future),
-                        ),
-                        for (var i = 0; i < kRubriques.length; i++)
-                          _RubriquePage(
-                            items: byRubrique[i],
-                            slug: kRubriques[i].slug,
-                            onRefresh: () async =>
-                                ref.refresh(homeProvider.future),
-                          ),
-                        ShortsFeedView(active: shortTab),
-                      ],
-                    );
-                  },
+                        );
+                      },
+                    ),
+                    for (final r in kRubriques)
+                      CategoryFeedView(
+                        slug: r.slug,
+                        showExcerpt: showRubriqueExcerpt(r.slug),
+                      ),
+                    ShortsFeedView(active: shortTab),
+                  ],
                 ),
                 if (shortTab)
                   Positioned(
@@ -212,15 +204,24 @@ class _UnePage extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
         children: [
-          if (une.isNotEmpty) FeaturedCard(article: une.first),
-          if (une.length > 1) ...[
-            const SizedBox(height: 20),
-            _CoverRail(items: une.skip(1).take(10).toList()),
-          ],
+          if (une.isNotEmpty)
+            FeaturedCard(article: une.first, playlist: une),
+          Builder(
+            builder: (context) {
+              final top = feed.topGrid.isNotEmpty
+                  ? feed.topGrid.take(4).toList()
+                  : une.skip(1).take(4).toList();
+              if (top.isEmpty) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: _TopStoriesGrid(items: top),
+              );
+            },
+          ),
           ...rails
               .where((r) => r.items.isNotEmpty)
               .map(
-                (r) =>                 _RubriqueRail(
+                (r) => _RubriqueRail(
                   label: r.label,
                   slug: r.slug,
                   tone: r.tone,
@@ -234,110 +235,45 @@ class _UnePage extends StatelessWidget {
   }
 }
 
-class _RubriquePage extends StatelessWidget {
-  const _RubriquePage({
-    required this.items,
-    required this.slug,
-    required this.onRefresh,
-  });
-
-  final List<ArticleCard> items;
-  final String slug;
-  final Future<void> Function() onRefresh;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    if (items.isEmpty) {
-      return Center(
-        child: Text(
-          'Rien à afficher ici.',
-          style: AppTheme.sansText(
-            color: scheme.onSurface.withValues(alpha: 0.6),
-          ),
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      color: AppTheme.gold,
-      onRefresh: onRefresh,
-      child: isPortraitRubrique(slug)
-          ? _PortraitRubriqueList(items: items, slug: slug)
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
-              children: [
-                FeaturedCard(article: items.first, showExcerpt: true),
-                const SizedBox(height: 8),
-                ...items.skip(1).map(
-                  (a) => ArticleTile(
-                    article: a,
-                    showMeta: false,
-                    showExcerpt: true,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: () => context.push('/rubrique/$slug'),
-                  child: const Text('Voir toute la rubrique'),
-                ),
-              ],
-            ),
-    );
-  }
-}
-
-class _PortraitRubriqueList extends StatelessWidget {
-  const _PortraitRubriqueList({required this.items, required this.slug});
-
-  final List<ArticleCard> items;
-  final String slug;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const gap = 12.0;
-        const pad = 20.0;
-        final width = constraints.maxWidth - pad * 2;
-        final cardWidth = (width - gap) / 2;
-        final coverHeight = cardWidth * 4 / 3;
-        return ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(pad, 16, pad, 40),
-          children: [
-            Wrap(
-              spacing: gap,
-              runSpacing: 16,
-              children: [
-                for (final article in items)
-                  SizedBox(
-                    width: cardWidth,
-                    child: _CoverCard(
-                      article: article,
-                      width: cardWidth,
-                      coverHeight: coverHeight,
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () => context.push('/rubrique/$slug'),
-              child: const Text('Voir toute la rubrique'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
 /// Largeur d’une carte de rail : 2 cartes visibles + aperçu de la suivante.
 ({double width, double gap}) _railCardMetrics(BuildContext context) {
   const gap = 12.0;
   final available = MediaQuery.sizeOf(context).width - 40;
   return (width: (available - gap) / 2.2, gap: gap);
+}
+
+class _TopStoriesGrid extends StatelessWidget {
+  const _TopStoriesGrid({required this.items});
+
+  final List<ArticleCard> items;
+
+  @override
+  Widget build(BuildContext context) {
+    const gap = 12.0;
+    final playlist = items.take(4).toList();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = (constraints.maxWidth - gap) / 2;
+        final coverHeight = cardWidth * 3 / 4;
+        return Wrap(
+          spacing: gap,
+          runSpacing: 16,
+          children: [
+            for (final article in playlist)
+              SizedBox(
+                width: cardWidth,
+                child: _CoverCard(
+                  article: article,
+                  width: cardWidth,
+                  coverHeight: coverHeight,
+                  playlist: playlist,
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class _CoverRail extends StatelessWidget {
@@ -363,6 +299,7 @@ class _CoverRail extends StatelessWidget {
           article: items[i],
           width: cardWidth,
           coverHeight: coverHeight,
+          playlist: items,
         ),
       ),
     );
@@ -438,36 +375,40 @@ class _CoverCard extends StatelessWidget {
     required this.article,
     this.width = 168,
     this.coverHeight = 112,
+    this.playlist,
   });
 
   final ArticleCard article;
   final double width;
   final double coverHeight;
+  final List<ArticleCard>? playlist;
 
   @override
   Widget build(BuildContext context) {
-    final video =
-        isVideoRubrique(article.category, article.categoryLabel) ||
-        article.hasReadyVideo;
+    final video = article.hasReadyVideo;
     final clock = article.durationClock;
     final scheme = Theme.of(context).colorScheme;
+    final coverUrl = video
+        ? (article.videoPosterUrl ?? article.coverUrl)
+        : article.coverUrl;
     return SizedBox(
       width: width,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => openArticleCard(context, article),
+          onTap: () =>
+              openArticleCard(context, article, playlist: playlist),
           borderRadius: BorderRadius.circular(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Cover(
-                url: article.videoPosterUrl ?? article.coverUrl,
+                url: coverUrl,
                 play: video && clock.isEmpty,
                 duration: clock,
                 height: coverHeight,
-                radius: 16,
+                radius: 0,
               ),
               const SizedBox(height: 8),
               Text(
@@ -518,7 +459,7 @@ class _StuMagRail extends StatelessWidget {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFD63026),
+                      color: Color(0xFF4ED319),
                       shape: BoxShape.circle,
                     ),
                   ),

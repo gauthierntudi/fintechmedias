@@ -6,6 +6,8 @@ import {
   CheckCircle2,
   Clock3,
   CreditCard,
+  Megaphone,
+  Newspaper,
   Receipt,
   RefreshCw,
   RotateCcw,
@@ -64,14 +66,39 @@ function providerLabel(provider: string): string {
     case "FLEXPAIE":
       return "Mobile Money";
     case "LEGACY":
-      return "Legacy";
+      return "Ancien système";
     default:
       return provider;
   }
 }
 
+const METHOD_LABEL: Record<string, string> = {
+  mpesa: "M-Pesa",
+  airtel_money: "Airtel Money",
+  orange_money: "Orange Money",
+  carte_bancaire: "Carte bancaire",
+};
+
+function channelLabel(row: {
+  provider: string;
+  metadata: Record<string, unknown> | null;
+}): string {
+  const method =
+    typeof row.metadata?.method === "string" ? row.metadata.method : "";
+  return METHOD_LABEL[method] ?? providerLabel(row.provider);
+}
+
 function purposeLabel(purpose: string): string {
-  return purpose === "PURCHASE" ? "Achat" : "Abonnement";
+  switch (purpose) {
+    case "PURCHASE":
+      return "Achat magazine";
+    case "ARTICLE":
+      return "Achat article";
+    case "AD":
+      return "Publicité";
+    default:
+      return "Abonnement";
+  }
 }
 
 function paymentBadgeClass(status: PaymentStatusName): string {
@@ -482,7 +509,7 @@ export default function AdminPaymentsPage() {
           >
             <option value="">Tous</option>
             <option value="FLEXPAIE">Mobile Money</option>
-            <option value="LEGACY">Legacy</option>
+            <option value="LEGACY">Ancien système</option>
           </select>
         </label>
         <label className="admin-dash__field">
@@ -498,6 +525,8 @@ export default function AdminPaymentsPage() {
             <option value="">Tous</option>
             <option value="SUBSCRIPTION">Abonnement</option>
             <option value="PURCHASE">Achat magazine</option>
+            <option value="ARTICLE">Achat article</option>
+            <option value="AD">Publicité</option>
           </select>
         </label>
       </div>
@@ -541,7 +570,7 @@ export default function AdminPaymentsPage() {
                       </span>
                     </div>
                   </td>
-                  <td>{providerLabel(row.provider)}</td>
+                  <td>{channelLabel(row)}</td>
                   <td className="admin-dash__mono">
                     {formatMoney(row.amountCents, row.currency)}
                   </td>
@@ -620,6 +649,15 @@ export default function AdminPaymentsPage() {
                     <ShoppingBag size={14} strokeWidth={2} aria-hidden /> Achat
                     magazine
                   </>
+                ) : detail.purpose === "ARTICLE" ? (
+                  <>
+                    <Newspaper size={14} strokeWidth={2} aria-hidden /> Achat
+                    article
+                  </>
+                ) : detail.purpose === "AD" ? (
+                  <>
+                    <Megaphone size={14} strokeWidth={2} aria-hidden /> Publicité
+                  </>
                 ) : (
                   <>
                     <CreditCard size={14} strokeWidth={2} aria-hidden />{" "}
@@ -636,7 +674,7 @@ export default function AdminPaymentsPage() {
             </div>
             <div className="admin-activity-detail__row">
               <span>Moyen</span>
-              <strong>{providerLabel(detail.provider)}</strong>
+              <strong>{channelLabel(detail)}</strong>
             </div>
             <div className="admin-activity-detail__row">
               <span>Référence</span>

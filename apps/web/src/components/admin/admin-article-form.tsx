@@ -339,7 +339,7 @@ export function AdminArticleForm({ mode, articleId }: AdminArticleFormProps) {
                 accessType: "PAID",
                 priceCents: null,
                 currency: "USD",
-                theme: { bgColor: "#111111", accentColor: "#e42320" },
+                theme: { bgColor: "#111111", accentColor: "#4ed319" },
                 coverKey: null,
                 coverUrl: linked.coverUrl,
                 pdfKey: null,

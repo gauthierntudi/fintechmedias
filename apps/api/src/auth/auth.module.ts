@@ -23,9 +23,18 @@ import { TurnstileService } from './turnstile.service';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        secret: config.getOrThrow<string>('JWT_ACCESS_SECRET'),
-      }),
+      useFactory: (config: ConfigService) => {
+        const secret = config.get<string>('JWT_ACCESS_SECRET')?.trim();
+        if (!secret) {
+          // Ne pas faire planter le bootstrap (containers CF) — les routes auth échoueront.
+          console.error(
+            '[auth] JWT_ACCESS_SECRET manquant — définir le secret Worker / env',
+          );
+        }
+        return {
+          secret: secret || 'missing-jwt-access-secret',
+        };
+      },
     }),
   ],
   controllers: [

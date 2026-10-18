@@ -1,9 +1,19 @@
-import { Controller, Get, Header, Param, Query } from '@nestjs/common';
+import { Controller, Get, Header, Param, Query, Req, UseGuards } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import type { Request } from 'express';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
+import {
+  CurrentUser,
+  type AuthUser,
+} from '../auth/decorators/current-user.decorator';
 import { ArticlesService } from './articles.service';
 
 @Controller('articles')
 export class PublicArticlesController {
-  constructor(private readonly articles: ArticlesService) {}
+  constructor(
+    private readonly articles: ArticlesService,
+    private readonly jwt: JwtService,
+  ) {}
 
   @Get('home')
   @Header('Cache-Control', 'no-store')
@@ -83,8 +93,32 @@ export class PublicArticlesController {
     );
   }
 
+  @Get('legacy/:legacyId')
+  byLegacyId(@Param('legacyId') legacyId: string) {
+    return this.articles.getPublishedSlugByLegacyId(legacyId);
+  }
+
   @Get(':slug')
-  bySlug(@Param('slug') slug: string) {
-    return this.articles.getPublishedBySlug(slug);
+  @UseGuards(OptionalJwtAuthGuard)
+  bySlug(
+    @Param('slug') slug: string,
+    @CurrentUser() user: AuthUser | null,
+    @Req() req: Request & { cookies?: Record<string, string> },
+  ) {
+    return this.articles.getPublishedBySlug(slug, {
+      subscriberId: user?.type === 'subscriber' ? user.id : null,
+      staff: this.isStaff(req),
+    });
+  }
+
+  private isStaff(req: Request & { cookies?: Record<string, string> }) {
+    const token = req.cookies?.admin_access_token;
+    if (!token) return false;
+    try {
+      const payload = this.jwt.verify<{ type?: string; sub?: string }>(token);
+      return payload.type === 'admin' && Boolean(payload.sub);
+    } catch {
+      return false;
+    }
   }
 }

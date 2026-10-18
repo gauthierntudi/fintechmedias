@@ -45,7 +45,10 @@ export function createR2ClientFromEnv(
   const secretAccessKey = stripQuotes(env.R2_SECRET_ACCESS_KEY);
   const bucket = stripQuotes(env.R2_BUCKET);
   let endpoint = stripQuotes(env.R2_ENDPOINT);
-  const publicUrl = stripQuotes(env.R2_PUBLIC_URL).replace(/\/$/, '');
+  const publicUrl = stripQuotes(env.R2_PUBLIC_URL || env.R2_URL).replace(
+    /\/$/,
+    '',
+  );
   const region = 'auto';
 
   if (!accessKeyId || !secretAccessKey || !bucket) {

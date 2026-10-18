@@ -8,7 +8,7 @@ class ArticleCard {
     this.category,
     this.categoryLabel = '',
     this.categoryTone = 'teal',
-    this.authorName = 'ENTREVUE',
+    this.authorName = 'Fintech Médias',
     this.dateLabel = '',
     this.videoHlsUrl,
     this.videoPosterUrl,
@@ -74,7 +74,7 @@ class ArticleCard {
       categoryLabel: '${json['categoryLabel'] ?? json['category'] ?? ''}',
       categoryTone: '${json['categoryTone'] ?? 'teal'}',
       authorName:
-          '${json['authorName'] ?? json['author']?['name'] ?? 'ENTREVUE'}',
+          '${json['authorName'] ?? json['author']?['name'] ?? 'Fintech Médias'}',
       dateLabel: '${json['dateLabel'] ?? ''}',
       videoHlsUrl: json['videoHlsUrl'] as String?,
       videoPosterUrl: json['videoPosterUrl'] as String?,
@@ -111,6 +111,7 @@ class ArticleDetail {
     this.categoryLabel,
     this.categoryTone,
     this.authorName,
+    this.authorAvatarUrl,
     this.publishedAt,
     this.videoHlsUrl,
     this.videoPosterUrl,
@@ -128,6 +129,7 @@ class ArticleDetail {
   final String? categoryLabel;
   final String? categoryTone;
   final String? authorName;
+  final String? authorAvatarUrl;
   final String? publishedAt;
   final String? videoHlsUrl;
   final String? videoPosterUrl;
@@ -140,12 +142,21 @@ class ArticleDetail {
 
   factory ArticleDetail.fromJson(Map<String, dynamic> json) {
     final author = json['author'];
+    final byline = json['bylineAuthor'];
+    final authorMap = author is Map
+        ? Map<String, dynamic>.from(author)
+        : byline is Map
+            ? Map<String, dynamic>.from(byline)
+            : null;
     final blocks =
         (json['blocks'] as List?)
             ?.whereType<Map>()
             .map((b) => ArticleBlock.fromJson(Map<String, dynamic>.from(b)))
             .toList() ??
         const <ArticleBlock>[];
+    final name = (authorMap?['name'] as String?)?.trim();
+    final avatar = (authorMap?['avatarUrl'] as String?)?.trim() ??
+        (json['authorAvatarUrl'] as String?)?.trim();
     return ArticleDetail(
       id: '${json['id']}',
       slug: '${json['slug'] ?? ''}',
@@ -155,7 +166,10 @@ class ArticleDetail {
       category: json['category'] as String?,
       categoryLabel: json['categoryLabel'] as String?,
       categoryTone: json['categoryTone'] as String?,
-      authorName: author is Map ? author['name'] as String? : null,
+      authorName: (name != null && name.isNotEmpty)
+          ? name
+          : (json['authorName'] as String?),
+      authorAvatarUrl: (avatar != null && avatar.isNotEmpty) ? avatar : null,
       publishedAt: json['publishedAt'] as String?,
       videoHlsUrl: json['videoHlsUrl'] as String?,
       videoPosterUrl: json['videoPosterUrl'] as String?,
@@ -170,28 +184,37 @@ class HomeFeed {
   const HomeFeed({
     this.featured = const [],
     this.topGrid = const [],
-    this.expert = const [],
-    this.rencontreAvec = const [],
-    this.entreprendre = const [],
-    this.ecosystemePme = const [],
-    this.femme = const [],
+    this.actualites = const [],
+    this.interview = const [],
+    this.economie = const [],
+    this.politique = const [],
+    this.international = const [],
+    this.portrait = const [],
+    this.entreprise = const [],
+    this.events = const [],
   });
 
   final List<ArticleCard> featured;
   final List<ArticleCard> topGrid;
-  final List<ArticleCard> expert;
-  final List<ArticleCard> rencontreAvec;
-  final List<ArticleCard> entreprendre;
-  final List<ArticleCard> ecosystemePme;
-  final List<ArticleCard> femme;
+  final List<ArticleCard> actualites;
+  final List<ArticleCard> interview;
+  final List<ArticleCard> economie;
+  final List<ArticleCard> politique;
+  final List<ArticleCard> international;
+  final List<ArticleCard> portrait;
+  final List<ArticleCard> entreprise;
+  final List<ArticleCard> events;
 
   List<ArticleCard> forSlug(String slug) {
     return switch (slug) {
-      'qu-en-dit-l-expert' => expert,
-      'rencontre-avec' => rencontreAvec,
-      'entreprendre' => entreprendre,
-      'ecosysteme-pme' => ecosystemePme,
-      'femme' => femme,
+      'actualites' => actualites,
+      'interview' => interview,
+      'economie' => economie,
+      'politique' => politique,
+      'international' => international,
+      'portrait' => portrait,
+      'entreprise' => entreprise,
+      'events' => events,
       _ => const <ArticleCard>[],
     };
   }
@@ -203,14 +226,22 @@ class HomeFeed {
             .map((e) => ArticleCard.fromJson(Map<String, dynamic>.from(e)))
             .toList() ??
         const [];
+    List<ArticleCard> pick(String key, [String? fallback]) {
+      if (json.containsKey(key)) return list(key);
+      return fallback == null ? const [] : list(fallback);
+    }
+
     return HomeFeed(
       featured: list('featured'),
       topGrid: list('topGrid'),
-      expert: list('expert'),
-      rencontreAvec: list('rencontreAvec'),
-      entreprendre: list('entreprendre'),
-      ecosystemePme: list('ecosystemePme'),
-      femme: list('femme'),
+      actualites: pick('actualites', 'ecosystemePme'),
+      interview: pick('interview', 'rencontreAvec'),
+      economie: pick('economie', 'innovation'),
+      politique: pick('politique'),
+      international: pick('international', 'expert'),
+      portrait: pick('portrait', 'femme'),
+      entreprise: pick('entreprise', 'entreprendre'),
+      events: pick('events'),
     );
   }
 }

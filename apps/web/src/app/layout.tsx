@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   description: BRAND_META_DESCRIPTION,
   icons: {
     icon: [
-            { url: BRAND.icon, type: "image/jpeg", sizes: "512x512" },
+            { url: BRAND.icon, type: "image/png", sizes: "328x304" },
     ],
     apple: BRAND.icon,
     shortcut: BRAND.icon,
@@ -38,8 +38,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: BRAND.icon,
-        width: 512,
-        height: 512,
+        width: 328,
+        height: 304,
         alt: BRAND.name,
       },
     ],

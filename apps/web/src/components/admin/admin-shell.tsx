@@ -12,6 +12,7 @@ import {
   LogOut,
   Inbox,
   Mail,
+  Megaphone,
   Menu,
   Moon,
   Newspaper,
@@ -26,6 +27,7 @@ import {
   UserCog,
   UserRound,
   Users,
+  Video,
   X,
   Activity,
 } from "lucide-react";
@@ -57,6 +59,7 @@ const PAGE_LABEL: Record<string, string> = {
   "/admin/auteurs": "Auteurs",
   "/admin/sponsors": "Sponsors",
   "/admin/publicite": "Publicité",
+  "/admin/video-accueil": "Vidéo accueil",
   "/admin/monitoring": "Monitoring",
   "/admin/staff": "Staff",
   "/admin/activites": "Logs activités",
@@ -156,6 +159,8 @@ export function AdminShell({
     { href: "/admin/actualites", label: "Actualités", icon: Newspaper },
     { href: "/admin/auteurs", label: "Auteurs", icon: PenLine },
     { href: "/admin/sponsors", label: "Sponsors", icon: Handshake },
+    { href: "/admin/publicite", label: "Publicité", icon: Megaphone },
+    { href: "/admin/video-accueil", label: "Vidéo accueil", icon: Video },
     ...(isSuperAdmin
       ? [{ href: "/admin/monitoring", label: "Monitoring", icon: Activity }]
       : []),

@@ -22,7 +22,7 @@ class KiosqueScreen extends ConsumerWidget {
     final wash = _hexColor(featured?.bgColor) ?? AppTheme.navy;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: AppTheme.statusBarLightIcons,
       child: Scaffold(
         backgroundColor: wash,
         body: async.when(
@@ -129,7 +129,7 @@ class _MagHero extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const EntrevueLogo(height: 20, color: Colors.white),
+                  const EntrevueLogo(height: 20, onDark: true),
                   const Spacer(),
                   Text(
                     'Nouveau numéro',

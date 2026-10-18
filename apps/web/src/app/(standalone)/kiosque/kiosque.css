@@ -1,6 +1,6 @@
 .opt-kq {
   --kq-bg: #111111;
-  --kq-accent: #e42320;
+  --kq-accent: #4ed319;
   --kq-on-accent: #062a2b;
   --kq-ink: #f8fafc;
   --kq-muted: color-mix(in srgb, var(--kq-ink) 72%, transparent);

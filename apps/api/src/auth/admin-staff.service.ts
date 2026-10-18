@@ -54,9 +54,9 @@ export class AdminStaffService {
       ...(query
         ? {
             OR: [
-              { email: { contains: query, mode: 'insensitive' } },
-              { name: { contains: query, mode: 'insensitive' } },
-              { title: { contains: query, mode: 'insensitive' } },
+              { email: { contains: query } },
+              { name: { contains: query } },
+              { title: { contains: query } },
             ],
           }
         : {}),

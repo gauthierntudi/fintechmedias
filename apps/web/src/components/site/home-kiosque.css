@@ -5,8 +5,8 @@
   --opt-k-muted: #6b6b6b;
   --opt-k-line: #e8e8e8;
   --opt-k-soft: #f6f6f6;
-  --opt-k-red: #e42320;
-  --opt-k-teal: #e42320;
+  --opt-k-red: #4ed319;
+  --opt-k-teal: #4ed319;
 
   background:
     linear-gradient(180deg, #fff 0%, var(--opt-k-soft) 48%, #fff 100%);
@@ -47,7 +47,7 @@
 
 .opt-kiosque a.opt-kiosque__logo-link {
   display: inline-block;
-  color: #e42320;
+  color: #4ed319;
   text-decoration: none;
 }
 
@@ -346,13 +346,13 @@
 }
 
 .opt-kiosque__btn--teal {
-  background: #e42320;
-  color: #fff !important;
+  background: #4ed319;
+  color: #111111 !important;
 }
 
 .opt-kiosque__btn--teal:hover {
-  background: #c21e1b;
-  color: #fff !important;
+  background: #3aaa12;
+  color: #111111 !important;
 }
 
 @media (max-width: 991px) {

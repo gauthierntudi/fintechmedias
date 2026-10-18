@@ -451,17 +451,17 @@ export class AdminPaymentsService {
     const q = opts.q?.trim();
     if (q) {
       where.OR = [
-        { id: { contains: q, mode: 'insensitive' } },
-        { providerRef: { contains: q, mode: 'insensitive' } },
-        { plan: { name: { contains: q, mode: 'insensitive' } } },
-        { magazine: { title: { contains: q, mode: 'insensitive' } } },
+        { id: { contains: q } },
+        { providerRef: { contains: q } },
+        { plan: { name: { contains: q } } },
+        { magazine: { title: { contains: q } } },
         {
           magazine: {
-            issueNumber: { contains: q, mode: 'insensitive' },
+            issueNumber: { contains: q },
           },
         },
-        { subscriber: { name: { contains: q, mode: 'insensitive' } } },
-        { subscriber: { email: { contains: q, mode: 'insensitive' } } },
+        { subscriber: { name: { contains: q } } },
+        { subscriber: { email: { contains: q } } },
       ];
     }
 
@@ -493,6 +493,37 @@ export class AdminPaymentsService {
       return null;
     }
     return { y, m, d };
+  }
+
+  private paymentLabel(p: {
+    purpose: PaymentPurpose;
+    metadata: Prisma.JsonValue;
+    plan: { name: string } | null;
+    magazine: { title: string; issueNumber: string | null } | null;
+  }): string {
+    const meta =
+      p.metadata &&
+      typeof p.metadata === 'object' &&
+      !Array.isArray(p.metadata)
+        ? (p.metadata as Record<string, unknown>)
+        : null;
+    const title = typeof meta?.title === 'string' ? meta.title.trim() : '';
+
+    if (p.purpose === PaymentPurpose.SUBSCRIPTION) {
+      return p.plan?.name ? `Abonnement — ${p.plan.name}` : 'Abonnement';
+    }
+    if (p.purpose === PaymentPurpose.ARTICLE) {
+      return title ? `Article — ${title}` : 'Achat article';
+    }
+    if (p.purpose === PaymentPurpose.AD) {
+      return title ? `Publicité — ${title}` : 'Publicité';
+    }
+    if (p.magazine?.title) {
+      return `Achat — ${p.magazine.title}${
+        p.magazine.issueNumber ? ` #${p.magazine.issueNumber}` : ''
+      }`;
+    }
+    return 'Achat magazine';
   }
 
   private toItem(p: {
@@ -540,16 +571,7 @@ export class AdminPaymentsService {
         !Array.isArray(p.metadata)
           ? (p.metadata as Record<string, unknown>)
           : null,
-      label:
-        p.purpose === 'SUBSCRIPTION'
-          ? p.plan?.name
-            ? `Abonnement — ${p.plan.name}`
-            : 'Abonnement'
-          : p.magazine?.title
-            ? `Achat — ${p.magazine.title}${
-                p.magazine.issueNumber ? ` #${p.magazine.issueNumber}` : ''
-              }`
-            : 'Achat magazine',
+      label: this.paymentLabel(p),
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
       subscriber: {

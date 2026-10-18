@@ -102,7 +102,7 @@ export class NewsletterService {
           : {}),
       ...(q
         ? {
-            email: { contains: q, mode: 'insensitive' as const },
+            email: { contains: q },
           }
         : {}),
     };
@@ -163,10 +163,10 @@ export class NewsletterService {
       ...(q
         ? {
             OR: [
-              { email: { contains: q, mode: 'insensitive' as const } },
+              { email: { contains: q } },
               {
                 article: {
-                  title: { contains: q, mode: 'insensitive' as const },
+                  title: { contains: q },
                 },
               },
             ],

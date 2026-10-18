@@ -1,9 +1,13 @@
 /* Femme — héros photo + bandeau d’inscription */
 
 .opt-femme {
-  --femme-red: var(--entrevue-red, #e42320);
+  --femme-red: var(--entrevue-red, #4ed319);
   background: #111;
   color: #fff;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
 }
 
 .opt-femme .visually-hidden {
@@ -26,10 +30,48 @@
 .opt-femme__hero {
   position: relative;
   isolation: isolate;
+  overflow: hidden;
+}
+
+.opt-femme__swiper {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.opt-femme__swiper,
+.opt-femme__slide {
   min-height: min(72vh, 640px);
+}
+
+.opt-femme__slide {
+  position: relative;
   display: flex;
   align-items: center;
-  overflow: hidden;
+}
+
+.opt-femme__hero .swiper-pagination {
+  position: absolute;
+  z-index: 2;
+  left: max(1.5rem, calc((100% - 1180px) / 2));
+  bottom: 1.6rem;
+  width: auto;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.opt-femme__bullet {
+  width: 1.65rem;
+  height: 3px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.38);
+  cursor: pointer;
+}
+
+.opt-femme__bullet.is-active {
+  background: var(--entrevue-red, #4ed319);
 }
 
 .opt-femme__media {
@@ -64,8 +106,10 @@
 .opt-femme__copy {
   position: relative;
   z-index: 1;
+  box-sizing: border-box;
   width: min(560px, calc(100% - 3rem));
-  margin: 0 auto 0 max(1.5rem, calc((100vw - 1180px) / 2));
+  max-width: calc(100% - 3rem);
+  margin: 0 auto 0 max(1.5rem, calc((100% - 1180px) / 2));
   padding: 4.5rem 0;
 }
 
@@ -187,12 +231,13 @@ a.opt-femme__cta-btn:visited {
 }
 
 a.opt-femme__cta-btn--red {
-  background: var(--femme-red, #e42320);
+  background: var(--femme-red, #4ed319);
+  color: #111111;
 }
 
 a.opt-femme__cta-btn--red:hover {
-  background: #c21e1b;
-  color: #fff;
+  background: #3aaa12;
+  color: #111111;
 }
 
 a.opt-femme__cta-btn--black {
@@ -205,9 +250,18 @@ a.opt-femme__cta-btn--black:hover {
 }
 
 @media (max-width: 899px) {
-  .opt-femme__hero {
+  .opt-femme__swiper,
+  .opt-femme__slide {
     min-height: 78vh;
+  }
+
+  .opt-femme__slide {
     align-items: flex-end;
+  }
+
+  .opt-femme__hero .swiper-pagination {
+    left: 1rem;
+    bottom: 1.15rem;
   }
 
   .opt-femme__copy {

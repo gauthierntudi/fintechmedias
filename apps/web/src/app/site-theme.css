@@ -31,15 +31,27 @@ html[data-theme="dark"] .opt-header {
   --opt-h-muted: var(--site-muted);
   --opt-h-line: var(--site-line);
   --opt-h-soft: var(--site-bg-soft);
-  --opt-h-cta: var(--entrevue-red, #e42320);
-  --opt-h-cta-hover: #c21e1b;
+  --opt-h-cta: var(--entrevue-red, #4ed319);
+  --opt-h-cta-hover: #3aaa12;
   --opt-h-bg: var(--entrevue-navy, #111111);
   background: var(--entrevue-navy, #111111);
   color: var(--site-ink);
 }
 
 html[data-theme="dark"] .opt-header__cta {
-  color: #fff;
+  color: #111111;
+}
+
+html[data-theme="dark"] .opt-header a.opt-header__login,
+html[data-theme="dark"] .opt-header a.opt-header__login:hover,
+html[data-theme="dark"] .opt-header a.opt-header__login:focus,
+html[data-theme="dark"] .opt-header a.opt-header__login:active {
+  background: #fff;
+  color: #111111;
+}
+
+html[data-theme="dark"] .opt-header a.opt-header__login:hover {
+  background: #e8e8e8;
 }
 
 html[data-theme="dark"] .opt-header__dropdown {
@@ -51,6 +63,7 @@ html[data-theme="dark"] .opt-header__dropdown {
 html[data-theme="dark"] .opt-header__dropdown a:hover,
 html[data-theme="dark"] .opt-header__dropdown button:hover {
   background: rgba(255, 255, 255, 0.06);
+  color: #4ed319;
 }
 
 html[data-theme="dark"] .opt-menu {
@@ -110,7 +123,7 @@ html[data-theme="dark"] .opt-search-live {
 
 html[data-theme="dark"] .opt-search-live__item:hover,
 html[data-theme="dark"] .opt-search-live__item.is-active {
-  background: color-mix(in srgb, #e42320 14%, var(--site-bg-soft));
+  background: color-mix(in srgb, #4ed319 14%, var(--site-bg-soft));
 }
 
 html[data-theme="dark"] .opt-search-live__cover {
@@ -124,7 +137,7 @@ html[data-theme="dark"] .opt-search-live__more {
 
 html[data-theme="dark"] .opt-search-live__more:hover,
 html[data-theme="dark"] .opt-search-live__more.is-active {
-  background: color-mix(in srgb, #e42320 16%, var(--site-card));
+  background: color-mix(in srgb, #4ed319 16%, var(--site-card));
 }
 
 html[data-theme="dark"] .opt-femme__cta {
@@ -157,6 +170,10 @@ html[data-theme="dark"] .opt-renc {
   --renc-soft: var(--site-muted);
   --renc-line: var(--site-line);
   background: var(--site-bg-soft);
+}
+
+html[data-theme="dark"] .opt-renc--embedded {
+  background: transparent;
 }
 
 html[data-theme="dark"] .opt-renc__title,
@@ -211,7 +228,7 @@ html[data-theme="dark"] .opt-kiosque a.opt-kiosque__all {
 }
 
 html[data-theme="dark"] .opt-kiosque a.opt-kiosque__all:hover {
-  color: var(--entrevue-red, #e42320);
+  color: var(--entrevue-red, #4ed319);
 }
 
 html[data-theme="dark"] .opt-kiosque__nav-btn {
@@ -243,8 +260,8 @@ html[data-theme="dark"] .opt-home-skel__bone {
 }
 
 html[data-theme="dark"] .opt-top {
-  background: #111111;
-  color: #fff;
+  background: transparent;
+  color: var(--site-ink);
 }
 
 html[data-theme="dark"] .opt-top__featured {
@@ -286,7 +303,7 @@ html[data-theme="dark"] .opt-rubrique__more-title {
 
 html[data-theme="dark"] .opt-rub__title.opt-rub__title--red,
 html[data-theme="dark"] .opt-rsplit__title.opt-rsplit__title--red {
-  color: #e42320;
+  color: #4ed319;
 }
 
 html[data-theme="dark"] .opt-rub__title.opt-rub__title--blue,
@@ -295,12 +312,12 @@ html[data-theme="dark"] .opt-rsplit__title.opt-rsplit__title--blue {
 }
 
 html[data-theme="dark"] .opt-dossiers__title {
-  color: #e42320;
+  color: #4ed319;
 }
 
 html[data-theme="dark"] .opt-rub__title.opt-rub__title--gold,
 html[data-theme="dark"] .opt-rsplit__title.opt-rsplit__title--gold {
-  color: #e42320;
+  color: #4ed319;
 }
 
 html[data-theme="dark"] .opt-kiosque a.opt-kiosque__logo-link {
@@ -323,7 +340,7 @@ html[data-theme="dark"] .opt-rsplit a.opt-rsplit__more {
 
 html[data-theme="dark"] .opt-rub a.opt-rub__more:hover,
 html[data-theme="dark"] .opt-rsplit a.opt-rsplit__more:hover {
-  color: #e42320;
+  color: #4ed319;
 }
 
 html[data-theme="dark"] .opt-rub__more-icon,
@@ -485,8 +502,8 @@ html[data-theme="dark"] .opt-notif__pager-btn.is-active {
 }
 
 html[data-theme="dark"] .opt-mags__btn--primary:hover {
-  background: var(--entrevue-red, #e42320);
-  color: #fff;
+  background: var(--entrevue-red, #4ed319);
+  color: #111111;
 }
 
 html[data-theme="dark"] .opt-notif__cta--primary:hover {

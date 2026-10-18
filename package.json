@@ -13,7 +13,10 @@
     "db:migrate": "pnpm --filter @entrevue/api prisma:migrate",
     "db:studio": "pnpm --filter @entrevue/api prisma:studio",
     "docker:dev": "docker compose -f docker-compose.dev.yml up -d",
-    "docker:dev:down": "docker compose -f docker-compose.dev.yml down"
+    "docker:dev:down": "docker compose -f docker-compose.dev.yml down",
+    "cf:install": "pnpm --dir deploy/cloudflare install",
+    "cf:deploy": "pnpm --dir deploy/cloudflare run cf:deploy:all",
+    "cf:d1:migrate": "pnpm --dir deploy/cloudflare d1:migrate:remote"
   },
   "engines": {
     "node": ">=20"

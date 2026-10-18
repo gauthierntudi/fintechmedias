@@ -165,4 +165,6 @@ export class AdminDashboardService {
 export const PURPOSE_LABELS: Record<PaymentPurpose, string> = {
   SUBSCRIPTION: 'Abonnement',
   PURCHASE: 'Achat magazine',
+  ARTICLE: 'Achat article',
+  AD: 'Publicité',
 };

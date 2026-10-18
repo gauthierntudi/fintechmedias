@@ -101,7 +101,7 @@ function RetourInner() {
             <>
               <CheckCircle2
                 size={48}
-                color="#e42320"
+                color="#4ed319"
                 strokeWidth={1.75}
                 aria-hidden
               />
@@ -139,7 +139,7 @@ function RetourInner() {
 
           {phase === "fail" ? (
             <>
-              <XCircle size={48} color="#e42320" strokeWidth={1.75} aria-hidden />
+              <XCircle size={48} color="#4ed319" strokeWidth={1.75} aria-hidden />
               <h1 style={{ fontFamily: "var(--abo-display)", marginTop: "0.75rem" }}>
                 Paiement non confirmé
               </h1>

@@ -6,6 +6,7 @@ import { BrandLogo } from "@/components/site/brand-logo";
 import { BRAND } from "@/lib/brand";
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
 import { RUBRIQUES } from "@/lib/rubriques";
+import { AdSlot } from "@/components/site/ad-slot";
 import "./site-footer.css";
 
 const QUICK = [
@@ -15,16 +16,19 @@ const QUICK = [
     : []),
   { href: "/kiosque", label: BRAND.magazineName },
   { href: "/actualites", label: "Actualités" },
+  { href: "/qui-sommes-nous", label: "Qui sommes-nous" },
   { href: "/contact", label: "Nous contactez" },
 ];
 
 /**
- * Footer presse — identité L'Entrevue.
+ * Footer presse — Fintech Médias.
  */
 export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
+    <>
+    <AdSlot format="paysage_large" emplacement="pub-footer" rotateMs={15000} />
     <footer className="opt-ft">
       <div className="opt-ft__top">
         <div className="opt-ft__inner">
@@ -92,5 +96,6 @@ export function SiteFooter() {
         </div>
       </div>
     </footer>
+    </>
   );
 }

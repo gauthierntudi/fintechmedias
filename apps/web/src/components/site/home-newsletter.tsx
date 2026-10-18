@@ -55,7 +55,7 @@ export function HomeNewsletter() {
         <p className="opt-nl__kicker">Newsletter {BRAND.name}</p>
         <h2 className="opt-nl__title">Restons en contact</h2>
         <p className="opt-nl__lead">
-          Recevez portraits, enquêtes et actualités de {BRAND.name}
+          Recevez éditos, enquêtes et actualités de {BRAND.name}
           directement dans votre boîte mail.
         </p>
 

@@ -81,13 +81,13 @@ export class ActivityService {
       ...(q
         ? {
             OR: [
-              { action: { contains: q, mode: 'insensitive' } },
-              { entity: { contains: q, mode: 'insensitive' } },
-              { entityId: { contains: q, mode: 'insensitive' } },
-              { admin: { email: { contains: q, mode: 'insensitive' } } },
-              { admin: { name: { contains: q, mode: 'insensitive' } } },
-              { subscriber: { email: { contains: q, mode: 'insensitive' } } },
-              { subscriber: { name: { contains: q, mode: 'insensitive' } } },
+              { action: { contains: q } },
+              { entity: { contains: q } },
+              { entityId: { contains: q } },
+              { admin: { email: { contains: q } } },
+              { admin: { name: { contains: q } } },
+              { subscriber: { email: { contains: q } } },
+              { subscriber: { name: { contains: q } } },
             ],
           }
         : {}),

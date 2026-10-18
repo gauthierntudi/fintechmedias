@@ -2,34 +2,35 @@
 
 export const BRAND = {
   /** Nom affiché sur la plateforme. */
-  name: "L'Entrevue",
+  name: "Fintech Médias",
   /** Nom sans article (mentions légales, staff). */
-  shortName: "Entrevue",
-  legalName: "Entrevue",
+  shortName: "Fintech Médias",
+  legalName: "Fintech Médias",
   /** Titre du magazine (kiosque). */
-  magazineName: "L'Entrevue",
-  tagline: "Autour de l’entrepreneuriat",
-  taglineShort: "Autour de l’entrepreneuriat",
-  description: "L'Entrevue — Autour de l’entrepreneuriat.",
-  domain: "lentrevuemag.com",
-  siteUrl: "https://lentrevuemag.com",
-  email: "contact@lentrevuemag.com",
-  infoEmail: "info@lentrevuemag.com",
-  phone: "+243 813 212 772",
-  address: "8 Avenue Kalemie, Kinshasa-Gombe",
-  /** Logo noir — fonds clairs */
-  logo: "/brand/logo-Lentrevue-mail.png",
+  magazineName: "Fintech Médias",
+  tagline: "Guide dans l’univers de la FinTech en Afrique.",
+  taglineShort: "La FinTech en Afrique",
+  description:
+    "Fintech Médias — information économique, fintech et magazines numériques.",
+  domain: "fintechmedias.cd",
+  siteUrl: "https://fintechmedias.cd",
+  email: "contact@fintechmedias.cd",
+  infoEmail: "contact@fintechmedias.cd",
+  phone: "+243 816 712 981",
+  address: "République démocratique du Congo",
+  /** Logo — mode clair */
+  logo: "/brand/logo-fintech-light.png",
   /** Logo — fonds sombres (header dark, footer) */
-  logoOnDark: "/brand/logo-Lentrevue.png",
-  icon: "/brand/favicon.jpg",
+  logoOnDark: "/brand/logo-fintech.png",
+  icon: "/brand/icon.png",
   colors: {
     black: "#111111",
-    red: "#e42320",
+    red: "#4ed319",
     white: "#ffffff",
     /** Alias — anciens tokens navy / bleu / or. */
     navy: "#111111",
     blue: "#111111",
-    gold: "#e42320",
+    gold: "#4ed319",
   },
 } as const;
 

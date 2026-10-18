@@ -60,7 +60,7 @@ function contrastOn(hex: string): string {
   return L < 0.45 ? "#ffffff" : "#062a2b";
 }
 
-const DEFAULT_THEME = { bgColor: "#111111", accentColor: "#e42320" };
+const DEFAULT_THEME = { bgColor: "#111111", accentColor: "#4ed319" };
 
 function RetourInner() {
   const router = useRouter();

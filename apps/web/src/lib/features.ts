@@ -1,2 +1,2 @@
-/** Abonnements désactivés temporairement — le code et les pages sont conservés. */
-export const SUBSCRIPTIONS_ENABLED = false;
+/** Abonnements, kiosque payant et lecture magazine. */
+export const SUBSCRIPTIONS_ENABLED = true;

@@ -11,8 +11,8 @@ export function HomeFemmeCta() {
           le débat.
         </h2>
         <p className="opt-femme__cta-lead">
-          Créez un compte pour suivre les portraits, enquêtes et récits de
-          la rubrique Femme.
+          Créez un compte pour suivre les parcours et les visages de la
+          fintech et de l’entreprise.
         </p>
         <div className="opt-femme__cta-actions">
           <Link href="/inscription" className="opt-femme__cta-btn opt-femme__cta-btn--red">

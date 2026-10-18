@@ -8,7 +8,7 @@ import "../rubrique/[slug]/rubrique.css";
 export const metadata: Metadata = {
   title: "Actualités",
   description:
-    "Toute l’actualité de L'Entrevue — Qu'en dit l'expert, Rencontre Avec, Entreprendre, Écosystème PME et Femme.",
+    "Toute l’actualité Fintech Médias — Actualités, Interview, Économie, Politique, Int’l, Édito, Entreprise et Events.",
 };
 
 const PACK_COUNT = 8;

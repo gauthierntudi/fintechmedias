@@ -3,8 +3,8 @@
 .opt-nl {
   --opt-nl-navy: #111111;
   --opt-nl-blue: #111111;
-  --opt-nl-gold: #e42320;
-  --opt-nl-red: #c21e1b;
+  --opt-nl-gold: #4ed319;
+  --opt-nl-red: #3aaa12;
   --opt-nl-ink: #111111;
 
   position: relative;
@@ -92,7 +92,7 @@
   margin: 0;
   padding: 0.95rem 1.35rem;
   background: var(--opt-nl-gold);
-  color: #fff;
+  color: #111111;
   font-family: var(--opt-font-sans);
   font-size: 0.82rem;
   font-weight: 800;
@@ -104,8 +104,8 @@
 }
 
 .opt-nl__submit:hover:not(:disabled) {
-  background: #c21e1b;
-  color: #fff;
+  background: #3aaa12;
+  color: #111111;
 }
 
 .opt-nl__submit:disabled {

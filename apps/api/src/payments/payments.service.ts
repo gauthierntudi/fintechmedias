@@ -361,10 +361,11 @@ export class PaymentsService {
         where: {
           provider: PaymentProvider.FLEXPAIE,
           status: PaymentStatus.PENDING,
+          // path/equals = Postgres JSON ; sur D1 on matche via string_contains
           metadata: {
             path: ['orderNumber'],
             equals: orderNumber,
-          },
+          } as object,
         },
         orderBy: { createdAt: 'desc' },
       });
@@ -985,7 +986,7 @@ export class PaymentsService {
     bgColor: string;
     accentColor: string;
   } {
-    const fallback = { bgColor: '#111111', accentColor: '#d63026' };
+    const fallback = { bgColor: '#111111', accentColor: '#4ed319' };
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return fallback;
     const obj = raw as Record<string, unknown>;
     const bg =

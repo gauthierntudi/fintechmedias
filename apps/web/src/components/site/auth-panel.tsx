@@ -47,11 +47,20 @@ export function AuthPanel({
 }: AuthPanelProps) {
   const [batchOffset, setBatchOffset] = useState(0);
   const [slide, setSlide] = useState(0);
+  const [compactBrand, setCompactBrand] = useState(false);
 
   const slides = useMemo(
     () => heroWindow(batchOffset, AUTH_HERO_VISIBLE, heroPool),
     [batchOffset, heroPool],
   );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 409px)");
+    const sync = () => setCompactBrand(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   const goNext = () => {
     setSlide((s) => {
@@ -126,8 +135,24 @@ export function AuthPanel({
 
         <div className="opt-auth__panel">
           <div className="opt-auth__panel-top">
-            <Link href="/" className="opt-auth__panel-logo" aria-label={`${BRAND.magazineName} — accueil`}>
-              <BrandLogo height={28} />
+            <Link
+              href="/"
+              className="opt-auth__panel-logo"
+              aria-label={`${BRAND.magazineName} — accueil`}
+            >
+              {compactBrand ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={BRAND.icon}
+                  alt=""
+                  className="opt-auth__panel-logo-icon"
+                  width={32}
+                  height={32}
+                  aria-hidden
+                />
+              ) : (
+                <BrandLogo height={28} />
+              )}
             </Link>
             <div className="opt-auth__panel-top-actions">
               <ThemeToggle />

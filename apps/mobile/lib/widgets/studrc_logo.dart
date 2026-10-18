@@ -1,28 +1,42 @@
 import 'package:flutter/material.dart';
 
-/// Official ENTREVUE lockup. [color] only chooses white vs black artwork.
+/// Lockup Fintech Médias — même mapping que le site et le splash :
+/// - mode clair → [logoLightAsset]
+/// - mode sombre / fond sombre → [logoDarkAsset]
 class EntrevueLogo extends StatelessWidget {
   const EntrevueLogo({
     super.key,
     this.height = 40,
-    this.color = Colors.white,
+    this.onDark,
+    this.color,
   });
 
   final double height;
-  final Color color;
 
-  static const _whiteAsset = 'assets/brand/logo-Lentrevue-blanc.png';
-  static const _blackAsset = 'assets/brand/logo-Lentrevue-mail.png';
+  /// Force le logo pour fond sombre (ex. hero kiosque, onboarding photo).
+  /// Sinon : [color] (encre claire ⇒ fond sombre) ou le thème Material.
+  final bool? onDark;
+
+  /// Encre du parent (blanc sur fond sombre, navy sur fond clair).
+  /// Conservé pour les appels existants ; préférer [onDark] ou le thème.
+  final Color? color;
+
+  static const logoLightAsset = 'assets/brand/logo-fintech-light.png';
+  static const logoDarkAsset = 'assets/brand/logo-fintech.png';
 
   @override
   Widget build(BuildContext context) {
-    final onDark = color.computeLuminance() >= 0.5;
+    final darkSurface = onDark ??
+        (color != null
+            ? color!.computeLuminance() >= 0.5
+            : Theme.of(context).brightness == Brightness.dark);
+
     return Image.asset(
-      onDark ? _whiteAsset : _blackAsset,
+      darkSurface ? logoDarkAsset : logoLightAsset,
       height: height,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.high,
-      semanticLabel: 'ENTREVUE',
+      semanticLabel: 'Fintech Médias',
     );
   }
 }

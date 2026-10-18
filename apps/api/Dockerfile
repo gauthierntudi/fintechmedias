@@ -30,7 +30,10 @@ FROM base AS build
 COPY --from=deps /app /app
 COPY apps/api ./apps/api
 WORKDIR /app/apps/api
-RUN pnpm exec prisma generate && pnpm build
+# Image Cloudflare : client Prisma SQLite + driver adapter D1 (HTTP)
+ARG PRISMA_SCHEMA=prisma/schema.d1.prisma
+ENV DATABASE_URL="file:./prisma/d1-placeholder.db"
+RUN pnpm exec prisma generate --schema="$PRISMA_SCHEMA" && pnpm build
 
 FROM node:22-bookworm-slim AS runner
 WORKDIR /app
@@ -66,4 +69,6 @@ ENV PDFIUM_DIR=/usr/local/lib
 
 USER nestjs
 EXPOSE 3001
-CMD ["node", "dist/main.js"]
+# Surchargeable (Worker BullMQ : APP_ENTRY=dist/worker.js)
+ENV APP_ENTRY=dist/main.js
+CMD ["sh", "-c", "node \"$APP_ENTRY\""]

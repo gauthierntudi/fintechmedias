@@ -13,7 +13,7 @@ export function startNewsletterOutboxLoop(): { stop: () => void } {
   const resend = apiKey ? new Resend(apiKey) : null;
   const from =
     process.env.MAIL_FROM?.trim() ||
-    "L'Entrevue <noreply@lentrevuemag.com>";
+    'Fintech Médias <noreply@fintechmedias.com>';
   const appUrl =
     process.env.APP_URL?.replace(/\/$/, '') || 'https://lentrevuemag.com';
   const r2PublicUrl =

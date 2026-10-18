@@ -3,7 +3,7 @@ export type CategoryTone = 'red' | 'blue' | 'gold' | 'teal' | 'dark';
 export type CategoryMeta = {
   label: string;
   tone: CategoryTone;
-  /** Anciennes rubriques encore présentes en base. */
+  /** Anciennes rubriques et libellés encore présents en base ou dans les URLs. */
   aliases?: string[];
   /** Visible seulement dans l’app mobile (pas le site). */
   mobileOnly?: boolean;
@@ -11,8 +11,8 @@ export type CategoryMeta = {
 
 export const SHORT_CATEGORY_SLUG = 'stu-short';
 
-/** Durée d’un article « À la une » sur l’accueil. */
-export const FEATURED_TTL_DAYS = 30;
+/** Durée d’un article « À la une » sur l’accueil (fenêtre PHP : 45 jours). */
+export const FEATURED_TTL_DAYS = 45;
 
 /** Rubriques du site public (hors SHORT mobile). */
 export function publicSiteCategorySlugs(): string[] {
@@ -22,61 +22,107 @@ export function publicSiteCategorySlugs(): string[] {
 }
 
 export const CATEGORY_META: Record<string, CategoryMeta> = {
-  'qu-en-dit-l-expert': {
-    label: "Qu'en dit l'expert",
-    tone: 'teal',
+  actualites: {
+    label: 'Actualités',
+    tone: 'red',
+    aliases: ['Actualités', 'actualités', 'actualite', 'actualité'],
+  },
+  interview: {
+    label: 'Interview',
+    tone: 'gold',
     aliases: [
+      'Interview',
+      'rencontre-avec',
+      'qu-en-dit-l-expert',
+      'stu-stories',
       'stu-talk',
+      'inspirationnel',
+      'game-changers',
+      'game-changer',
       'grandes-entrevues',
       'grande-entrevue',
       'entrevue-croisee',
     ],
   },
-  'rencontre-avec': {
-    label: 'Rencontre Avec',
-    tone: 'gold',
-    aliases: ['stu-stories', 'inspirationnel', 'game-changers', 'game-changer'],
-  },
-  entreprendre: {
-    label: 'Entreprendre',
-    tone: 'red',
-    aliases: ['stu-news', 'edito', 'start-up', 'vus-sur-le-net', 'zoom'],
-  },
-  'ecosysteme-pme': {
-    label: 'Écosystème PME',
+  economie: {
+    label: 'Économie',
     tone: 'blue',
-    aliases: ['stu-data', 'decryptages', 'decryptage'],
+    aliases: [
+      'Economie',
+      'Économie',
+      'économie',
+      'ecosysteme-pme',
+      'stu-data',
+      'decryptages',
+      'decryptage',
+    ],
   },
-  femme: {
-    label: 'Femme',
+  politique: {
+    label: 'Politique',
+    tone: 'teal',
+    aliases: ['Politique'],
+  },
+  international: {
+    label: 'Int’l',
     tone: 'dark',
+    aliases: ['Int’l', "Int'l", 'intl', "int'l", 'int’l', 'international'],
   },
-  innovation: {
-    label: 'Innovation',
+  portrait: {
+    label: 'Édito',
     tone: 'gold',
+    aliases: ['Portrait', 'portrait', 'femme', 'edito', 'Édito', 'Edito'],
+  },
+  entreprise: {
+    label: 'Entreprise',
+    tone: 'red',
+    aliases: [
+      'Entreprise',
+      'entreprendre',
+      'innovation',
+      'stu-news',
+      'start-up',
+      'vus-sur-le-net',
+      'zoom',
+    ],
+  },
+  events: {
+    label: 'Events',
+    tone: 'teal',
+    aliases: ['Events', 'événement', 'evenement', 'événements', 'evenements'],
   },
   [SHORT_CATEGORY_SLUG]: {
     label: 'SHORT',
     tone: 'gold',
     mobileOnly: true,
+    aliases: ['short'],
   },
 };
+
+function categoryKey(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/[’']/g, '')
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/\s+/g, '-');
+}
 
 const ALIAS_TO_CANONICAL: Record<string, string> = (() => {
   const map: Record<string, string> = {};
   for (const [slug, meta] of Object.entries(CATEGORY_META)) {
-    map[slug] = slug;
+    map[categoryKey(slug)] = slug;
     for (const alias of meta.aliases ?? []) {
-      map[alias] = slug;
+      map[categoryKey(alias)] = slug;
     }
   }
   return map;
 })();
 
 export function resolveCategorySlug(raw: string): string | null {
-  const key = raw.trim().toLowerCase();
+  const key = categoryKey(raw);
   if (!key) return null;
-  return ALIAS_TO_CANONICAL[key] ?? (CATEGORY_META[key] ? key : null);
+  return ALIAS_TO_CANONICAL[key] ?? null;
 }
 
 export function categoryQuerySlugs(canonical: string): string[] {
@@ -93,7 +139,7 @@ export function categoryDisplay(raw: string | null | undefined): {
   const canonical = resolveCategorySlug(key) ?? key;
   const meta = CATEGORY_META[canonical];
   if (meta) return { label: meta.label, tone: meta.tone };
-  return { label: key || 'Actualité', tone: 'teal' };
+  return { label: key || 'Actualités', tone: 'red' };
 }
 
 export function isShortCategory(raw: string | null | undefined): boolean {
@@ -105,11 +151,8 @@ export function isMobileOnlyCategory(raw: string | null | undefined): boolean {
   return Boolean(slug && CATEGORY_META[slug]?.mobileOnly);
 }
 
-export const VIDEO_CATEGORY_SLUGS = [
-  'qu-en-dit-l-expert',
-  'rencontre-avec',
-  SHORT_CATEGORY_SLUG,
-] as const;
+/** Seul SHORT est une rubrique exclusivement vidéo. */
+export const VIDEO_CATEGORY_SLUGS = [SHORT_CATEGORY_SLUG] as const;
 
 export function isVideoCategory(raw: string | null | undefined): boolean {
   const slug = resolveCategorySlug(raw ?? '');

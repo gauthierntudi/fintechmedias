@@ -6,7 +6,7 @@
 
 :root {
   --entrevue-black: #111111;
-  --entrevue-red: #e42320;
+  --entrevue-red: #4ed319;
   --entrevue-white: #ffffff;
   --entrevue-navy: var(--entrevue-black);
   --entrevue-blue: var(--entrevue-black);
@@ -30,9 +30,13 @@
 
   --admin-top-from: #111111;
   --admin-top-mid: #1a1a1a;
-  --admin-top-to: #e42320;
+  --admin-top-to: #4ed319;
   --admin-page: #f4f6f9;
   --admin-nav: #607d8b;
+}
+
+html {
+  overflow-x: clip;
 }
 
 body {
@@ -40,6 +44,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   margin: 0;
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 /* Ne pas laisser Toastify réserver de hauteur sous le footer (surtout mobile) */
@@ -92,7 +98,7 @@ h6 {
 .opt-rub__tag--red,
 .opt-rsplit__tag--red {
   background: var(--entrevue-red);
-  color: #fff;
+  color: #111111;
 }
 
 .opt-top__badge--blue,
@@ -120,18 +126,18 @@ h6 {
 .opt-rub__tag--gold,
 .opt-rsplit__tag--gold {
   background: var(--entrevue-red);
-  color: #fff;
+  color: #111111;
 }
 
 .opt-rub__tag--orange,
 .opt-rsplit__tag--orange {
   background: var(--entrevue-red);
-  color: #fff;
+  color: #111111;
 }
 
 .opt-rub__tag--yellow {
   background: var(--opt-cat-gold);
-  color: #fff;
+  color: #111111;
 }
 
 .opt-rub__title--teal,

@@ -1,6 +1,6 @@
 .opt-account-tabs {
   --opt-navy: #111111;
-  --opt-teal: #e42320;
+  --opt-teal: #4ed319;
   --opt-ink: var(--site-ink, var(--opt-navy));
   --opt-muted: var(--site-muted, #6b7280);
   --opt-line: var(--site-line, rgba(13, 32, 61, 0.12));
@@ -42,8 +42,8 @@
   height: 1.25rem;
   padding: 0 0.35rem;
   border-radius: 999px;
-  background: #e42320;
-  color: #fff;
+  background: #4ed319;
+  color: #111111;
   font-size: 0.68rem;
   font-weight: 750;
   letter-spacing: 0;

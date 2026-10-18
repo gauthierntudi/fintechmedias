@@ -5,10 +5,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
+  BookOpen,
   CalendarCheck2,
   CalendarX2,
   CreditCard,
+  Newspaper,
   RotateCcw,
+  Smartphone,
   Star,
 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
@@ -64,13 +67,19 @@ function statusCopy(status: LibraryResponse["status"]) {
       return {
         badge: "Aucun",
         badgeClass: "opt-account__badge--muted",
-        title: "Aucun abonnement",
+        title: "Aucun abonnement actif",
         Icon: Star,
         cta: "S’abonner",
         CtaIcon: ArrowRight,
       };
   }
 }
+
+const EMPTY_PERKS = [
+  { Icon: BookOpen, label: "Tous les magazines" },
+  { Icon: Newspaper, label: "Articles payants" },
+  { Icon: Smartphone, label: "Lecture multi-appareils" },
+] as const;
 
 export default function MonAbonnementPage() {
   const router = useRouter();
@@ -150,49 +159,63 @@ export default function MonAbonnementPage() {
             <p>{error}</p>
           </div>
         ) : (
-          <article className="opt-sub-card">
-            <div className="opt-sub-card__top">
-              <div className="opt-sub-card__icon" aria-hidden>
-                <Icon size={22} strokeWidth={2} />
-              </div>
+          <article
+            className={`opt-sub-card opt-sub-card--${status}`}
+            data-status={status}
+          >
+            <div className="opt-sub-card__mark" aria-hidden>
+              <Icon size={20} strokeWidth={2} />
+            </div>
+            <div className="opt-sub-card__copy">
+              <p className="opt-sub-card__kicker">Abonnement</p>
               <div className="opt-sub-card__heading">
                 <h2>{copy.title}</h2>
-                <span className={`opt-account__badge ${copy.badgeClass}`}>
-                  {copy.badge}
-                </span>
+                {status !== "none" ? (
+                  <span className={`opt-account__badge ${copy.badgeClass}`}>
+                    {copy.badge}
+                  </span>
+                ) : null}
               </div>
+              <p className="opt-sub-card__hint">
+                {status === "active"
+                  ? "Vous avez accès à tous les magazines numériques. Prolongez pour garder l’accès sans interruption."
+                  : status === "expired"
+                    ? "Votre accès lecture est suspendu. Prolongez votre abonnement pour le rétablir immédiatement."
+                    : status === "pending"
+                      ? "Un paiement est encore en cours ou incomplet. Finalisez pour activer votre accès."
+                      : "Souscrivez à une formule pour lire les magazines et les articles payants sans limite."}
+              </p>
+              {status === "none" ? (
+                <ul className="opt-sub-card__perks">
+                  {EMPTY_PERKS.map(({ Icon: PerkIcon, label }) => (
+                    <li key={label}>
+                      <PerkIcon size={14} strokeWidth={2.25} aria-hidden />
+                      <span>{label}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : library?.planName || expiresLabel ? (
+                <dl className="opt-sub-card__meta">
+                  <div>
+                    <dt>Formule</dt>
+                    <dd>{library?.planName || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt>
+                      {status === "active"
+                        ? "Valide jusqu’au"
+                        : status === "expired"
+                          ? "Expiré le"
+                          : "Échéance"}
+                    </dt>
+                    <dd>{expiresLabel || "—"}</dd>
+                  </div>
+                </dl>
+              ) : null}
             </div>
-
-            <dl className="opt-sub-card__meta">
-              <div>
-                <dt>Formule</dt>
-                <dd>{library?.planName || "—"}</dd>
-              </div>
-              <div>
-                <dt>
-                  {status === "active"
-                    ? "Valide jusqu’au"
-                    : status === "expired"
-                      ? "Expiré le"
-                      : "Échéance"}
-                </dt>
-                <dd>{expiresLabel || "—"}</dd>
-              </div>
-            </dl>
-
-            <p className="opt-sub-card__hint">
-              {status === "active"
-                ? "Vous avez accès à tous les magazines numériques. Prolongez pour garder l’accès sans interruption."
-                : status === "expired"
-                  ? "Votre accès lecture est suspendu. Prolongez votre abonnement pour le rétablir immédiatement."
-                  : status === "pending"
-                    ? "Un paiement est encore en cours ou incomplet. Finalisez pour activer votre accès."
-                    : "Souscrivez à une formule pour lire tous les numéros de L'Entrevue sans limite."}
-            </p>
-
             <Link href="/abonnement" className="opt-sub-card__cta">
-              <CtaIcon size={16} strokeWidth={2.25} aria-hidden />
               {copy.cta}
+              <CtaIcon size={16} strokeWidth={2.25} aria-hidden />
             </Link>
           </article>
         )}

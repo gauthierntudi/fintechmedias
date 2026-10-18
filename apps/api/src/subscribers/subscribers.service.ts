@@ -244,11 +244,11 @@ export class SubscribersService {
       ...(q
         ? {
             OR: [
-              { email: { contains: q, mode: 'insensitive' } },
-              { name: { contains: q, mode: 'insensitive' } },
-              { phone: { contains: q, mode: 'insensitive' } },
-              { subscriberCode: { contains: q, mode: 'insensitive' } },
-              { country: { contains: q, mode: 'insensitive' } },
+              { email: { contains: q } },
+              { name: { contains: q } },
+              { phone: { contains: q } },
+              { subscriberCode: { contains: q } },
+              { country: { contains: q } },
             ],
           }
         : {}),

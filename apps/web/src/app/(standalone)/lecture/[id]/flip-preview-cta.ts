@@ -1,6 +1,6 @@
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
 
-const DEFAULT_CTA_THEME = { bgColor: "#111111", accentColor: "#e42320" };
+const DEFAULT_CTA_THEME = { bgColor: "#111111", accentColor: "#4ed319" };
 
 export function contrastOn(hex: string): string {
   const raw = hex.trim().replace(/^#/, "");

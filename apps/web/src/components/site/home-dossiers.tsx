@@ -17,7 +17,7 @@ export function HomeDossiers({
       <div className="opt-dossiers__inner">
         <header className="opt-dossiers__head">
           <h2 className="opt-dossiers__title">
-            <Link href="/rubrique/ecosysteme-pme">Écosystème PME</Link>
+            <Link href="/rubrique/actualites">Actualités</Link>
           </h2>
         </header>
 

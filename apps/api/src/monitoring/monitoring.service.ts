@@ -142,7 +142,7 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
         return { sent: false, reason: 'no-superadmins' };
       }
 
-      const subject = `[ENTREVUE] Monitoring — ${snap.overall.toUpperCase()}`;
+      const subject = `[Fintech Médias] Monitoring — ${snap.overall.toUpperCase()}`;
       const html = this.mail.wrap({
         title: `Monitoring — ${snap.overall.toUpperCase()}`,
         preheader: issues[0] ?? 'Alerte infrastructure ENTREVUE',
@@ -228,9 +228,9 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
       </table>
       <table role="presentation" cellpadding="0" cellspacing="0">
         <tr>
-          <td style="border-radius:10px;background:#d63026;">
+          <td style="border-radius:10px;background:#4ed319;">
             <a href="${escapeHtml(appUrl)}/admin/monitoring"
-               style="display:inline-block;padding:13px 22px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;">
+               style="display:inline-block;padding:13px 22px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:#111111;text-decoration:none;">
               Ouvrir le monitoring
             </a>
           </td>

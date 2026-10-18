@@ -122,7 +122,7 @@ export const SOCIAL_NETWORK_META: Record<
   },
   other: {
     label: "Autre",
-    tone: "#e42320",
+    tone: "#4ed319",
     placeholder: "https://…",
   },
 };

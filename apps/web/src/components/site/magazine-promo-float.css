@@ -1,6 +1,6 @@
 .opt-mag-float {
   --opt-navy: #111111;
-  --opt-teal: #e42320;
+  --opt-teal: #4ed319;
   position: fixed;
   z-index: 60;
   right: max(1rem, env(safe-area-inset-right));
@@ -110,7 +110,7 @@
   font-weight: 750;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--mag-accent, #e42320);
+  color: var(--mag-accent, #4ed319);
 }
 
 .opt-mag-float__title {
@@ -138,7 +138,7 @@
   font-weight: 700;
   color: var(--mag-on-accent, #111111);
   text-decoration: none;
-  background: var(--mag-accent, #e42320);
+  background: var(--mag-accent, #4ed319);
   border: 0;
 }
 

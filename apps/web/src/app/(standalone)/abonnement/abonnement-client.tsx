@@ -3,35 +3,16 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import {
-  Check,
-  Loader2,
-  Smartphone,
-} from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "@/components/auth-provider";
-import { MagazinePromoFloat } from "@/components/site/magazine-promo-float";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
-import {
-  magazinesPublicApi,
-  paymentsApi,
-  plansApi,
-  type PublicPlan,
-} from "@/lib/api";
-import { DEMO_MAGAZINES } from "@/lib/legacy-demo";
+import { paymentsApi, plansApi, type PublicPlan } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import "./abonnement.css";
 
-const DEFAULT_THEME = { bgColor: "#111111", accentColor: "#e42320" };
-
-type CoverState = {
-  id: string;
-  title: string;
-  coverUrl: string;
-  issueNumber: string | null;
-  theme: { bgColor: string; accentColor: string };
-};
+const PLAN_TONES = ["forest", "impact", "ash", "carbon"] as const;
 
 function formatMoney(cents: number, currency: string): string {
   return new Intl.NumberFormat("fr-FR", {
@@ -64,10 +45,8 @@ function abonnementAuthNext(phone: string): string {
 
 function AbonnementInner({
   initialPlans,
-  initialCover,
 }: {
   initialPlans: PublicPlan[];
-  initialCover: CoverState | null;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -84,8 +63,6 @@ function AbonnementInner({
   const [flexStatus, setFlexStatus] = useState<
     "PENDING" | "SUCCESS" | "FAILED" | "CANCELLED" | "REFUNDED" | null
   >(null);
-  const [cover, setCover] = useState<CoverState | null>(initialCover);
-  const [desktopFloat, setDesktopFloat] = useState(false);
 
   const cancelled = searchParams.get("cancelled") === "1";
   const authNext = useMemo(
@@ -100,47 +77,15 @@ function AbonnementInner({
   }, [searchParams]);
 
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 641px)");
-    const sync = () => setDesktopFloat(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
-
-  useEffect(() => {
     let alive = true;
     if (initialPlans.length === 0) setPlansLoading(true);
     void (async () => {
       try {
-        const [plansRes, latest] = await Promise.all([
-          plansApi.list(),
-          magazinesPublicApi.latest().catch(() => null),
-        ]);
+        const plansRes = await plansApi.list();
         if (!alive) return;
         setPlans(plansRes.items);
         if (plansRes.items[0]) {
           setSelectedPlanId((prev) => prev ?? plansRes.items[0]!.id);
-        }
-        if (latest?.coverUrl && latest.id) {
-          setCover({
-            id: latest.id,
-            title: latest.title,
-            coverUrl: latest.coverUrl,
-            issueNumber: latest.issueNumber,
-            theme: latest.theme ?? DEFAULT_THEME,
-          });
-        } else if (!initialCover) {
-          const demo = DEMO_MAGAZINES[0];
-          setCover({
-            id: String(demo.id),
-            title: demo.titre,
-            coverUrl: demo.cover,
-            issueNumber: null,
-            theme: {
-              bgColor: demo.bgColor,
-              accentColor: demo.themeColor,
-            },
-          });
         }
       } catch (err) {
         if (!alive || initialPlans.length > 0) return;
@@ -156,7 +101,7 @@ function AbonnementInner({
     return () => {
       alive = false;
     };
-  }, [initialCover, initialPlans.length]);
+  }, [initialPlans.length]);
 
   useEffect(() => {
     if (cancelled) {
@@ -283,77 +228,91 @@ function AbonnementInner({
       <SiteHeader />
       <div className="opt-abo">
         <main className="opt-abo__shell">
-          <section className="opt-abo__checkout" aria-labelledby="abo-title">
-            <div className="opt-abo__checkout-inner">
-              <header className="opt-abo__intro">
-                <p className="opt-abo__eyebrow">Abonnement numérique</p>
-                <h1 id="abo-title">Lisez partout. Tout de suite.</h1>
-                <p className="opt-abo__lead">
-                  Accès illimité à tous les numéros — activation dès validation
-                  du paiement.
-                </p>
-              </header>
+          <header className="opt-abo__intro">
+            <p className="opt-abo__eyebrow">Abonnement</p>
+            <h1 id="abo-title">
+              Lisez partout.
+              <br />
+              <span className="opt-abo__title-accent">Tout de suite.</span>
+            </h1>
+            <p className="opt-abo__lead">
+              Accès illimité à tous les numéros — activation dès validation
+              du paiement.
+            </p>
+          </header>
 
-              <div className="opt-abo__block">
-                <h2 className="opt-abo__block-title">Formule</h2>
-                {plansLoading ? (
-                  <p className="opt-abo__muted">
-                    <Loader2 className="opt-abo__spin" size={18} aria-hidden />
-                    Chargement des formules…
-                  </p>
-                ) : plans.length === 0 ? (
-                  <p className="opt-abo__muted">
-                    Aucune formule active pour le moment.
-                  </p>
-                ) : (
-                  <ul className="opt-abo__plans" role="list">
-                    {plans.map((plan) => {
-                      const active = plan.id === selectedPlanId;
-                      return (
-                        <li key={plan.id}>
-                          <button
-                            type="button"
-                            className={cn(
-                              "opt-abo__plan",
-                              active && "opt-abo__plan--active",
-                            )}
-                            onClick={() => setSelectedPlanId(plan.id)}
-                            aria-pressed={active}
-                          >
-                            <span className="opt-abo__plan-radio" aria-hidden />
-                            <span className="opt-abo__plan-body">
-                              <span className="opt-abo__plan-name">
-                                {plan.name}
-                              </span>
-                              {plan.description ? (
-                                <span className="opt-abo__plan-desc">
-                                  {plan.description}
-                                </span>
-                              ) : null}
-                            </span>
-                            <span className="opt-abo__plan-price">
-                              {formatMoney(plan.priceCents, plan.currency)}
-                              <small>/{durationLabel(plan.durationDays)}</small>
-                            </span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
+          <section className="opt-abo__formules" aria-labelledby="abo-formules">
+            <div className="opt-abo__formules-head">
+              <h2 id="abo-formules" className="opt-abo__eyebrow">
+                Formules
+              </h2>
+              <p>Quatre durées. Le même accès, dès que le paiement est validé.</p>
+            </div>
 
+            {plansLoading ? (
+              <p className="opt-abo__muted">
+                <Loader2 className="opt-abo__spin" size={18} aria-hidden />
+                Chargement des formules…
+              </p>
+            ) : plans.length === 0 ? (
+              <p className="opt-abo__muted">
+                Aucune formule active pour le moment.
+              </p>
+            ) : (
+              <ul className="opt-abo__plans" role="list">
+                {plans.map((plan, index) => {
+                  const active = plan.id === selectedPlanId;
+                  const tone = PLAN_TONES[index % PLAN_TONES.length];
+                  return (
+                    <li key={plan.id}>
+                      <button
+                        type="button"
+                        className={cn(
+                          "opt-abo__plan",
+                          `opt-abo__plan--${tone}`,
+                          active && "opt-abo__plan--active",
+                        )}
+                        onClick={() => setSelectedPlanId(plan.id)}
+                        aria-pressed={active}
+                      >
+                        <span className="opt-abo__plan-top">
+                          <span className="opt-abo__plan-index" aria-hidden>
+                            {index + 1}
+                          </span>
+                          <span
+                            className="opt-abo__plan-switch"
+                            aria-hidden
+                          />
+                        </span>
+                        <span className="opt-abo__plan-body">
+                          <span className="opt-abo__plan-name">{plan.name}</span>
+                          <span className="opt-abo__plan-price">
+                            {formatMoney(plan.priceCents, plan.currency)}
+                            <small> / {durationLabel(plan.durationDays)}</small>
+                          </span>
+                          {plan.description ? (
+                            <span className="opt-abo__plan-desc">
+                              {plan.description}
+                            </span>
+                          ) : null}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+
+          <div className="opt-abo__lower">
+            <section className="opt-abo__pay" aria-labelledby="abo-pay">
               {selected ? (
                 <div className="opt-abo__summary" aria-live="polite">
                   <div className="opt-abo__summary-row">
-                    <span>Sous-total</span>
+                    <span>{selected.name}</span>
                     <span>
                       {formatMoney(selected.priceCents, selected.currency)}
                     </span>
-                  </div>
-                  <div className="opt-abo__summary-row">
-                    <span>Taxes</span>
-                    <span>—</span>
                   </div>
                   <div className="opt-abo__summary-due">
                     <span>À régler aujourd’hui</span>
@@ -365,11 +324,23 @@ function AbonnementInner({
               ) : null}
 
               <div className="opt-abo__block">
-                <h2 className="opt-abo__block-title">Paiement Mobile Money</h2>
-                <p className="opt-abo__muted" style={{ margin: "0 0 0.85rem" }}>
-                  <Smartphone size={16} aria-hidden /> FlexPaie — Airtel, Orange,
-                  M-Pesa
-                </p>
+                <h2 id="abo-pay" className="opt-abo__block-title">
+                  Paiement Mobile Money
+                </h2>
+                <ul className="opt-abo__brands">
+                  <li>
+                    <img src="/brand/airtel.jpg" alt="Airtel Money" />
+                  </li>
+                  <li>
+                    <img src="/brand/mpesa01.jpg" alt="M-Pesa" />
+                  </li>
+                  <li>
+                    <img src="/brand/orange3.jpg" alt="Orange Money" />
+                  </li>
+                  <li>
+                    <img src="/brand/card.jpg" alt="Visa et Mastercard" />
+                  </li>
+                </ul>
                 <label className="opt-abo__field">
                   <span>Numéro Mobile Money (RDC)</span>
                   <input
@@ -404,9 +375,7 @@ function AbonnementInner({
                   <button
                     type="button"
                     className="opt-abo__cta"
-                    disabled={
-                      busy || !selected || Boolean(flexPendingId)
-                    }
+                    disabled={busy || !selected || Boolean(flexPendingId)}
                     onClick={() => void startCheckout()}
                   >
                     {busy ? (
@@ -447,50 +416,26 @@ function AbonnementInner({
                 </Link>{" "}
                 et accédez immédiatement à votre abonnement après paiement.
               </p>
+            </section>
 
-              <p className="opt-abo__secure">
-                Transactions chiffrées et sécurisées
-              </p>
-            </div>
-          </section>
-
-          <aside
-            className="opt-abo__stage"
-            aria-label={
-              cover ? `Couverture — ${cover.title}` : "Visuel abonnement"
-            }
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={cover?.coverUrl || "/legacy/img/abonnement.jpg"}
-              alt=""
-              className="opt-abo__stage-img"
-            />
-            <div className="opt-abo__stage-shade" aria-hidden />
-            {cover ? (
+            <aside className="opt-abo__stage" aria-label="Visuel abonnement">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/legacy/img/13197.jpg"
+                alt=""
+                className="opt-abo__stage-img"
+              />
+              <div className="opt-abo__stage-shade" aria-hidden />
               <div className="opt-abo__stage-meta">
-                <p className="opt-abo__stage-label">Nouveau numéro</p>
-                <p className="opt-abo__stage-title">{cover.title}</p>
+                <p className="opt-abo__stage-label">Abonnement</p>
+                <p className="opt-abo__stage-title">Tous les numéros</p>
                 <p className="opt-abo__stage-note">
-                  Inclus dans votre abonnement
+                  Lecture illimitée, dès la validation du paiement.
                 </p>
               </div>
-            ) : null}
-          </aside>
+            </aside>
+          </div>
         </main>
-
-      {cover && desktopFloat ? (
-        <MagazinePromoFloat
-          magazine={{
-            id: cover.id,
-            title: cover.title,
-            coverUrl: cover.coverUrl,
-            theme: cover.theme,
-          }}
-          eyebrow="Nouveau numéro"
-          showDelayMs={1200}
-        />
-      ) : null}
 
       {flexPendingId ? (
         <div
@@ -566,10 +511,8 @@ function AbonnementInner({
 
 export default function AbonnementClient({
   initialPlans,
-  initialCover,
 }: {
   initialPlans: PublicPlan[];
-  initialCover: CoverState | null;
 }) {
   return (
     <Suspense
@@ -585,9 +528,7 @@ export default function AbonnementClient({
         </>
       }
     >
-      <AbonnementInner
-        initialPlans={initialPlans}
-        initialCover={initialCover}
+      <AbonnementInner initialPlans={initialPlans}
       />
     </Suspense>
   );

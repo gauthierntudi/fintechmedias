@@ -6,8 +6,8 @@
   --opt-ft-line: rgba(255, 255, 255, 0.1);
   --opt-ft-muted: rgba(255, 255, 255, 0.62);
   --opt-ft-text: #f4f4f4;
-  --opt-ft-teal: var(--entrevue-red, #e42320);
-  --opt-ft-red: var(--entrevue-red, #e42320);
+  --opt-ft-teal: var(--entrevue-red, #4ed319);
+  --opt-ft-red: var(--entrevue-red, #4ed319);
 
   position: relative;
   background: var(--opt-ft-bg);
@@ -62,7 +62,7 @@
   margin-bottom: 1.25rem;
   padding: 0.65rem 1.15rem;
   background: var(--opt-ft-red);
-  color: #fff !important;
+  color: #111111 !important;
   font-family: var(--opt-font-sans);
   font-size: 0.8rem;
   font-weight: 800;
@@ -249,9 +249,12 @@
   color: rgba(255, 255, 255, 0.92);
 }
 
-.opt-ft__copy a {
+.opt-ft__copy a,
+.opt-ft__copy a:hover,
+.opt-ft__copy a:focus,
+.opt-ft__copy a:active {
   font-weight: 800;
-  color: #fff;
+  color: var(--entrevue-red, #4ed319);
 }
 
 .opt-ft__legal {

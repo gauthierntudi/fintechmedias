@@ -435,21 +435,21 @@ export default function MagazinesPage() {
         ) : null}
 
         {SUBSCRIPTIONS_ENABLED && status === "none" ? (
-          <div className="opt-mags__state opt-mags__state--info">
-            <div className="opt-mags__state-icon" aria-hidden>
-              <Star {...ICON} />
+          <div className="opt-mags__subscribe">
+            <div className="opt-mags__subscribe-mark" aria-hidden>
+              <Star size={20} strokeWidth={2} />
             </div>
-            <h2>Aucun abonnement actif</h2>
-            <p>
-              Souscrivez à une formule pour accéder à tous les magazines
-              payants sans limite, sur tous vos appareils.
-            </p>
-            <Link
-              href="/abonnement"
-              className="opt-mags__btn opt-mags__btn--primary"
-            >
-              <ArrowRight size={15} strokeWidth={2} aria-hidden />
+            <div className="opt-mags__subscribe-copy">
+              <p className="opt-mags__subscribe-kicker">Abonnement</p>
+              <h2>Aucun abonnement actif</h2>
+              <p>
+                Souscrivez à une formule pour accéder à tous les magazines
+                payants sans limite, sur tous vos appareils.
+              </p>
+            </div>
+            <Link href="/abonnement" className="opt-mags__subscribe-cta">
               Voir les formules
+              <ArrowRight size={15} strokeWidth={2} aria-hidden />
             </Link>
           </div>
         ) : null}

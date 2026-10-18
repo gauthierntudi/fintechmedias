@@ -2,7 +2,7 @@
   --legal-ink: var(--site-ink, #111111);
   --legal-muted: var(--site-muted, #6b6b6b);
   --legal-line: var(--site-line, #e6e6e6);
-  --legal-accent: var(--entrevue-red, #e42320);
+  --legal-accent: var(--entrevue-red, #4ed319);
   --legal-card: var(--site-card, #ffffff);
   --legal-bg: var(--site-bg, #ffffff);
   background: var(--legal-bg);
@@ -51,7 +51,7 @@
   right: 0;
   bottom: -1px;
   height: 2px;
-  background: var(--entrevue-red, #e42320);
+  background: var(--entrevue-red, #4ed319);
 }
 
 .opt-legal__hero {
@@ -127,37 +127,80 @@
 
 .opt-legal__contact {
   margin-top: 2.75rem;
-  padding: 1.25rem 1.35rem;
-  background: var(--legal-card);
-  border: 1px solid var(--legal-line);
-  border-radius: 14px;
+  padding: 1.4rem 1.4rem 1.45rem;
+  background: #111111;
+  border: 0;
+  border-radius: 0;
   font-family: var(--opt-font-sans), system-ui, sans-serif;
-  font-size: 0.92rem;
-  line-height: 1.55;
-  color: var(--legal-muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .opt-legal__contact-label {
-  margin: 0 0 0.35rem;
-  font-size: 0.68rem;
+  margin: 0 0 0.45rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--legal-muted);
+  color: #4ed319;
 }
 
 .opt-legal__contact-name {
-  margin: 0 0 0.2rem;
-  font-weight: 700;
-  color: var(--legal-ink);
+  margin: 0;
+  font-family: var(--opt-font-display), system-ui, sans-serif;
+  font-size: 1.45rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #fff;
+}
+
+.opt-legal__contact-list {
+  list-style: none;
+  margin: 0.95rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
 }
 
 .opt-legal__contact p {
   margin: 0;
 }
 
-.opt-legal__contact a {
-  color: var(--legal-accent);
+.opt-legal__contact-list a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.opt-legal__contact-list a:hover {
+  color: #4ed319;
+}
+
+a.opt-legal__contact-cta,
+a.opt-legal__contact-cta:hover,
+a.opt-legal__contact-cta:focus,
+a.opt-legal__contact-cta:active {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 1.15rem;
+  padding: 0.72rem 1rem;
+  border-radius: 0;
+  background: #4ed319;
+  color: #111111;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+}
+
+a.opt-legal__contact-cta:hover {
+  background: #3aaa12;
+}
+
+a.opt-legal__contact-cta:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
 }
 
 @media (min-width: 768px) {

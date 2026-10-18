@@ -13,9 +13,9 @@ type Props = {
 };
 
 const BADGE_PALETTE = [
-  { background: "#e42320", color: "#ffffff" },
+  { background: "#4ed319", color: "#111111" },
   { background: "#111111", color: "#ffffff" },
-  { background: "#c21e1b", color: "#ffffff" },
+  { background: "#3aaa12", color: "#111111" },
   { background: "#1a1a1a", color: "#ffffff" },
 ] as const;
 

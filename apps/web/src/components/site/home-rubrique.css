@@ -4,22 +4,35 @@
   --opt-r-ink: #111111;
   --opt-r-muted: #6b6b6b;
   --opt-r-line: #e6e6e6;
-  --opt-r-teal: #e42320;
-  --opt-r-tag: #e42320;
+  --opt-r-teal: #4ed319;
+  --opt-r-tag: #4ed319;
   --opt-r-tag-yellow: #ca8a04;
-  --opt-r-red: #e42320;
+  --opt-r-red: #4ed319;
 
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   background: #fff;
   padding: 2.5rem 1.5rem 3rem;
 }
 
 .opt-rub__inner {
+  box-sizing: border-box;
+  width: 100%;
   max-width: 1280px;
+  min-width: 0;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-  gap: 2rem;
+  /* Empilé par défaut — plus stable au scroll mobile que le desktop-first */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.75rem;
   align-items: start;
+}
+
+.opt-rub__main {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .opt-rub a {
@@ -55,7 +68,7 @@
 }
 
 .opt-rub__title.opt-rub__title--red {
-  color: #e42320;
+  color: #4ed319;
 }
 
 .opt-rub__title.opt-rub__title--blue {
@@ -63,7 +76,7 @@
 }
 
 .opt-rub__title.opt-rub__title--gold {
-  color: #e42320;
+  color: #4ed319;
 }
 
 .opt-rub__title.opt-rub__title--teal {
@@ -112,9 +125,10 @@
 
 .opt-rub__main-body {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.1rem;
   align-items: stretch;
+  min-width: 0;
 }
 
 /* Featured (image + overlay) */
@@ -281,6 +295,21 @@
   white-space: nowrap;
 }
 
+.opt-rub__meta-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.opt-rub__meta-avatar {
+  width: 1.55rem;
+  height: 1.55rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 /* Grid 2x2 */
 .opt-rub__grid {
   display: grid;
@@ -306,8 +335,8 @@
 .opt-rub__main-body .opt-rub__grid {
   align-content: stretch;
   align-items: stretch;
-  height: 100%;
-  min-height: 440px;
+  height: auto;
+  min-height: 0;
 }
 
 .opt-rub__featured--tile {
@@ -370,11 +399,12 @@
   color: var(--opt-r-muted);
 }
 
-/* Sidebar plus vus — sticky au scroll */
+/* Sidebar — sticky uniquement en 2 colonnes (voir @container) */
 .opt-rub__side {
-  position: sticky;
-  top: 5.5rem;
+  position: static;
   align-self: start;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .opt-rub__side .opt-rub__featured {
@@ -442,53 +472,57 @@
   color: var(--opt-r-red);
 }
 
-@media (max-width: 1099px) {
-  .opt-rub__inner {
-    grid-template-columns: 1fr;
-  }
-
-  .opt-rub__side {
-    position: static;
-  }
-
+/* Tablette : featured + grille côte à côte, sidebar toujours dessous */
+@media (min-width: 720px) {
   .opt-rub__main-body {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  }
+
+  .opt-rub__main-body .opt-rub__grid {
+    height: 100%;
+    min-height: 360px;
   }
 
   .opt-rub__side .opt-rub__featured {
-    min-height: 320px;
+    min-height: 300px;
   }
 }
 
-@media (max-width: 767px) {
-  .opt-rub {
-    padding: 2rem 1rem 2.5rem;
+/* Desktop large : main + sidebar, sticky stable (hors zone de bascule mobile) */
+@media (min-width: 1100px) {
+  .opt-rub__inner {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 2rem;
   }
 
-  .opt-rub__main-body {
-    grid-template-columns: 1fr;
+  .opt-rub__side {
+    position: sticky;
+    top: 5.5rem;
+  }
+
+  .opt-rub__main-body .opt-rub__grid {
+    min-height: 440px;
+  }
+
+  .opt-rub__side .opt-rub__featured {
+    min-height: 240px;
+  }
+}
+
+@media (max-width: 719px) {
+  .opt-rub {
+    padding: 2rem 1rem 2.5rem;
   }
 
   .opt-rub__featured {
     min-height: 320px;
   }
 
-  .opt-rub__grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .opt-rub__main-body .opt-rub__grid {
-    min-height: 0;
-  }
-
   .opt-rub__featured--tile {
     min-height: 200px;
   }
-}
 
-@media (max-width: 480px) {
   .opt-rub__grid {
-    grid-template-columns: 1fr 1fr;
     gap: 0.85rem 0.55rem;
   }
 

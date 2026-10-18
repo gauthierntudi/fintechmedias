@@ -13,26 +13,30 @@ class ArticleTile extends StatelessWidget {
     this.compact = false,
     this.showMeta = true,
     this.showExcerpt = false,
+    this.playlist,
   });
 
   final ArticleCard article;
   final bool compact;
   final bool showMeta;
   final bool showExcerpt;
+  final List<ArticleCard>? playlist;
 
   @override
   Widget build(BuildContext context) {
-    final video =
-        isVideoRubrique(article.category, article.categoryLabel) ||
-        article.hasReadyVideo;
+    final video = article.hasReadyVideo;
     final clock = article.durationClock;
     final scheme = Theme.of(context).colorScheme;
     final thumbH = compact ? 72.0 : 88.0;
     final thumbW = thumbH * 4 / 3;
+    final coverUrl = video
+        ? (article.videoPosterUrl ?? article.coverUrl)
+        : article.coverUrl;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => openArticleCard(context, article),
+        onTap: () =>
+            openArticleCard(context, article, playlist: playlist),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
@@ -43,11 +47,11 @@ class ArticleTile extends StatelessWidget {
                 width: thumbW,
                 height: thumbH,
                 child: Cover(
-                  url: article.videoPosterUrl ?? article.coverUrl,
+                  url: coverUrl,
                   play: video && clock.isEmpty,
                   duration: clock,
                   height: thumbH,
-                  radius: 12,
+                  radius: 0,
                 ),
               ),
               const SizedBox(width: 14),
@@ -118,17 +122,17 @@ class FeaturedCard extends StatelessWidget {
     required this.article,
     this.badge,
     this.showExcerpt = false,
+    this.playlist,
   });
 
   final ArticleCard article;
   final String? badge;
   final bool showExcerpt;
+  final List<ArticleCard>? playlist;
 
   @override
   Widget build(BuildContext context) {
-    final video =
-        isVideoRubrique(article.category, article.categoryLabel) ||
-        article.hasReadyVideo;
+    final video = article.hasReadyVideo;
     final clock = article.durationClock;
     final tone = AppTheme.toneColor(article.categoryTone);
     final label =
@@ -136,13 +140,15 @@ class FeaturedCard extends StatelessWidget {
         (article.categoryLabel.isNotEmpty
             ? capitalizeLabel(article.categoryLabel)
             : 'À la une');
+    final coverUrl = video
+        ? (article.videoPosterUrl ?? article.coverUrl)
+        : article.coverUrl;
 
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(22),
-      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => openArticleCard(context, article),
+        onTap: () =>
+            openArticleCard(context, article, playlist: playlist),
         child: AspectRatio(
           aspectRatio: 4 / 3,
           child: LayoutBuilder(
@@ -151,10 +157,10 @@ class FeaturedCard extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   Cover(
-                    url: article.videoPosterUrl ?? article.coverUrl,
+                    url: coverUrl,
                     play: video && clock.isEmpty,
                     height: constraints.maxHeight,
-                    radius: 22,
+                    radius: 0,
                   ),
                   const DecoratedBox(
                     decoration: BoxDecoration(
@@ -190,7 +196,7 @@ class FeaturedCard extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: tone,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.zero,
                           ),
                           child: Text(
                             label,

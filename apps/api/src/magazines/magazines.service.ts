@@ -106,9 +106,9 @@ export class MagazinesService {
       ...(q
         ? {
             OR: [
-              { title: { contains: q, mode: 'insensitive' } },
-              { issueNumber: { contains: q, mode: 'insensitive' } },
-              { description: { contains: q, mode: 'insensitive' } },
+              { title: { contains: q } },
+              { issueNumber: { contains: q } },
+              { description: { contains: q } },
             ],
           }
         : {}),
@@ -288,7 +288,7 @@ export class MagazinesService {
     bgColor: string;
     accentColor: string;
   } {
-    const fallback = { bgColor: '#111111', accentColor: '#d63026' };
+    const fallback = { bgColor: '#111111', accentColor: '#4ed319' };
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return fallback;
     const obj = raw as Record<string, unknown>;
     const bg =

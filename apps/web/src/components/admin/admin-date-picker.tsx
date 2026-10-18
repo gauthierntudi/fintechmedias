@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { CalendarDays, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -116,6 +117,8 @@ export function AdminDatePicker({
 }: AdminDatePickerProps) {
   const id = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const selected = useMemo(() => (value ? parseIso(value) : null), [value]);
   const minDate = useMemo(() => (min ? parseIso(min) : null), [min]);
@@ -133,9 +136,14 @@ export function AdminDatePicker({
   useEffect(() => {
     if (!open) return;
     function onPointerDown(e: PointerEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) {
-        setOpen(false);
+      const target = e.target as Node;
+      if (
+        rootRef.current?.contains(target) ||
+        popoverRef.current?.contains(target)
+      ) {
+        return;
       }
+      setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
@@ -166,6 +174,40 @@ export function AdminDatePicker({
     setOpen(false);
   }
 
+  useLayoutEffect(() => {
+    if (!open) return;
+    const pop = popoverRef.current;
+    const trigger = triggerRef.current;
+    if (!pop || !trigger) return;
+
+    function place() {
+      if (!pop || !trigger) return;
+      const rect = trigger.getBoundingClientRect();
+      const width = pop.offsetWidth;
+      const height = pop.offsetHeight;
+      let left = rect.left;
+      let top = rect.bottom + 6;
+      if (left + width > window.innerWidth - 8) {
+        left = Math.max(8, window.innerWidth - width - 8);
+      }
+      if (top + height > window.innerHeight - 8) {
+        const above = rect.top - height - 6;
+        top = above >= 8 ? above : Math.max(8, window.innerHeight - height - 8);
+      }
+      pop.style.top = `${top}px`;
+      pop.style.left = `${left}px`;
+      pop.style.visibility = "visible";
+    }
+
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [open, month]);
+
   return (
     <div
       ref={rootRef}
@@ -179,6 +221,7 @@ export function AdminDatePicker({
       {hideLabel ? null : <span id={`${id}-label`}>{label}</span>}
       <div className="admin-datepicker__wrap">
         <button
+          ref={triggerRef}
           type="button"
           id={id}
           className={cn(
@@ -206,9 +249,11 @@ export function AdminDatePicker({
           </button>
         ) : null}
 
-        {open ? (
+        {open
+          ? createPortal(
           <div
-            className="admin-datepicker__popover"
+            ref={popoverRef}
+            className="admin-datepicker__popover admin-datepicker__popover--fixed"
             role="dialog"
             aria-label={`Calendrier — ${label}`}
           >
@@ -275,8 +320,10 @@ export function AdminDatePicker({
                 Aujourd’hui
               </button>
             </div>
-          </div>
-        ) : null}
+          </div>,
+          document.querySelector(".snow-dash") ?? document.body,
+        )
+          : null}
       </div>
     </div>
   );

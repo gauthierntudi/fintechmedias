@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import type { PublicPlan } from "@/lib/api";
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
-import { DEMO_MAGAZINES } from "@/lib/legacy-demo";
 import AbonnementClient from "./abonnement-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
@@ -19,59 +18,10 @@ async function loadPlans(): Promise<PublicPlan[]> {
   }
 }
 
-async function loadCover(): Promise<{
-  id: string;
-  title: string;
-  coverUrl: string;
-  issueNumber: string | null;
-  theme: { bgColor: string; accentColor: string };
-} | null> {
-  try {
-    const res = await fetch(`${API_URL}/api/magazines/latest`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) return null;
-    const latest = (await res.json()) as {
-      id?: string;
-      title?: string;
-      coverUrl?: string | null;
-      issueNumber?: string | null;
-      theme?: { bgColor: string; accentColor: string } | null;
-    } | null;
-    if (latest?.coverUrl && latest.title && latest.id) {
-      return {
-        id: latest.id,
-        title: latest.title,
-        coverUrl: latest.coverUrl,
-        issueNumber: latest.issueNumber ?? null,
-        theme: latest.theme ?? { bgColor: "#111111", accentColor: "#e42320" },
-      };
-    }
-  } catch {
-    /* fallback demo */
-  }
-  const demo = DEMO_MAGAZINES[0];
-  return {
-    id: String(demo.id),
-    title: demo.titre,
-    coverUrl: demo.cover,
-    issueNumber: null,
-    theme: { bgColor: demo.bgColor, accentColor: demo.themeColor },
-  };
-}
-
 export default async function AbonnementPage() {
   if (!SUBSCRIPTIONS_ENABLED) redirect("/");
 
-  const [initialPlans, initialCover] = await Promise.all([
-    loadPlans(),
-    loadCover(),
-  ]);
+  const initialPlans = await loadPlans();
 
-  return (
-    <AbonnementClient
-      initialPlans={initialPlans}
-      initialCover={initialCover}
-    />
-  );
+  return <AbonnementClient initialPlans={initialPlans} />;
 }

@@ -25,14 +25,10 @@ import { ThemeToggle } from "./theme-toggle";
 import { BRAND } from "@/lib/brand";
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
 import { RUBRIQUES } from "@/lib/rubriques";
+import { HeaderRubriqueNav } from "./header-rubrique-nav";
 import "./site-header.css";
 
 const ICON = { size: 18, strokeWidth: 1.75 } as const;
-
-const NAV_PRIMARY = RUBRIQUES.map((r) => ({
-  href: r.href,
-  label: r.label,
-}));
 
 const FEATURED = {
   href: "/contact",
@@ -44,7 +40,7 @@ function navIsActive(pathname: string, href: string) {
 }
 
 /**
- * Header presse — identité L'Entrevue, logo centré, CTA abonnement.
+ * Header presse — Fintech Médias, logo centré, kiosque et abonnement.
  */
 export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
   const router = useRouter();
@@ -54,11 +50,20 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
   const [navHidden, setNavHidden] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [compactBrand, setCompactBrand] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
 
   const loggedIn = !loading && Boolean(user);
   const authHref = loggedIn ? "/magazines" : "/connexion";
   const authLabel = loggedIn ? "Mon compte" : "Se connecter";
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 409px)");
+    const sync = () => setCompactBrand(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     if (!loggedIn) {
@@ -204,31 +209,34 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
               aria-controls="opt-menu-drawer"
               onClick={() => setMenuOpen(true)}
             >
-              <Menu {...ICON} aria-hidden />
+              <Menu size={22} strokeWidth={1.75} aria-hidden />
               <span>Menu</span>
             </button>
 
             <span className="opt-header__vsep" aria-hidden />
 
+            <Link href="/" className="opt-header__brand" aria-label={`${BRAND.name} — Accueil`}>
+              {compactBrand ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={BRAND.icon}
+                  alt=""
+                  className="opt-header__brand-icon"
+                  width={32}
+                  height={32}
+                  aria-hidden
+                />
+              ) : (
+                <BrandLogo height={42} />
+              )}
+            </Link>
+          </div>
+
+          <div className="opt-header__center">
             <HeaderLiveSearch variant="header" />
           </div>
 
-          <Link href="/" className="opt-header__brand" aria-label={`${BRAND.name} — Accueil`}>
-            <BrandLogo height={42} />
-          </Link>
-
           <div className="opt-header__side opt-header__side--right">
-            <ThemeToggle />
-
-            <span className="opt-header__vsep" aria-hidden />
-
-            <Link href="/kiosque" className="opt-header__action">
-              <BookOpen {...ICON} aria-hidden />
-              <span>{BRAND.magazineName}</span>
-            </Link>
-
-            <span className="opt-header__vsep" aria-hidden />
-
             {loggedIn ? (
               <div className="opt-header__account" ref={accountRef}>
                 <button
@@ -323,7 +331,7 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
                 ) : null}
               </div>
             ) : (
-              <Link href={authHref} className="opt-header__action">
+              <Link href={authHref} className="opt-header__action opt-header__login">
                 <UserRound {...ICON} aria-hidden />
                 <span>{authLabel}</span>
               </Link>
@@ -337,42 +345,7 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
           </div>
         </div>
 
-        {showNav ? (
-          <nav
-            className="opt-header__nav"
-            aria-label="Rubriques"
-            aria-hidden={navHidden}
-          >
-            <ul className="opt-header__nav-list">
-              {NAV_PRIMARY.map((item) => {
-                const active = navIsActive(pathname, item.href);
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={active ? "is-active" : undefined}
-                      aria-current={active ? "page" : undefined}
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                );
-              })}
-              <li className="opt-header__nav-sep" aria-hidden />
-              <li>
-                <Link
-                  href={FEATURED.href}
-                  className={navIsActive(pathname, FEATURED.href) ? "is-active" : undefined}
-                  aria-current={
-                    navIsActive(pathname, FEATURED.href) ? "page" : undefined
-                  }
-                >
-                  {FEATURED.label}
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        ) : null}
+        {showNav ? <HeaderRubriqueNav hidden={navHidden} /> : null}
         <EmailVerifyBanner />
       </header>
 
@@ -429,6 +402,16 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
                 </li>
               );
             })}
+            <li>
+              <Link
+                href="/kiosque"
+                className={navIsActive(pathname, "/kiosque") ? "is-active" : undefined}
+                aria-current={navIsActive(pathname, "/kiosque") ? "page" : undefined}
+                onClick={() => setMenuOpen(false)}
+              >
+                Magazine
+              </Link>
+            </li>
             <li>
               <Link
                 href={FEATURED.href}

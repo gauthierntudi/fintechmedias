@@ -1,11 +1,11 @@
 /// API de production par défaut (le site est déjà en ligne).
 const kApiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'https://api.entrevue.com/api',
+  defaultValue: 'https://api.fintechmedias.com/api',
 );
 
-const kCdnBaseUrl = 'https://cdn.entrevue.com';
-const kSiteUrl = 'https://entrevue.com';
+const kCdnBaseUrl = 'https://cdn.fintechmedias.com';
+const kSiteUrl = 'https://fintechmedias.com';
 
 const kTurnstileSiteKey = String.fromEnvironment('TURNSTILE_SITE_KEY');
 
@@ -16,21 +16,25 @@ const kGoogleServerClientId = String.fromEnvironment('GOOGLE_CLIENT_ID');
 const kGoogleIosClientId = String.fromEnvironment('GOOGLE_IOS_CLIENT_ID');
 
 const kBrandBlack = 0xFF111111;
-const kBrandRed = 0xFFD63026;
+const kBrandRed = 0xFF4ED319;
 const kBrandWhite = 0xFFFFFFFF;
-/** Alias — anciens tokens navy / or / bleu. */
+/// Alias — anciens tokens navy / or / bleu.
 const kBrandNavy = kBrandBlack;
 const kBrandGold = kBrandRed;
 const kBrandBlue = kBrandBlack;
 
-const kMagazineName = "L'Entrevue";
+const kMagazineName = "Fintech Médias";
+const kBrandTagline = "Guide dans l’univers de la FinTech en Afrique.";
 
 const kRubriques = <({String slug, String label, String tone})>[
-  (slug: 'qu-en-dit-l-expert', label: "Qu'en dit l'expert", tone: 'teal'),
-  (slug: 'rencontre-avec', label: 'Rencontre Avec', tone: 'gold'),
-  (slug: 'entreprendre', label: 'Entreprendre', tone: 'red'),
-  (slug: 'ecosysteme-pme', label: 'Écosystème PME', tone: 'blue'),
-  (slug: 'femme', label: 'Femme', tone: 'dark'),
+  (slug: 'actualites', label: 'Actualités', tone: 'red'),
+  (slug: 'interview', label: 'Interview', tone: 'gold'),
+  (slug: 'economie', label: 'Économie', tone: 'blue'),
+  (slug: 'politique', label: 'Politique', tone: 'teal'),
+  (slug: 'international', label: 'Int’l', tone: 'dark'),
+  (slug: 'portrait', label: 'Édito', tone: 'gold'),
+  (slug: 'entreprise', label: 'Entreprise', tone: 'red'),
+  (slug: 'events', label: 'Events', tone: 'teal'),
 ];
 
 const kNewsRubriques = <({String slug, String label, String tone})>[
@@ -53,18 +57,28 @@ String toneFromCategory(String? category, [String? label]) {
   );
 
   const aliases = <String, String>{
-    'qu-en-dit-l-expert': 'teal',
-    'rencontre-avec': 'gold',
-    'entreprendre': 'red',
-    'ecosysteme-pme': 'blue',
-    'femme': 'dark',
+    'actualites': 'red',
+    'interview': 'gold',
+    'economie': 'blue',
+    'politique': 'teal',
+    'international': 'dark',
+    'portrait': 'gold',
+    'entreprise': 'red',
+    'events': 'teal',
     'stu-short': 'gold',
+    'rencontre-avec': 'gold',
+    'qu-en-dit-l-expert': 'gold',
+    'ecosysteme-pme': 'blue',
+    'femme': 'gold',
+    'entreprendre': 'red',
+    'innovation': 'red',
     'stu-talk': 'teal',
     'stu-stories': 'gold',
     'stu-news': 'red',
     'stu-data': 'blue',
     'stu-mag': 'dark',
-    'edito': 'red',
+    'edito': 'gold',
+    'édito': 'gold',
     'start-up': 'red',
     'vus-sur-le-net': 'red',
     'zoom': 'red',
@@ -89,12 +103,11 @@ String toneFromCategory(String? category, [String? label]) {
   return 'red';
 }
 
+/// Ancienne grille « portrait » réservée aux rubriques 100 % vidéo.
+/// Interview n’en fait plus partie : articles texte ou vidéo au cas par cas.
 bool isPortraitRubrique(String? slug) {
   final key = slug?.trim().toLowerCase() ?? '';
-  return key == 'rencontre-avec' ||
-      key == 'qu-en-dit-l-expert' ||
-      key == 'stu-stories' ||
-      key == 'stu-talk';
+  return key == 'stu-short' || key == 'short';
 }
 
 bool isShortRubrique(String? category, [String? label]) {
@@ -107,26 +120,12 @@ bool isShortRubrique(String? category, [String? label]) {
   return match(category) || match(label);
 }
 
+/// Rubrique 100 % vidéo (SHORT). Interview et les autres se jugent via [ArticleCard.hasReadyVideo].
 bool isVideoRubrique(String? category, [String? label]) {
   bool match(String? value) {
     if (value == null) return false;
     final key = value.trim().toLowerCase();
-    return key == 'rencontre-avec' ||
-        key == 'rencontre avec' ||
-        key == 'qu-en-dit-l-expert' ||
-        key == "qu'en dit l'expert" ||
-        key == 'stu-stories' ||
-        key == 'stu stories' ||
-        key == 'stu-talk' ||
-        key == 'stu talk' ||
-        key == 'stu-short' ||
-        key == 'short' ||
-        key == 'inspirationnel' ||
-        key == 'game-changers' ||
-        key == 'game-changer' ||
-        key == 'grandes-entrevues' ||
-        key == 'grande-entrevue' ||
-        key == 'entrevue-croisee';
+    return key == 'stu-short' || key == 'short';
   }
 
   return match(category) || match(label);

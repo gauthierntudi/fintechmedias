@@ -7,6 +7,7 @@ import {
   DEMO_A_NE_PAS_MANQUER_LIST,
   DEMO_DOSSIERS,
   DEMO_FEATURED,
+  DEMO_FOR_YOU,
   DEMO_FIL_INFO,
   DEMO_GAME_FEATURED,
   DEMO_GAME_GRID,
@@ -78,7 +79,9 @@ export function toTopStory(a: PublicArticleCard): TopStory {
     category: a.categoryLabel,
     categoryTone: tone(a.categoryTone),
     author: a.authorName,
+    authorAvatarUrl: a.authorAvatarUrl ?? null,
     dateLabel: a.dateLabel,
+    viewCount: a.viewCount,
     featured: true,
     sponsor: a.sponsor
       ? { name: a.sponsor.name, logoUrl: a.sponsor.logoUrl }
@@ -94,6 +97,7 @@ export function toRubriqueStory(a: PublicArticleCard): RubriqueStory {
     cover: a.coverUrl || FALLBACK_COVER,
     category: a.categoryLabel,
     author: a.authorName,
+    authorAvatarUrl: a.authorAvatarUrl ?? null,
     dateLabel: a.dateLabel,
     tagTone: tagTone(a.categoryTone),
     videoHlsUrl: a.videoHlsUrl ?? null,
@@ -130,9 +134,81 @@ function pickOne<T>(api: T[], demo: T): T {
   return api[0] ?? demo;
 }
 
+const FOR_YOU_CATEGORIES = [
+  "actualites",
+  "interview",
+  "economie",
+  "politique",
+  "international",
+  "portrait",
+  "entreprise",
+  "events",
+] as const;
+
+function seededOrder<T>(items: readonly T[], seed: number): T[] {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    const j = Math.abs((seed + i * 1103515245) % (i + 1));
+    const current = out[i];
+    out[i] = out[j]!;
+    out[j] = current!;
+  }
+  return out;
+}
+
+function publishedTime(card: PublicArticleCard) {
+  const time = Date.parse(card.publishedAt ?? "");
+  return Number.isNaN(time) ? 0 : time;
+}
+
+/** 4 rubriques tirées pour la session, puis les 5 articles les plus récents. */
+export function selectForYou(
+  feed: PublicHomeArticles | null,
+  seed: number,
+): TopStory[] {
+  const safeSeed = Number.isFinite(seed) && seed > 0 ? Math.floor(seed) : 1;
+  if (!feed) return seededOrder(DEMO_FOR_YOU, safeSeed).slice(0, 5);
+
+  const groups: Record<(typeof FOR_YOU_CATEGORIES)[number], PublicArticleCard[]> = {
+    actualites: feed.actualites ?? feed.ecosystemePme ?? [],
+    interview: feed.interview ?? feed.rencontreAvec ?? [],
+    economie: feed.economie ?? feed.innovation ?? [],
+    politique: feed.politique ?? feed.entreprendre ?? [],
+    international: feed.international ?? feed.expert ?? [],
+    portrait: feed.portrait ?? feed.femme ?? [],
+    entreprise: feed.entreprise ?? [],
+    events: feed.events ?? [],
+  };
+
+  const chosen = seededOrder(FOR_YOU_CATEGORIES, safeSeed).slice(0, 4);
+  const seen = new Set<string>();
+  const cards: PublicArticleCard[] = [];
+  for (const category of chosen) {
+    for (const card of groups[category]) {
+      if (seen.has(card.id)) continue;
+      seen.add(card.id);
+      cards.push(card);
+    }
+  }
+
+  cards.sort((a, b) => {
+    const delta = publishedTime(b) - publishedTime(a);
+    if (delta !== 0) return delta;
+    return (a.id.length * safeSeed) % 1000 - (b.id.length * safeSeed) % 1000;
+  });
+
+  const picked = cards.slice(0, 5).map(toTopStory);
+  if (picked.length >= 5) return picked;
+  const filler = DEMO_FOR_YOU.filter(
+    (story) => !picked.some((item) => String(item.id) === String(story.id)),
+  );
+  return [...picked, ...filler].slice(0, 5);
+}
+
 export type HomeArticlesView = {
   featured: TopStory[];
   topGrid: TopStory[];
+  forYou: TopStory[];
   ecosystemePme: DossierCard[];
   ecosystemePmeStories: RubriqueStory[];
   filInfo: { id: string | number; slug?: string; titre: string }[];
@@ -146,7 +222,9 @@ export type HomeArticlesView = {
   expertGrid: RubriqueStory[];
   femmeFeatured: RubriqueSplitStory;
   femmeGrid: RubriqueStory[];
+  femmeSlides: RubriqueSplitStory[];
   innovationStories: RubriqueStory[];
+  eventsStories: RubriqueStory[];
   aNePasManquerFeatured: RubriqueStory;
   aNePasManquerList: RubriqueStory[];
 };
@@ -155,29 +233,58 @@ export function buildHomeArticlesView(
   feed: PublicHomeArticles | null,
 ): HomeArticlesView {
   const featured = (feed?.featured ?? []).map(toTopStory);
-  const ecosystemePmeCards = (feed?.ecosystemePme ?? []).map(toDossierCard);
-  const ecosystemePmeStories = (feed?.ecosystemePme ?? []).map(toRubriqueStory);
+  const actualitesSource = feed?.actualites ?? feed?.ecosystemePme ?? [];
+  const interviewSource = feed?.interview ?? feed?.rencontreAvec ?? [];
+  const economieSource = feed?.economie ?? feed?.innovation ?? [];
+  const politiqueSource = feed?.politique ?? feed?.entreprendre ?? [];
+  const internationalSource = feed?.international ?? feed?.expert ?? [];
+  const portraitSource = feed?.portrait ?? feed?.femme ?? [];
+  const ecosystemePmeCards = actualitesSource.map(toDossierCard);
+  const ecosystemePmeStories = actualitesSource.map(toRubriqueStory);
   const filInfo = (feed?.filInfo ?? []).map((a) => ({
     id: a.id,
     slug: a.slug,
     titre: a.title,
   }));
-  const entreprendre = (feed?.entreprendre ?? []).map(toRubriqueStory);
-  const rencontre = (feed?.rencontreAvec ?? []).map(toSplitStory);
+  const entreprendre = politiqueSource.map(toRubriqueStory);
+  const rencontre = interviewSource.map(toSplitStory);
   const plusVus = (feed?.plusVus ?? []).map(toRubriqueStory);
-  const expert = (feed?.expert ?? []).map(toRubriqueStory);
-  const femme = (feed?.femme ?? []).map(toSplitStory);
-  const innovationStories = (feed?.innovation ?? []).map(toRubriqueStory);
+  const expert = internationalSource.map(toRubriqueStory);
+  const femme = portraitSource.map(toSplitStory);
+  const innovationStories = economieSource.map(toRubriqueStory);
+  const events = (feed?.events ?? []).map(toRubriqueStory);
   const miss = (feed?.aNePasManquer ?? []).map(toRubriqueStory);
+  const seen = new Set<string>();
+  const forYouLive = [
+    ...actualitesSource,
+    ...economieSource,
+    ...politiqueSource,
+    ...interviewSource,
+  ]
+    .map(toTopStory)
+    .filter((story) => {
+      const id = String(story.id);
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+
+  const topGridLive = (feed?.topGrid ?? []).map(toTopStory);
+  const topGridFallback = featured.slice(1, 5);
 
   return {
     featured: pick(featured, DEMO_FEATURED, 1),
-    topGrid: [],
+    topGrid: pick(
+      topGridLive.length > 0 ? topGridLive : topGridFallback,
+      DEMO_FEATURED.slice(1, 5),
+      1,
+    ).slice(0, 4),
+    forYou: forYouLive.length >= 5 ? forYouLive.slice(0, 5) : DEMO_FOR_YOU,
     ecosystemePme: pick(ecosystemePmeCards, DEMO_DOSSIERS, 1),
     ecosystemePmeStories: pick(ecosystemePmeStories, DEMO_DOSSIERS.map((s) => ({
       ...s,
-      category: "Écosystème PME",
-      author: "L'Entrevue",
+      category: "Actualités",
+      author: "Fintech Médias",
       dateLabel: "",
       tagTone: "blue" as const,
     })), 1),
@@ -203,14 +310,26 @@ export function buildHomeArticlesView(
     expertGrid: pick(expert.slice(1), DEMO_ZOOM_GRID, 1),
     femmeFeatured: pickOne(femme, DEMO_GAME_FEATURED),
     femmeGrid: pick(femme.slice(1), DEMO_GAME_GRID, 1),
+    femmeSlides: femme.length > 0 ? femme.slice(0, 5) : [DEMO_GAME_FEATURED],
     innovationStories: pick(
       innovationStories,
       DEMO_DOSSIERS.map((s) => ({
         ...s,
-        category: "Innovation",
-        author: "L'Entrevue",
+        category: "Économie",
+        author: "Fintech Médias",
         dateLabel: "",
         tagTone: "gold" as const,
+      })),
+      1,
+    ),
+    eventsStories: pick(
+      events,
+      DEMO_DOSSIERS.map((s) => ({
+        ...s,
+        category: "Events",
+        author: "Fintech Médias",
+        dateLabel: "",
+        tagTone: "teal" as const,
       })),
       1,
     ),

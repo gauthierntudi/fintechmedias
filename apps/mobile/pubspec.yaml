@@ -1,5 +1,5 @@
 name: entrevue
-description: "ENTREVUE — média et observatoire de l’éducation en RDC."
+description: "Fintech Médias — actualité finance, innovation et économie."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -48,6 +48,7 @@ dependencies:
   share_plus: ^12.0.2
   lucide_icons_flutter: ^3.1.19
   google_sign_in: ^7.2.0
+  google_fonts: ^8.2.1
 
 dev_dependencies:
   flutter_test:
@@ -74,9 +75,12 @@ flutter:
 
   assets:
     - assets/onboarding/
-    - assets/brand/logo-Lentrevue-mail.png
-    - assets/brand/logo-Lentrevue-blanc.png
+    - assets/brand/logo-fintech.png
+    - assets/brand/logo-fintech-light.png
     - assets/brand/splash-logo.png
+    - assets/brand/splash-logo-light.png
+    - assets/brand/splash-logo-dark.png
+    - assets/brand/icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -90,12 +94,21 @@ flutter:
         - asset: fonts/FamiljenGrotesk.ttf
 
 flutter_native_splash:
-  color: "#111111"
-  image: assets/brand/splash-logo.png
+  # Mode clair
+  color: "#FFFFFF"
+  image: assets/brand/splash-logo-light.png
+  # Mode sombre
+  color_dark: "#111111"
+  image_dark: assets/brand/splash-logo-dark.png
+  ios_content_mode: center
+  android_gravity: center
   android_12:
-    color: "#111111"
-    image: assets/brand/app-icon.png
-    icon_background_color: "#111111"
+    color: "#FFFFFF"
+    image: assets/brand/splash-logo-light.png
+    icon_background_color: "#FFFFFF"
+    color_dark: "#111111"
+    image_dark: assets/brand/splash-logo-dark.png
+    icon_background_color_dark: "#111111"
   ios: true
   android: true
   web: false
@@ -104,9 +117,9 @@ flutter_native_splash:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: assets/brand/icon.png
+  image_path: assets/brand/icon_app_02.png
   adaptive_icon_background: "#111111"
-  adaptive_icon_foreground: assets/brand/icon.png
+  adaptive_icon_foreground: assets/brand/icon_app_02.png
   remove_alpha_ios: true
   background_color_ios: "#111111"
   web:

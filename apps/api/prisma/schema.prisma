@@ -35,6 +35,8 @@ enum PaymentStatus {
 enum PaymentPurpose {
   SUBSCRIPTION
   PURCHASE
+  ARTICLE
+  AD
 }
 
 enum AdminRole {
@@ -89,6 +91,7 @@ model Subscriber {
 
   subscriptions     Subscription[]
   purchases         Purchase[]
+  articlePurchases  ArticlePurchase[]
   payments          Payment[]
   comments          Comment[]
   activityLogs      ActivityLog[]
@@ -278,6 +281,26 @@ model Purchase {
   @@map("purchases")
 }
 
+/** Achat à l’unité d’un article payant. */
+model ArticlePurchase {
+  id             String        @id @default(cuid())
+  subscriberId   String
+  articleId      String
+  amountCents    Int
+  currency       String        @default("USD")
+  paymentStatus  PaymentStatus @default(PENDING)
+  transactionRef String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  subscriber Subscriber @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  article    Article    @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriberId, articleId])
+  @@index([subscriberId])
+  @@map("article_purchases")
+}
+
 model Payment {
   id            String          @id @default(cuid())
   provider      PaymentProvider
@@ -337,6 +360,12 @@ model Article {
   videoStatus      VideoStatus @default(NONE)
   videoError       String?
   videoDurationSec Int?
+  /// Lien YouTube hérité (`videos` PHP)
+  youtubeUrl  String?
+  /// Lecture réservée aux abonnés ou à l’achat de l’article
+  isPaid      Boolean  @default(false)
+  /// Prix à l’unité, en centimes USD
+  priceCents  Int?
   publishedAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -348,6 +377,7 @@ model Article {
   comments Comment[]
   blocks   ArticleBlock[]
   newsletterOutbox NewsletterOutbox[]
+  purchases ArticlePurchase[]
 
   @@index([isPublished, publishedAt])
   @@index([isFeatured, isPublished])
@@ -484,6 +514,95 @@ model SiteSettings {
   updatedAt      DateTime @updatedAt
 
   @@map("site_settings")
+}
+
+enum AdFormat {
+  RECTANGLE
+  PORTRAIT
+  PAYSAGE_SMALL
+  PAYSAGE_MEDIUM
+  PAYSAGE_LARGE
+  LARGE_PORTRAIT
+  LARGE_RECTANGLE
+}
+
+enum AdValidationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AdPaymentStatus {
+  FREE
+  PAID
+  PENDING
+}
+
+enum AdDiffusionStatus {
+  ACTIVE
+  INACTIVE
+  ENDED
+}
+
+/// Campagne publicitaire affichée dans un emplacement du site.
+model Advertisement {
+  id               String             @id @default(cuid())
+  legacyId         Int?               @unique
+  title            String
+  format           AdFormat
+  placement        String?
+  imageKey         String
+  targetUrl        String
+  dimensions       String
+  startsOn         DateTime           @db.Date
+  endsOn           DateTime           @db.Date
+  impressions      Int                @default(0)
+  views            Int                @default(0)
+  clicks           Int                @default(0)
+  amountPaid       Decimal            @default(0) @db.Decimal(10, 2)
+  paymentStatus    AdPaymentStatus    @default(PENDING)
+  validationStatus AdValidationStatus @default(PENDING)
+  refusalReason    String?
+  diffusionStatus  AdDiffusionStatus  @default(INACTIVE)
+  isLocked         Boolean            @default(false)
+  createdByAdmin   Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([placement, diffusionStatus])
+  @@index([validationStatus])
+  @@map("advertisements")
+}
+
+/// Grille tarifaire par format (7, 15 et 30 jours).
+model AdRate {
+  id          String   @id @default(cuid())
+  legacyId    Int?     @unique
+  format      AdFormat @unique
+  dimensions  String
+  price7Days  Decimal  @db.Decimal(10, 2)
+  price15Days Decimal  @db.Decimal(10, 2)
+  price30Days Decimal  @db.Decimal(10, 2)
+  isActive    Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+
+  @@map("ad_rates")
+}
+
+/// Vidéo YouTube promo (section accueil) — legacy `home_video`.
+model HomeVideo {
+  id         String   @id @default(cuid())
+  legacyId   Int?     @unique
+  youtubeId  String
+  title      String
+  subtitle   String   @default("")
+  websiteUrl String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([isActive, createdAt])
+  @@map("home_videos")
 }
 
 /** Journal d'activité — staff admin et abonnés. */

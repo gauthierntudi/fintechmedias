@@ -1,4 +1,23 @@
-# Déploiement — VPS OVH + Docker Compose
+# Déploiement
+
+## Cible actuelle : Cloudflare (Fintech Médias)
+
+Stack complète sur Cloudflare :
+
+- Worker gateway + Containers (Next / Nest / BullMQ)
+- **D1** (`fintechdb`) via Worker Data
+- Redis managé (BullMQ)
+- R2 (`cdn.fintechmedias.com`)
+
+Guide opérationnel : **[deploy/cloudflare/README.md](../deploy/cloudflare/README.md)**  
+Domaines : **[DOMAINES.md](./DOMAINES.md)**  
+CI : `.github/workflows/deploy-cloudflare.yml` (secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`)
+
+Schéma Prisma D1 : `apps/api/prisma/schema.d1.prisma` (le `schema.prisma` Postgres reste pour le dev local).
+
+---
+
+## Référence historique — VPS OVH + Docker Compose
 
 Cible : VPS **51.254.214.47**, stack Docker (nginx / web / api / worker / Postgres / Redis), médias sur **Cloudflare R2**.
 

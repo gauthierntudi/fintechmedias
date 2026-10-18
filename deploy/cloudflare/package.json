@@ -1,0 +1,24 @@
+{
+  "name": "@fintech/cloudflare-deploy",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "cf:deploy": "wrangler deploy",
+    "cf:deploy:data": "wrangler deploy --config data-worker/wrangler.jsonc",
+    "cf:deploy:all": "pnpm run cf:deploy:data && pnpm run cf:deploy",
+    "cf:secrets": "node scripts/push-secrets.mjs",
+    "d1:create": "wrangler d1 create fintechdb --config data-worker/wrangler.jsonc",
+    "d1:migrate:local": "wrangler d1 migrations apply fintechdb --local --config data-worker/wrangler.jsonc",
+    "d1:migrate:remote": "wrangler d1 migrations apply fintechdb --remote --config data-worker/wrangler.jsonc",
+    "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "^0.3.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251011.0",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.42.0"
+  }
+}

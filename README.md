@@ -38,7 +38,7 @@ v2/
 docker compose -f docker-compose.dev.yml up -d
 # ou : pnpm docker:dev
 
-# 2. Dépendances (depuis v2/)
+# 2. Dépendances
 pnpm install
 
 # 3. Prisma
@@ -47,6 +47,16 @@ pnpm db:migrate
 
 # 4. Dev
 pnpm dev
+```
+
+## Déploiement Cloudflare
+
+Guide : [`deploy/cloudflare/README.md`](./deploy/cloudflare/README.md) · domaines [`docs/DOMAINES.md`](./docs/DOMAINES.md)
+
+```bash
+pnpm cf:install
+# wrangler login, d1:create, secrets, puis :
+pnpm cf:deploy
 ```
 
 - Site : http://localhost:3000  

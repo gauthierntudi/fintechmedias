@@ -1,10 +1,12 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { articlesPublicApi } from "@/lib/api";
+import { articlesPublicApi, homeVideoPublicApi } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
 import { CATEGORY_BLURB, RUBRIQUE_BY_SLUG, isShortRubrique } from "@/lib/rubriques";
 import { RubriqueFeed } from "./rubrique-feed";
+import { AdSlot } from "@/components/site/ad-slot";
+import { HomeVideoAd } from "@/components/site/home-video-ad";
 import { RubriqueHeroCarousel } from "./rubrique-hero";
 import "./rubrique.css";
 
@@ -47,6 +49,9 @@ export default async function RubriquePage({ params }: Props) {
     notFound();
   }
 
+  const videoResult = await homeVideoPublicApi.active().catch(() => null);
+  const homeVideo = videoResult?.video ?? null;
+
   const tone = feed.tone || "teal";
   const isVideo = RUBRIQUE_BY_SLUG[slug]?.format === "video";
   const topFive = feed.items.slice(0, PACK_COUNT);
@@ -58,6 +63,7 @@ export default async function RubriquePage({ params }: Props) {
     <div
       className={`opt-rubrique opt-rubrique--${tone}${isVideo ? " opt-rubrique--video" : ""}`}
     >
+      <AdSlot format="paysage_large" emplacement="pub-header" rotateMs={15000} />
       <div className="opt-rubrique__inner">
         <h1 className="opt-rubrique__sr-only">{feed.label}</h1>
 
@@ -96,6 +102,8 @@ export default async function RubriquePage({ params }: Props) {
           </>
         )}
       </div>
+      <AdSlot format="portrait" emplacement="pub-float" variant="float" />
+      <HomeVideoAd video={homeVideo} floatOnly />
     </div>
   );
 }

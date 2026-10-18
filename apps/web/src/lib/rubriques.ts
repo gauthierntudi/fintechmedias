@@ -12,62 +12,69 @@ export type Rubrique = {
 
 /** Rubriques du slider « À la une » sur l’accueil. */
 export const FLAGSHIP_RUBRIQUE_SLUGS = [
-  "qu-en-dit-l-expert",
-  "rencontre-avec",
-  "entreprendre",
+  "actualites",
+  "interview",
+  "economie",
+  "politique",
 ] as const;
 
-/** Rubriques L'Entrevue — navigation, admin et filtres. */
+/** Rubriques Fintech Médias — navigation, admin et filtres. */
 export const RUBRIQUES: readonly Rubrique[] = [
   {
-    slug: "qu-en-dit-l-expert",
-    href: "/rubrique/qu-en-dit-l-expert",
-    label: "Qu'en dit l'expert",
-    blurb:
-      "Analyses et paroles d’experts pour éclairer les enjeux du moment.",
-    tone: "teal",
-    format: "video",
-  },
-  {
-    slug: "rencontre-avec",
-    href: "/rubrique/rencontre-avec",
-    label: "Rencontre Avec",
-    blurb:
-      "Portraits et échanges avec celles et ceux qui font bouger les lignes.",
-    tone: "gold",
-    format: "video",
-  },
-  {
-    slug: "entreprendre",
-    href: "/rubrique/entreprendre",
-    label: "Entreprendre",
-    blurb:
-      "Initiatives, projets et parcours de celles et ceux qui osent.",
+    slug: "actualites",
+    href: "/rubrique/actualites",
+    label: "Actualités",
+    blurb: "L’actualité économique et fintech, au jour le jour.",
     tone: "red",
   },
   {
-    slug: "ecosysteme-pme",
-    href: "/rubrique/ecosysteme-pme",
-    label: "Écosystème PME",
-    blurb:
-      "Le tissu des PME, leurs défis, leurs relais et leurs réussites.",
+    slug: "interview",
+    href: "/rubrique/interview",
+    label: "Interview",
+    blurb: "Entretiens avec celles et ceux qui font la fintech africaine.",
+    tone: "gold",
+  },
+  {
+    slug: "economie",
+    href: "/rubrique/economie",
+    label: "Économie",
+    blurb: "Marchés, politiques économiques et signaux à suivre.",
     tone: "blue",
   },
   {
-    slug: "femme",
-    href: "/rubrique/femme",
-    label: "Femme",
-    blurb:
-      "Voix, parcours et combats des femmes qui transforment leur milieu.",
+    slug: "politique",
+    href: "/rubrique/politique",
+    label: "Politique",
+    blurb: "Décisions publiques et leur effet sur la finance et les entreprises.",
+    tone: "teal",
+  },
+  {
+    slug: "international",
+    href: "/rubrique/international",
+    label: "Int’l",
+    blurb: "Ce qui se joue hors des frontières et pèse sur le continent.",
     tone: "dark",
   },
   {
-    slug: "innovation",
-    href: "/rubrique/innovation",
-    label: "Innovation",
-    blurb:
-      "Idées, technologies et usages qui font avancer l’entrepreneuriat.",
+    slug: "portrait",
+    href: "/rubrique/portrait",
+    label: "Édito",
+    blurb: "La voix de la rédaction sur l’actualité finance et fintech.",
     tone: "gold",
+  },
+  {
+    slug: "entreprise",
+    href: "/rubrique/entreprise",
+    label: "Entreprise",
+    blurb: "Sociétés, levées, produits et stratégies.",
+    tone: "red",
+  },
+  {
+    slug: "events",
+    href: "/rubrique/events",
+    label: "Events",
+    blurb: "Forums, lancements et rendez-vous du secteur.",
+    tone: "teal",
   },
 ] as const;
 
@@ -99,39 +106,70 @@ export const SEARCH_FILTERS = [
   ...RUBRIQUES.map((r) => ({ slug: r.slug, label: r.label })),
 ] as const;
 
+const LEGACY_CATEGORY_SLUGS: Record<string, string> = {
+  actualites: "actualites",
+  actualité: "actualites",
+  actualités: "actualites",
+  actualite: "actualites",
+  interview: "interview",
+  "rencontre-avec": "interview",
+  "qu-en-dit-l-expert": "interview",
+  economie: "economie",
+  économie: "economie",
+  "ecosysteme-pme": "economie",
+  politique: "politique",
+  international: "international",
+  intl: "international",
+  "int'l": "international",
+  "int’l": "international",
+  portrait: "portrait",
+  femme: "portrait",
+  edito: "portrait",
+  édito: "portrait",
+  entreprise: "entreprise",
+  entreprendre: "entreprise",
+  innovation: "entreprise",
+  events: "events",
+  "stu-talk": "interview",
+  "stu-stories": "interview",
+  "stu-news": "entreprise",
+  "stu-data": "economie",
+};
+
+function categoryKey(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/[’']/g, "'")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
+/** Ancienne URL `/categorie/{nom}` → slug canonique. */
+export function legacyCategorySlug(raw: string): string | null {
+  const key = categoryKey(decodeURIComponent(raw));
+  return LEGACY_CATEGORY_SLUGS[key] ?? RUBRIQUE_BY_SLUG[key]?.slug ?? null;
+}
+
+/** Seul SHORT reste une rubrique 100 % vidéo ; Interview se juge article par article. */
 const VIDEO_KEYS = new Set(
   [...RUBRIQUES, SHORT_RUBRIQUE]
     .filter((r) => r.format === "video")
     .flatMap((r) => [r.slug, r.label.toLowerCase()]),
 );
 
-/** Anciennes rubriques encore présentes en base / démo. */
-const VIDEO_ALIASES = new Set([
-  "stu-talk",
-  "stu talk",
-  "stu-stories",
-  "stu stories",
-  "inspirationnel",
-  "game-changers",
-  "game-changer",
-  "grandes-entrevues",
-  "grande-entrevue",
-  "entrevue-croisee",
-]);
-
 const STORIES_KEYS = new Set([
+  "interview",
   "rencontre-avec",
   "rencontre avec",
   "stu-stories",
-  "stu stories",
-  "inspirationnel",
+  "portrait",
 ]);
 
-const FLAGSHIP_KEYS = new Set([
+const FLAGSHIP_KEYS = new Set<string>([
   ...FLAGSHIP_RUBRIQUE_SLUGS,
-  "qu'en dit l'expert",
-  "rencontre avec",
-  "entreprendre",
+  "actualités",
+  "économie",
 ]);
 
 /** Articles autorisés dans le héros d’accueil. */
@@ -144,14 +182,14 @@ export function isFlagshipRubrique(
   });
 }
 
-/** Rubriques vidéo (et leurs alias) — miniatures au format 16:9. */
+/** Rubriques 100 % vidéo (SHORT uniquement). Interview = article ou vidéo selon le média. */
 export function isVideoRubrique(
   ...values: Array<string | null | undefined>
 ): boolean {
   return values.some((value) => {
     if (!value) return false;
     const key = value.trim().toLowerCase();
-    return VIDEO_KEYS.has(key) || VIDEO_ALIASES.has(key);
+    return VIDEO_KEYS.has(key) || key === "short";
   });
 }
 
@@ -183,7 +221,7 @@ export function isShortRubrique(
   });
 }
 
-/** Rencontre Avec — pastille or, lecteur 16:9. */
+/** Rubriques « stories » (layout split / pastille). */
 export function isStoriesRubrique(
   ...values: Array<string | null | undefined>
 ): boolean {
