@@ -25,7 +25,10 @@
       "instance_type": "standard-1",
       "image_vars": {
         "NEXT_PUBLIC_APP_URL": "https://fintechmedias.com",
-        "NEXT_PUBLIC_API_URL": "https://fintechmedias.com"
+        "NEXT_PUBLIC_API_URL": "https://fintechmedias.com",
+        "NEXT_PUBLIC_CAPTCHA": "true",
+        "NEXT_PUBLIC_GOOGLE_CLIENT_ID": "773749541861-b6rm42jlrtt6icd3mprgjomsan5nk80s.apps.googleusercontent.com",
+        "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAFaZBLYfGHD9_lB0"
       }
     },
     {
@@ -73,7 +76,11 @@
 
   "vars": {
     "APP_URL": "https://fintechmedias.com",
-    "API_URL": "https://api.fintechmedias.com"
+    "API_URL": "https://api.fintechmedias.com",
+    "CAPTCHA": "true",
+    "GOOGLE_CLIENT_ID": "773749541861-b6rm42jlrtt6icd3mprgjomsan5nk80s.apps.googleusercontent.com",
+    "NEXT_PUBLIC_GOOGLE_CLIENT_ID": "773749541861-b6rm42jlrtt6icd3mprgjomsan5nk80s.apps.googleusercontent.com",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAFaZBLYfGHD9_lB0"
   }
 
   // Secrets (wrangler secret put) :

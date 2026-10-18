@@ -39,6 +39,12 @@ type Env = {
   COOKIE_DOMAIN?: string;
   AVATAR_USE_CDN?: string;
   NEWSLETTER_SEND_IN_API?: string;
+  CAPTCHA?: string;
+  TURNSTILE_SECRET_KEY?: string;
+  TURNSTILE_SITE_KEY?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID?: string;
 };
 
 function pickEnv(
@@ -80,6 +86,12 @@ const API_ENV_KEYS = [
   "COOKIE_DOMAIN",
   "AVATAR_USE_CDN",
   "NEWSLETTER_SEND_IN_API",
+  "CAPTCHA",
+  "TURNSTILE_SECRET_KEY",
+  "TURNSTILE_SITE_KEY",
+  "GOOGLE_CLIENT_ID",
+  "GOOGLE_CLIENT_SECRET",
+  "NEXT_PUBLIC_GOOGLE_CLIENT_ID",
 ] as const satisfies readonly (keyof Env)[];
 
 export class WebContainer extends Container<Env> {
