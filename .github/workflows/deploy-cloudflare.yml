@@ -9,6 +9,7 @@ on:
       - "apps/api/**"
       - "deploy/cloudflare/**"
       - "pnpm-lock.yaml"
+      - ".github/workflows/deploy-cloudflare.yml"
 
 concurrency:
   group: deploy-cloudflare
@@ -35,12 +36,49 @@ jobs:
       - name: Install workspace
         run: pnpm install --filter @fintech/cloudflare-deploy...
 
-      - name: Deploy data worker (D1)
-        working-directory: deploy/cloudflare
-        run: pnpm run cf:deploy:data
+      # code 9109 = jeton invalide (tronqué, espaces, ou mauvaise valeur collée).
+      - name: Verify Cloudflare secrets
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+            echo "::error::Secret CLOUDFLARE_API_TOKEN vide (repo Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          if [[ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+            echo "::error::Secret CLOUDFLARE_ACCOUNT_ID vide."
+            exit 1
+          fi
+          TOKEN="$(printf '%s' "$CLOUDFLARE_API_TOKEN" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+          ACCOUNT="$(printf '%s' "$CLOUDFLARE_ACCOUNT_ID" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+          echo "::add-mask::${TOKEN}"
+          echo "Token length: ${#TOKEN} (attendu ~40+)"
+          echo "Account ID length: ${#ACCOUNT} (attendu 32)"
+          if [[ ${#TOKEN} -lt 30 ]]; then
+            echo "::error::Token trop court — coller le jeton API complet (pas l'Account ID)."
+            exit 1
+          fi
+          code="$(curl -sS -o /tmp/cf-whoami.json -w '%{http_code}' \
+            -H "Authorization: Bearer ${TOKEN}" \
+            "https://api.cloudflare.com/client/v4/user/tokens/verify" || true)"
+          echo "Cloudflare token verify HTTP: ${code}"
+          if [[ "$code" != "200" ]]; then
+            echo "::error::Invalid access token [9109] — le secret GitHub CLOUDFLARE_API_TOKEN n'est pas reconnu par Cloudflare. Recréer le token, le copier immédiatement, puis Update le secret."
+            cat /tmp/cf-whoami.json || true
+            exit 1
+          fi
+          {
+            echo "CLOUDFLARE_API_TOKEN<<EOF"
+            printf '%s\n' "$TOKEN"
+            echo "EOF"
+            echo "CLOUDFLARE_ACCOUNT_ID=${ACCOUNT}"
+          } >> "$GITHUB_ENV"
+
+      - name: Deploy data worker (D1)
+        working-directory: deploy/cloudflare
+        run: pnpm run cf:deploy:data
 
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
@@ -48,6 +86,3 @@ jobs:
       - name: Deploy gateway + containers
         working-directory: deploy/cloudflare
         run: pnpm run cf:deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
