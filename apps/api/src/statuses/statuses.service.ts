@@ -583,8 +583,9 @@ export class StatusesService {
     }
 
     const now = new Date();
+    // Statut payé : la durée de vie est celle du tarif choisi
     const ttl =
-      dto.ttlHours ?? existing.offer?.statusLifetimeHours ?? DEFAULT_TTL_HOURS;
+      existing.offer?.statusLifetimeHours ?? dto.ttlHours ?? DEFAULT_TTL_HOURS;
     const updated = await this.prisma.status.update({
       where: { id },
       data: {
@@ -751,9 +752,6 @@ export class StatusesService {
       return { status: this.toMine(updated), payment: null };
     }
 
-    if (!dto.phone) {
-      throw new BadRequestException('Numéro Mobile Money requis');
-    }
     const offer = await this.prisma.statusOffer.findFirst({
       where: {
         kind: StatusOfferKind.SINGLE,
@@ -781,6 +779,8 @@ export class StatusesService {
       billing: 'SINGLE',
       offerId: offer.id,
     });
+    // Paiement hors de l’app : la page web /paiement règle le statut
+    if (!dto.phone) return { status: this.toMine(updated), payment: null };
     const payment = await this.payments.startFlexpaieCharge({
       subscriberId,
       amountCents: offer.priceCents,

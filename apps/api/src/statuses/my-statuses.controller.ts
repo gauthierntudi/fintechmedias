@@ -28,7 +28,6 @@ import {
 import {
   CreateMyStatusDto,
   RetryStatusPaymentDto,
-  StatusPassCheckoutDto,
   SubmitMyStatusDto,
 } from './dto/my-status.dto';
 import { StatusOffersService } from './status-offers.service';
@@ -66,14 +65,6 @@ export class MyStatusesController {
   @Get('status-passes')
   passes(@CurrentUser() user: AuthUser) {
     return this.offers.listMyPasses(user.id);
-  }
-
-  @Post('status-passes/checkout')
-  checkoutPass(
-    @CurrentUser() user: AuthUser,
-    @Body() dto: StatusPassCheckoutDto,
-  ) {
-    return this.offers.checkoutPass(user.id, dto.offerId, dto.phone);
   }
 
   // -------------------------------------------------------------- statuts

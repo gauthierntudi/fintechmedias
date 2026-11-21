@@ -97,6 +97,20 @@
 					<string>$(GOOGLE_REVERSED_CLIENT_ID)</string>
 				</array>
 			</dict>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Viewer</string>
+				<key>CFBundleURLName</key>
+				<string>fintechmedias-retour-paiement</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>fintechmedias</string>
+				</array>
+			</dict>
 		</array>
+		<!-- fintechmedias:// ramène seulement l’app au premier plan (retour de
+		     la page de paiement web) : pas de routage par lien profond. -->
+		<key>FlutterDeepLinkingEnabled</key>
+		<false/>
 	</dict>
 </plist>

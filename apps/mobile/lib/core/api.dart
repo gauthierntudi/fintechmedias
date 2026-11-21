@@ -39,10 +39,7 @@ class SessionController extends StateNotifier<Subscriber?> {
   }
 
   Future<void> loginWithGoogle(String credential, {String? turnstile}) async {
-    state = await _api.loginWithGoogle(
-      credential,
-      turnstileToken: turnstile,
-    );
+    state = await _api.loginWithGoogle(credential, turnstileToken: turnstile);
   }
 
   Future<void> register({
@@ -196,16 +193,12 @@ class ApiClient {
       _get('/articles/home', parse: (d) => HomeFeed.fromJson(_map(d)));
 
   Future<CategoryFeed> feed({int take = 12, int skip = 0}) => _get(
-        '/articles/feed',
-        query: {'take': take, 'skip': skip},
-        parse: (d) => CategoryFeed.fromJson(_map(d)),
-      );
+    '/articles/feed',
+    query: {'take': take, 'skip': skip},
+    parse: (d) => CategoryFeed.fromJson(_map(d)),
+  );
 
-  Future<CategoryFeed> byCategory(
-    String slug, {
-    int take = 12,
-    int skip = 0,
-  }) =>
+  Future<CategoryFeed> byCategory(String slug, {int take = 12, int skip = 0}) =>
       _get(
         '/articles/category/$slug',
         query: {'take': take, 'skip': skip},
@@ -213,61 +206,64 @@ class ApiClient {
       );
 
   Future<ArticleDetail> article(String slug) => _get(
-        '/articles/${Uri.encodeComponent(slug)}',
-        parse: (d) => ArticleDetail.fromJson(_map(d)),
-      );
+    '/articles/${Uri.encodeComponent(slug)}',
+    parse: (d) => ArticleDetail.fromJson(_map(d)),
+  );
 
   Future<List<ArticleCard>> related(String slug, {int take = 12}) => _get(
-        '/articles/related',
-        query: {'slug': slug, 'take': take},
-        parse: (d) {
-          final items = _map(d)['items'] as List?;
-          return items
-                  ?.whereType<Map>()
-                  .map((e) => ArticleCard.fromJson(Map<String, dynamic>.from(e)))
-                  .toList() ??
-              const <ArticleCard>[];
-        },
-      );
+    '/articles/related',
+    query: {'slug': slug, 'take': take},
+    parse: (d) {
+      final items = _map(d)['items'] as List?;
+      return items
+              ?.whereType<Map>()
+              .map((e) => ArticleCard.fromJson(Map<String, dynamic>.from(e)))
+              .toList() ??
+          const <ArticleCard>[];
+    },
+  );
 
   /// Suggestions aléatoires (écran recherche au focus / requête courte).
   Future<List<ArticleCard>> randomArticles({int take = 10}) => _get(
-        '/articles/random',
-        query: {'take': take},
-        parse: (d) {
-          final items = _map(d)['items'] as List?;
-          return items
-                  ?.whereType<Map>()
-                  .map((e) => ArticleCard.fromJson(Map<String, dynamic>.from(e)))
-                  .toList() ??
-              const <ArticleCard>[];
-        },
-      );
+    '/articles/random',
+    query: {'take': take},
+    parse: (d) {
+      final items = _map(d)['items'] as List?;
+      return items
+              ?.whereType<Map>()
+              .map((e) => ArticleCard.fromJson(Map<String, dynamic>.from(e)))
+              .toList() ??
+          const <ArticleCard>[];
+    },
+  );
 
   Future<({List<ArticleCard> items, int total})> search(
     String q, {
     String? category,
     int take = 20,
     int skip = 0,
-  }) =>
-      _get(
-        '/articles/search',
-        query: {
-          'q': q,
-          'take': take,
-          'skip': skip,
-          if (category != null && category.isNotEmpty) 'category': category,
-        },
-        parse: (d) {
-          final m = _map(d);
-          final items = (m['items'] as List?)
-                  ?.whereType<Map>()
-                  .map((e) => ArticleCard.fromJson(Map<String, dynamic>.from(e)))
-                  .toList() ??
-              const <ArticleCard>[];
-          return (items: items, total: (m['total'] as num?)?.toInt() ?? items.length);
-        },
+  }) => _get(
+    '/articles/search',
+    query: {
+      'q': q,
+      'take': take,
+      'skip': skip,
+      if (category != null && category.isNotEmpty) 'category': category,
+    },
+    parse: (d) {
+      final m = _map(d);
+      final items =
+          (m['items'] as List?)
+              ?.whereType<Map>()
+              .map((e) => ArticleCard.fromJson(Map<String, dynamic>.from(e)))
+              .toList() ??
+          const <ArticleCard>[];
+      return (
+        items: items,
+        total: (m['total'] as num?)?.toInt() ?? items.length,
       );
+    },
+  );
 
   Future<Subscriber> login(
     String email,
@@ -376,10 +372,7 @@ class ApiClient {
   }) async {
     await _dio.post<dynamic>(
       '/auth/me/password',
-      data: {
-        'currentPassword': currentPassword,
-        'newPassword': newPassword,
-      },
+      data: {'currentPassword': currentPassword, 'newPassword': newPassword},
     );
   }
 
@@ -401,17 +394,17 @@ class ApiClient {
   }
 
   Future<List<MagazineCard>> magazines({int take = 20, int skip = 0}) => _get(
-        '/magazines',
-        query: {'take': take, 'skip': skip},
-        parse: (d) {
-          final m = _map(d);
-          return (m['items'] as List?)
-                  ?.whereType<Map>()
-                  .map((e) => MagazineCard.fromJson(Map<String, dynamic>.from(e)))
-                  .toList() ??
-              const [];
-        },
-      );
+    '/magazines',
+    query: {'take': take, 'skip': skip},
+    parse: (d) {
+      final m = _map(d);
+      return (m['items'] as List?)
+              ?.whereType<Map>()
+              .map((e) => MagazineCard.fromJson(Map<String, dynamic>.from(e)))
+              .toList() ??
+          const [];
+    },
+  );
 
   Future<MagazineCard?> latestMagazine() async {
     final res = await _dio.get<dynamic>('/magazines/latest');
@@ -420,60 +413,63 @@ class ApiClient {
   }
 
   Future<MagazineCard> magazine(String id) => _get(
-        '/magazines/${Uri.encodeComponent(id)}',
-        parse: (d) => MagazineCard.fromJson(_map(d)),
-      );
+    '/magazines/${Uri.encodeComponent(id)}',
+    parse: (d) => MagazineCard.fromJson(_map(d)),
+  );
 
   Future<MagazineSession> previewMagazine(String id) => _get(
-        '/magazines/${Uri.encodeComponent(id)}/preview',
-        parse: (d) => MagazineSession.fromJson(_map(d)),
-      );
+    '/magazines/${Uri.encodeComponent(id)}/preview',
+    parse: (d) => MagazineSession.fromJson(_map(d)),
+  );
 
   Future<MagazineSession> readMagazine(String id) => _get(
-        '/magazines/${Uri.encodeComponent(id)}/read',
-        parse: (d) => MagazineSession.fromJson(_map(d)),
-      );
+    '/magazines/${Uri.encodeComponent(id)}/read',
+    parse: (d) => MagazineSession.fromJson(_map(d)),
+  );
 
   Future<List<AppNotification>> notifications() => _get(
-        '/library/notifications',
-        parse: (d) {
-          final m = d is Map ? _map(d) : <String, dynamic>{};
-          final items = m['items'] ?? m['notifications'] ?? (d is List ? d : []);
-          if (items is! List) return const <AppNotification>[];
-          return items
-              .whereType<Map>()
-              .map((e) => AppNotification.fromJson(Map<String, dynamic>.from(e)))
-              .toList();
-        },
-      );
+    '/library/notifications',
+    parse: (d) {
+      final m = d is Map ? _map(d) : <String, dynamic>{};
+      final items = m['items'] ?? m['notifications'] ?? (d is List ? d : []);
+      if (items is! List) return const <AppNotification>[];
+      return items
+          .whereType<Map>()
+          .map((e) => AppNotification.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    },
+  );
 
   Future<int> unreadCount() => _get(
-        '/library/notifications/unread-count',
-        parse: (d) {
-          if (d is num) return d.toInt();
-          final m = _map(d);
-          return (m['count'] as num?)?.toInt() ??
-              (m['unread'] as num?)?.toInt() ??
-              0;
-        },
-      );
+    '/library/notifications/unread-count',
+    parse: (d) {
+      if (d is num) return d.toInt();
+      final m = _map(d);
+      return (m['count'] as num?)?.toInt() ??
+          (m['unread'] as num?)?.toInt() ??
+          0;
+    },
+  );
 
   Future<void> markNotificationRead(String id) async {
-    await _dio.post('/library/notifications/read', data: {'notificationId': id});
+    await _dio.post(
+      '/library/notifications/read',
+      data: {'notificationId': id},
+    );
   }
 
   Future<List<PurchaseItem>> purchases() => _get(
-        '/library/purchases',
-        parse: (d) {
-          final m = d is Map ? _map(d) : <String, dynamic>{};
-          final items = m['items'] ?? m['purchases'] ?? (d is List ? d : []);
-          if (items is! List) return const <PurchaseItem>[];
-          return items
-              .whereType<Map>()
-              .map((e) => PurchaseItem.fromJson(Map<String, dynamic>.from(e)))
-              .toList();
-        },
-      );
+    '/library/purchases',
+    parse: (d) {
+      final m = d is Map ? _map(d) : <String, dynamic>{};
+      final items = m['items'] ?? m['purchases'] ?? (d is List ? d : []);
+      if (items is! List) return const <PurchaseItem>[];
+      return items
+          .whereType<Map>()
+          .map((e) => PurchaseItem.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    },
+  );
 
   Future<Map<String, dynamic>> flexpaiePurchase({
     required String magazineId,
@@ -530,10 +526,8 @@ class ApiClient {
     },
   );
 
-  Future<StatusPasses> myStatusPasses() => _get(
-    '/me/status-passes',
-    parse: (d) => StatusPasses.fromJson(_map(d)),
-  );
+  Future<StatusPasses> myStatusPasses() =>
+      _get('/me/status-passes', parse: (d) => StatusPasses.fromJson(_map(d)));
 
   Future<List<MyStatus>> myStatuses() => _get(
     '/me/statuses',
@@ -677,14 +671,50 @@ class ApiClient {
     await _dio.delete<dynamic>('/me/statuses/${Uri.encodeComponent(statusId)}');
   }
 
-  /// Achète un forfait « Statuts » — renvoie l’id du paiement.
-  Future<String> checkoutStatusPass(String offerId, String phone) async {
+  /// Formules d’abonnement (accès à toute la plateforme).
+  Future<List<SubscriptionPlan>> plans() => _get(
+    '/plans',
+    parse: (d) {
+      final items = _map(d)['items'];
+      if (items is! List) return const <SubscriptionPlan>[];
+      return items
+          .whereType<Map>()
+          .map((e) => SubscriptionPlan.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    },
+  );
+
+  /// Crée une session de paiement à régler sur la page web /paiement.
+  /// [kind] : SUBSCRIPTION, MAGAZINE, ARTICLE ou STATUS.
+  Future<({String id, String url})> createCheckout({
+    required String kind,
+    String? planId,
+    String? magazineId,
+    String? articleId,
+    String? statusId,
+  }) async {
     final res = await _dio.post<dynamic>(
-      '/me/status-passes/checkout',
-      data: {'offerId': offerId, 'phone': phone},
+      '/checkout',
+      data: {
+        'kind': kind,
+        'planId': ?planId,
+        'magazineId': ?magazineId,
+        'articleId': ?articleId,
+        'statusId': ?statusId,
+        'returnUrl': 'fintechmedias://paiement',
+      },
     );
-    final payment = _map(res.data)['payment'];
-    return payment is Map ? '${payment['paymentId']}' : '';
+    final data = _map(res.data);
+    return (id: '${data['id']}', url: '${data['url']}');
+  }
+
+  /// État d’une session de paiement web (OPEN, PAID, EXPIRED, CANCELLED).
+  Future<String> checkoutState(String id, {bool check = false}) async {
+    final path = '/checkout/${Uri.encodeComponent(id)}';
+    final res = check
+        ? await _dio.post<dynamic>('$path/check')
+        : await _dio.get<dynamic>(path);
+    return '${_map(res.data)['state'] ?? 'OPEN'}';
   }
 
   String _imageMime(String name) {

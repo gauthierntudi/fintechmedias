@@ -35,9 +35,7 @@ class GoogleAuth {
       return Future.error(StateError('Connexion Google non configurée'));
     }
     final ios = iosClientIdOf(settings);
-    if (_ready != null &&
-        _serverClientId == server &&
-        _iosClientId == ios) {
+    if (_ready != null && _serverClientId == server && _iosClientId == ios) {
       return _ready!;
     }
     _serverClientId = server;

@@ -216,25 +216,19 @@ export default function AdminStatusOffersPage() {
           </Link>
           <h1>Tarifs des statuts</h1>
           <p>
-            Prix des statuts publiés par les abonnés : publication unique ou
-            forfait (quota de statuts sur une période). Les statuts de
-            l’équipe restent gratuits.
+            Chaque tarif fixe le prix d’un statut publié par un abonné et sa
+            durée d’affichage. Le paiement se fait sur la page web
+            /paiement ; l’abonnement reste général à toute la plateforme. Les
+            statuts de l’équipe restent gratuits.
           </p>
         </div>
         <div className="admin-dash__row-actions">
           <button
             type="button"
-            className="admin-dash__btn"
+            className="admin-dash__btn admin-dash__btn--primary"
             onClick={() => openNew("SINGLE")}
           >
-            <Plus size={16} aria-hidden /> Publication unique
-          </button>
-          <button
-            type="button"
-            className="admin-dash__btn admin-dash__btn--primary"
-            onClick={() => openNew("PASS")}
-          >
-            <Plus size={16} aria-hidden /> Forfait
+            <Plus size={16} aria-hidden /> Nouveau tarif
           </button>
         </div>
       </header>

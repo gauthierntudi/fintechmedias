@@ -158,8 +158,8 @@ class ArticleDetail {
     final authorMap = author is Map
         ? Map<String, dynamic>.from(author)
         : byline is Map
-            ? Map<String, dynamic>.from(byline)
-            : null;
+        ? Map<String, dynamic>.from(byline)
+        : null;
     final blocks =
         (json['blocks'] as List?)
             ?.whereType<Map>()
@@ -167,7 +167,8 @@ class ArticleDetail {
             .toList() ??
         const <ArticleBlock>[];
     final name = (authorMap?['name'] as String?)?.trim();
-    final avatar = (authorMap?['avatarUrl'] as String?)?.trim() ??
+    final avatar =
+        (authorMap?['avatarUrl'] as String?)?.trim() ??
         (json['authorAvatarUrl'] as String?)?.trim();
     return ArticleDetail(
       id: '${json['id']}',
@@ -545,7 +546,6 @@ class PurchaseItem {
   }
 }
 
-
 /// Diapo d’un statut : image, vidéo, texte et/ou raccourci article.
 class StatusSlide {
   const StatusSlide({
@@ -725,11 +725,15 @@ class StatusOffer {
 
   String get priceLabel => formatStatusPrice(priceCents, currency);
 
+  /// Durée d’affichage d’un statut publié avec ce tarif (« 24 h », « 3 jours »).
+  String get lifetimeLabel =>
+      statusLifetimeHours % 24 == 0 && statusLifetimeHours >= 48
+      ? '${statusLifetimeHours ~/ 24} jours'
+      : '$statusLifetimeHours h';
+
   /// Ex. « visible 24 h » / « 10 statuts · 30 jours »
   String get detail {
-    final life = statusLifetimeHours % 24 == 0 && statusLifetimeHours >= 48
-        ? '${statusLifetimeHours ~/ 24} jours'
-        : '$statusLifetimeHours h';
+    final life = lifetimeLabel;
     if (!isPass) return 'Visible $life';
     final count = quota == null ? 'Statuts illimités' : '$quota statuts';
     return '$count · ${periodDays ?? 30} jours · visible $life chacun';
@@ -866,4 +870,35 @@ class MyStatus {
           DateTime.now(),
     );
   }
+}
+
+/// Formule d’abonnement : accès à toute la plateforme pendant `durationDays`.
+class SubscriptionPlan {
+  const SubscriptionPlan({
+    required this.id,
+    required this.name,
+    this.description,
+    required this.priceCents,
+    required this.currency,
+    required this.durationDays,
+  });
+
+  final String id;
+  final String name;
+  final String? description;
+  final int priceCents;
+  final String currency;
+  final int durationDays;
+
+  String get priceLabel => formatStatusPrice(priceCents, currency);
+
+  factory SubscriptionPlan.fromJson(Map<String, dynamic> json) =>
+      SubscriptionPlan(
+        id: '${json['id']}',
+        name: '${json['name'] ?? ''}',
+        description: json['description'] as String?,
+        priceCents: (json['priceCents'] as num?)?.toInt() ?? 0,
+        currency: '${json['currency'] ?? 'USD'}',
+        durationDays: (json['durationDays'] as num?)?.toInt() ?? 30,
+      );
 }

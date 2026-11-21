@@ -102,6 +102,7 @@ model Subscriber {
   notificationReads NotificationRead[]
   statuses          Status[]
   statusPasses      StatusPass[]
+  checkoutSessions  CheckoutSession[]
 
   @@map("subscribers")
 }
@@ -1016,4 +1017,53 @@ model StatusPass {
 
   @@index([subscriberId, expiresAt])
   @@map("status_passes")
+}
+
+/// Objet d’une session de paiement web.
+enum CheckoutKind {
+  SUBSCRIPTION
+  MAGAZINE
+  ARTICLE
+  STATUS
+}
+
+enum CheckoutState {
+  OPEN
+  PAID
+  EXPIRED
+  CANCELLED
+}
+
+/// Commande à régler sur la page web /paiement/<id> (paiement hors de l’app).
+/// L’identifiant est un jeton aléatoire non devinable : il suffit à
+/// afficher et régler la commande, sans reconnexion.
+model CheckoutSession {
+  id           String        @id
+  subscriberId String
+  kind         CheckoutKind
+  planId       String?
+  magazineId   String?
+  articleId    String?
+  statusId     String?
+  offerId      String?
+  /// Libellé et détail figés à la création (affichage)
+  label        String
+  detail       String?
+  amountCents  Int
+  currency     String        @default("USD")
+  state        CheckoutState @default(OPEN)
+  /// Dernier paiement Mobile Money lancé depuis la page
+  paymentId    String?
+  /// Où renvoyer l’abonné après paiement (lien de l’app ou du site)
+  returnUrl    String?
+  expiresAt    DateTime
+  paidAt       DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  subscriber Subscriber @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+
+  @@index([subscriberId, createdAt])
+  @@index([paymentId])
+  @@map("checkout_sessions")
 }

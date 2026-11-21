@@ -20,6 +20,7 @@ import { AuthorsModule } from './authors/authors.module';
 import { SponsorsModule } from './sponsors/sponsors.module';
 import { SubscribersModule } from './subscribers/subscribers.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { CheckoutModule } from './checkout/checkout.module';
 import { PaymentsModule } from './payments/payments.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
 import { HomeVideoModule } from './home-video/home-video.module';
@@ -52,6 +53,7 @@ if (existsSync(envRoot)) loadEnv({ path: envRoot, override: true });
     SubscriptionsModule,
     SubscribersModule,
     PaymentsModule,
+    CheckoutModule,
     NewsletterModule,
     ContactModule,
     SettingsModule,

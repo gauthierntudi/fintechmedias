@@ -849,6 +849,16 @@ export class PaymentsService {
       await this.activateStatusPayment(payment);
     }
 
+    if (payment.purpose === PaymentPurpose.ARTICLE) {
+      await this.activateArticlePurchase({ ...payment, providerRef });
+    }
+
+    // Session de paiement web réglée par ce paiement
+    await this.prisma.checkoutSession.updateMany({
+      where: { paymentId: payment.id, state: 'OPEN' },
+      data: { state: 'PAID', paidAt: new Date() },
+    });
+
     void this.activity.log({
       actorType: ActivityActorType.SUBSCRIBER,
       subscriberId: payment.subscriberId,
@@ -1067,6 +1077,55 @@ export class PaymentsService {
     });
   }
 
+  /** Achat d’un article à l’unité (Payment purpose ARTICLE). */
+  private async activateArticlePurchase(payment: {
+    id: string;
+    subscriberId: string;
+    amountCents: number;
+    currency: string;
+    providerRef: string | null;
+    metadata: Prisma.JsonValue | null;
+  }) {
+    const meta =
+      payment.metadata &&
+      typeof payment.metadata === 'object' &&
+      !Array.isArray(payment.metadata)
+        ? (payment.metadata as Record<string, unknown>)
+        : {};
+    const articleId = typeof meta.articleId === 'string' ? meta.articleId : '';
+    if (!articleId) return;
+    await this.prisma.articlePurchase.upsert({
+      where: {
+        subscriberId_articleId: {
+          subscriberId: payment.subscriberId,
+          articleId,
+        },
+      },
+      create: {
+        subscriberId: payment.subscriberId,
+        articleId,
+        amountCents: payment.amountCents,
+        currency: payment.currency,
+        paymentStatus: PaymentStatus.SUCCESS,
+        transactionRef: payment.providerRef || payment.id,
+      },
+      update: {
+        amountCents: payment.amountCents,
+        currency: payment.currency,
+        paymentStatus: PaymentStatus.SUCCESS,
+        transactionRef: payment.providerRef || payment.id,
+      },
+    });
+    void this.activity.log({
+      actorType: ActivityActorType.SUBSCRIBER,
+      subscriberId: payment.subscriberId,
+      action: 'article_purchase_activated',
+      entity: 'article',
+      entityId: articleId,
+      meta: { paymentId: payment.id, amountCents: payment.amountCents },
+    });
+  }
+
   private async activatePurchase(payment: {
     id: string;
     subscriberId: string;
@@ -1211,7 +1270,7 @@ export class PaymentsService {
     return { bgColor: bg, accentColor: accent };
   }
 
-  private resolveCoverUrl(coverKey: string | null): string | null {
+  resolveCoverUrl(coverKey: string | null): string | null {
     if (!coverKey) return null;
     const trimmed = coverKey.trim();
     if (!trimmed) return null;

@@ -3,10 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Menu « … » de l’accueil.
-Future<void> showHomeMenuSheet(
-  BuildContext context, {
-  required bool signedIn,
-}) {
+Future<void> showHomeMenuSheet(BuildContext context, {required bool signedIn}) {
   return showModalBottomSheet<void>(
     context: context,
     // Navigateur racine : la feuille passe au-dessus de la barre d’onglets

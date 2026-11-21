@@ -22,6 +22,7 @@ const kGoogleIosClientId = String.fromEnvironment(
 const kBrandBlack = 0xFF111111;
 const kBrandRed = 0xFF4ED319;
 const kBrandWhite = 0xFFFFFFFF;
+
 /// Alias — anciens tokens navy / or / bleu (chrome UI, pas les tones rubrique).
 const kBrandNavy = kBrandBlack;
 const kBrandGold = kBrandRed;

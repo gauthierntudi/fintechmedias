@@ -7,23 +7,15 @@ import '../../core/api.dart';
 import '../../core/models.dart';
 import '../../theme/app_theme.dart';
 import 'status_composer_screen.dart';
-import 'status_payment.dart';
+import '../payments/web_checkout.dart';
 
-/// Statuts de l’abonné connecté + forfaits.
-final myStatusesProvider = FutureProvider.autoDispose((ref) async {
-  final api = ref.watch(apiClientProvider);
-  final results = await Future.wait([
-    api.myStatuses(),
-    api.myStatusPasses(),
-  ]);
-  return (
-    items: results[0] as List<MyStatus>,
-    passes: results[1] as StatusPasses,
-  );
-});
+/// Statuts de l’abonné connecté.
+final myStatusesProvider = FutureProvider.autoDispose(
+  (ref) => ref.watch(apiClientProvider).myStatuses(),
+);
 
 /// « Mes statuts » : suivi (validation, paiement, mise en ligne, vues),
-/// relance d’un paiement, correction d’un statut refusé, forfait.
+/// paiement sur le web, correction d’un statut refusé.
 class MyStatusesScreen extends ConsumerWidget {
   const MyStatusesScreen({super.key});
 
@@ -63,9 +55,7 @@ class MyStatusesScreen extends ConsumerWidget {
           data: (data) => ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             children: [
-              _PassCard(passes: data.passes),
-              const SizedBox(height: 16),
-              if (data.items.isEmpty)
+              if (data.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 40),
                   child: Text(
@@ -78,72 +68,10 @@ class MyStatusesScreen extends ConsumerWidget {
                   ),
                 )
               else
-                for (final s in data.items) _StatusRow(status: s),
+                for (final s in data) _StatusRow(status: s),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Forfait actif, ou proposition d’achat.
-class _PassCard extends ConsumerWidget {
-  const _PassCard({required this.passes});
-
-  final StatusPasses passes;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
-    final until = passes.activeUntil;
-    final active = passes.hasActivePass;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(LucideIcons.layers, color: AppTheme.gold),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  active ? 'Forfait Statuts actif' : 'Aucun forfait actif',
-                  style: AppTheme.sansText(size: 15, weight: FontWeight.w700),
-                ),
-                Text(
-                  active
-                      ? [
-                          passes.remaining == null
-                              ? 'Publications illimitées'
-                              : '${passes.remaining} publication(s) restante(s)',
-                          if (until != null)
-                            'jusqu’au ${until.day.toString().padLeft(2, '0')}/${until.month.toString().padLeft(2, '0')}/${until.year}',
-                        ].join(' · ')
-                      : 'Publiez plusieurs statuts à prix réduit.',
-                  style: AppTheme.sansText(
-                    size: 13,
-                    height: 1.35,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (!active)
-            TextButton(
-              onPressed: () async {
-                await showBuyPassSheet(context);
-                ref.invalidate(myStatusesProvider);
-              },
-              child: const Text('Voir'),
-            ),
-        ],
       ),
     );
   }
@@ -278,11 +206,8 @@ class _Actions extends ConsumerWidget {
     final buttons = <Widget>[
       if (status.state == 'awaiting_payment')
         TextButton.icon(
-          onPressed: () async {
-            await showPayStatusSheet(context, status.id);
-            ref.invalidate(myStatusesProvider);
-          },
-          icon: const Icon(LucideIcons.smartphone, size: 16),
+          onPressed: () => _pay(context, ref),
+          icon: const Icon(LucideIcons.globe, size: 16),
           label: const Text('Payer'),
         ),
       if (status.state == 'rejected' || status.state == 'draft')
@@ -307,6 +232,21 @@ class _Actions extends ConsumerWidget {
       alignment: Alignment.centerRight,
       child: Wrap(spacing: 4, children: buttons),
     );
+  }
+
+  /// Paiement du statut sur la page web /paiement.
+  Future<void> _pay(BuildContext context, WidgetRef ref) async {
+    final api = ref.read(apiClientProvider);
+    try {
+      await payOnWeb(context, ref, kind: 'STATUS', statusId: status.id);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(api.apiError(e))));
+      }
+    }
+    ref.invalidate(myStatusesProvider);
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
@@ -346,209 +286,5 @@ class _Actions extends ConsumerWidget {
         context,
       ).showSnackBar(SnackBar(content: Text(api.apiError(e))));
     }
-  }
-}
-
-// ---------------------------------------------------------- paiements
-
-/// Relance le paiement Mobile Money d’un statut « publication unique ».
-Future<void> showPayStatusSheet(BuildContext context, String statusId) {
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    showDragHandle: true,
-    useSafeArea: true,
-    builder: (_) => _PaySheet(
-      title: 'Payer la publication',
-      intro: 'Votre statut sera envoyé à la rédaction dès réception du paiement.',
-      run: (api, phone) => api.payMyStatus(statusId, phone),
-    ),
-  );
-}
-
-/// Achat d’un forfait « Statuts » (liste des forfaits proposés).
-Future<void> showBuyPassSheet(BuildContext context) {
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    showDragHandle: true,
-    useSafeArea: true,
-    builder: (_) => const _BuyPassSheet(),
-  );
-}
-
-class _BuyPassSheet extends ConsumerStatefulWidget {
-  const _BuyPassSheet();
-
-  @override
-  ConsumerState<_BuyPassSheet> createState() => _BuyPassSheetState();
-}
-
-class _BuyPassSheetState extends ConsumerState<_BuyPassSheet> {
-  late final Future<List<StatusOffer>> _offers = ref
-      .read(apiClientProvider)
-      .statusOffers()
-      .then((all) => all.where((o) => o.isPass).toList());
-  StatusOffer? _picked;
-
-  @override
-  Widget build(BuildContext context) {
-    final picked = _picked;
-    if (picked != null) {
-      return _PaySheet(
-        title: picked.label,
-        intro: '${picked.detail} — ${picked.priceLabel}',
-        run: (api, phone) => api.checkoutStatusPass(picked.id, phone),
-      );
-    }
-    return FutureBuilder<List<StatusOffer>>(
-      future: _offers,
-      builder: (context, snap) {
-        final offers = snap.data ?? const <StatusOffer>[];
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('Forfaits Statuts', style: AppTheme.displayText(size: 22)),
-              const SizedBox(height: 12),
-              if (snap.connectionState != ConnectionState.done)
-                const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else if (offers.isEmpty)
-                const Text('Aucun forfait proposé pour le moment.')
-              else
-                for (final o in offers)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(LucideIcons.layers, color: AppTheme.gold),
-                    title: Text(o.label),
-                    subtitle: Text(o.description ?? o.detail),
-                    trailing: Text(
-                      o.priceLabel,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    onTap: () => setState(() => _picked = o),
-                  ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// Saisie du numéro + paiement + attente de confirmation.
-class _PaySheet extends ConsumerStatefulWidget {
-  const _PaySheet({required this.title, required this.intro, required this.run});
-
-  final String title;
-  final String intro;
-
-  /// Lance le paiement et renvoie l’id du paiement
-  final Future<String> Function(ApiClient api, String phone) run;
-
-  @override
-  ConsumerState<_PaySheet> createState() => _PaySheetState();
-}
-
-class _PaySheetState extends ConsumerState<_PaySheet> {
-  late final _phone = TextEditingController(
-    text: ref.read(sessionProvider)?.phone ?? '',
-  );
-  bool _busy = false;
-  String? _message;
-  String? _error;
-
-  @override
-  void dispose() {
-    _phone.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pay() async {
-    final api = ref.read(apiClientProvider);
-    final phone = _phone.text.replaceAll(' ', '').trim();
-    if (!RegExp(r'^\+?[0-9]{9,15}$').hasMatch(phone)) {
-      setState(() => _error = 'Indiquez un numéro Mobile Money valide.');
-      return;
-    }
-    setState(() {
-      _busy = true;
-      _error = null;
-      _message = 'Validez le paiement sur votre téléphone…';
-    });
-    try {
-      final paymentId = await widget.run(api, phone);
-      final ok = await waitForStatusPayment(
-        api,
-        paymentId,
-        cancelled: () => !mounted,
-      );
-      if (!mounted) return;
-      if (ok) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Paiement confirmé')));
-      } else {
-        setState(
-          () => _message =
-              'Paiement toujours en attente. Tirez la liste vers le bas '
-              'dans quelques minutes pour actualiser.',
-        );
-      }
-    } catch (e) {
-      if (mounted) setState(() => _error = api.apiError(e));
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        0,
-        20,
-        24 + MediaQuery.viewInsetsOf(context).bottom,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(widget.title, style: AppTheme.displayText(size: 22)),
-          const SizedBox(height: 6),
-          Text(widget.intro, style: AppTheme.sansText(size: 14, height: 1.4)),
-          const SizedBox(height: 16),
-          MobileMoneyField(controller: _phone, enabled: !_busy),
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ],
-          if (_message != null) ...[
-            const SizedBox(height: 16),
-            StatusProgressLine(text: _message!, progress: _busy ? null : 1),
-          ],
-          const SizedBox(height: 20),
-          FilledButton(
-            onPressed: _busy ? null : _pay,
-            style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.gold,
-              foregroundColor: const Color(0xFF0B0B0B),
-              minimumSize: const Size.fromHeight(50),
-            ),
-            child: Text(_busy ? 'Paiement en cours…' : 'Payer'),
-          ),
-        ],
-      ),
-    );
   }
 }

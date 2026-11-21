@@ -30,10 +30,11 @@ class ThemeModeController extends StateNotifier<ThemeMode> {
 }
 
 /// Surchargé dans `main()` avec la valeur persistée.
-final themeModeProvider =
-    StateNotifierProvider<ThemeModeController, ThemeMode>((ref) {
-  return ThemeModeController(ThemeMode.system);
-});
+final themeModeProvider = StateNotifierProvider<ThemeModeController, ThemeMode>(
+  (ref) {
+    return ThemeModeController(ThemeMode.system);
+  },
+);
 
 String themeModeLabel(ThemeMode mode) => switch (mode) {
   ThemeMode.light => 'Clair',

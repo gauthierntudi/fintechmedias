@@ -70,9 +70,9 @@ void setReadingQueue(
   String? currentCategory,
   String? currentCategoryLabel,
 }) {
-  final items = readingPlaylistOf(playlist)
-      .map(ReadingQueueItem.fromCard)
-      .toList();
+  final items = readingPlaylistOf(
+    playlist,
+  ).map(ReadingQueueItem.fromCard).toList();
   var index = items.indexWhere((e) => e.slug == currentSlug);
   if (index < 0) {
     items.insert(

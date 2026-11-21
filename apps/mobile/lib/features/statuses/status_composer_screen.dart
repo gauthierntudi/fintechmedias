@@ -14,7 +14,8 @@ import '../../core/models.dart';
 import '../../theme/app_theme.dart';
 import '../account/account_palette.dart';
 import '../editor/photo_editor.dart';
-import 'status_payment.dart';
+import '../payments/web_checkout.dart';
+import 'status_payment.dart' show StatusProgressLine;
 
 /// Ouvre l’écran de création d’un statut (ou de correction d’un statut refusé).
 Future<void> openStatusComposer(BuildContext context, {MyStatus? edit}) {
@@ -25,42 +26,15 @@ Future<void> openStatusComposer(BuildContext context, {MyStatus? edit}) {
 const _imageMaxBytes = 10 * 1000 * 1000;
 const _videoMaxBytes = 100 * 1000 * 1000;
 
-/// Offres et forfaits nécessaires à l’étape « Publication ».
-final _billingProvider = FutureProvider.autoDispose((ref) async {
-  final api = ref.watch(apiClientProvider);
-  final results = await Future.wait([api.statusOffers(), api.myStatusPasses()]);
-  return (
-    offers: results[0] as List<StatusOffer>,
-    passes: results[1] as StatusPasses,
-  );
-});
-
-/// Choix de financement à l’étape 2.
-sealed class _Billing {
-  const _Billing();
-}
-
-/// Décompte sur le forfait actif
-class _UsePass extends _Billing {
-  const _UsePass();
-}
-
-/// Publication unique payée à l’acte
-class _PaySingle extends _Billing {
-  const _PaySingle(this.offer);
-  final StatusOffer offer;
-}
-
-/// Achat d’un forfait, puis publication dessus
-class _BuyPass extends _Billing {
-  const _BuyPass(this.offer);
-  final StatusOffer offer;
-}
+/// Tarifs « publication » : chacun fixe le prix et la durée d’affichage.
+final _offersProvider = FutureProvider.autoDispose(
+  (ref) => ref.watch(apiClientProvider).statusOffers(),
+);
 
 /// Création d’un statut abonné en 2 étapes :
 /// 1. média (image ou vidéo), légende et lien ;
-/// 2. financement (forfait / publication unique / achat de forfait) et envoi
-///    à la rédaction, qui valide avant la mise en ligne.
+/// 2. choix du tarif (prix + durée), puis paiement sur la page web
+///    /paiement ; la rédaction valide avant la mise en ligne.
 class StatusComposerScreen extends ConsumerStatefulWidget {
   const StatusComposerScreen({super.key, this.edit});
 
@@ -76,7 +50,6 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
   final _picker = ImagePicker();
   final _caption = TextEditingController();
   final _link = TextEditingController();
-  final _phone = TextEditingController();
 
   XFile? _media;
 
@@ -90,7 +63,7 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
   int _mediaSize = 0;
 
   int _step = 0;
-  _Billing? _billing;
+  StatusOffer? _offer;
   bool _busy = false;
   String? _error;
   String? _progressText;
@@ -118,14 +91,12 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
       _caption.text = first?.caption ?? '';
       _link.text = first?.linkUrl ?? '';
     }
-    _phone.text = ref.read(sessionProvider)?.phone ?? '';
   }
 
   @override
   void dispose() {
     _caption.dispose();
     _link.dispose();
-    _phone.dispose();
     super.dispose();
   }
 
@@ -311,17 +282,9 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
 
   Future<void> _publish() async {
     final api = ref.read(apiClientProvider);
-    final billing = _billing;
-    if (!_resubmitFree && billing == null) {
-      setState(() => _error = 'Choisissez comment publier votre statut.');
-      return;
-    }
-    final needsPhone = billing is _PaySingle || billing is _BuyPass;
-    final phone = _phone.text.trim();
-    if (!_resubmitFree &&
-        needsPhone &&
-        !RegExp(r'^\+?[0-9]{9,15}$').hasMatch(phone.replaceAll(' ', ''))) {
-      setState(() => _error = 'Indiquez un numéro Mobile Money valide.');
+    final offer = _offer;
+    if (!_resubmitFree && offer == null) {
+      setState(() => _error = 'Choisissez un tarif de publication.');
       return;
     }
 
@@ -335,51 +298,30 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
       if (!mounted) return;
       setState(() {
         _progress = null;
-        _progressText = 'Envoi à la rédaction…';
+        _progressText = _resubmitFree
+            ? 'Envoi à la rédaction…'
+            : 'Préparation du paiement…';
       });
 
       if (_resubmitFree) {
         // Déjà payé : le serveur ignore le mode de financement
         await api.submitMyStatus(statusId, billing: 'SINGLE');
-      } else if (billing is _UsePass) {
-        await api.submitMyStatus(statusId, billing: 'PASS');
-      } else if (billing is _PaySingle) {
-        final paymentId = await api.submitMyStatus(
+      } else {
+        // Le statut passe en attente de paiement avec le tarif choisi,
+        // puis l’abonné règle sur la page web.
+        await api.submitMyStatus(
           statusId,
           billing: 'SINGLE',
-          offerId: billing.offer.id,
-          phone: phone.replaceAll(' ', ''),
+          offerId: offer!.id,
         );
-        setState(
-          () => _progressText =
-              'Validez le paiement sur votre téléphone (${billing.offer.priceLabel})…',
+        if (!mounted) return;
+        final paid = await payOnWeb(
+          context,
+          ref,
+          kind: 'STATUS',
+          statusId: statusId,
         );
-        final ok = await waitForStatusPayment(
-          api,
-          paymentId ?? '',
-          cancelled: () => !mounted,
-        );
-        _paymentPending = !ok;
-      } else if (billing is _BuyPass) {
-        setState(
-          () => _progressText =
-              'Validez le paiement du forfait sur votre téléphone (${billing.offer.priceLabel})…',
-        );
-        final paymentId = await api.checkoutStatusPass(
-          billing.offer.id,
-          phone.replaceAll(' ', ''),
-        );
-        final ok = await waitForStatusPayment(
-          api,
-          paymentId,
-          cancelled: () => !mounted,
-        );
-        if (!ok) {
-          // Forfait pas encore confirmé : le statut reste en brouillon
-          _paymentPending = true;
-        } else {
-          await api.submitMyStatus(statusId, billing: 'PASS');
-        }
+        _paymentPending = !paid;
       }
       if (!mounted) return;
       setState(() => _done = true);
@@ -549,8 +491,7 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
 
   Widget _buildBillingStep(BuildContext context) {
     final p = AccountPalette.of(context);
-    final async = ref.watch(_billingProvider);
-    final needsPhone = _billing is _PaySingle || _billing is _BuyPass;
+    final async = ref.watch(_offersProvider);
     final media = _media;
 
     return Column(
@@ -602,25 +543,29 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
                     children: [
                       _ErrorText(ref.read(apiClientProvider).apiError(e)),
                       TextButton(
-                        onPressed: () => ref.invalidate(_billingProvider),
+                        onPressed: () => ref.invalidate(_offersProvider),
                         child: const Text('Réessayer'),
                       ),
                     ],
                   ),
-                  data: (data) => _BillingOptions(
-                    offers: data.offers,
-                    passes: data.passes,
-                    selected: _billing,
+                  data: (offers) => _BillingOptions(
+                    offers: offers,
+                    selected: _offer,
                     enabled: !_busy,
-                    onSelect: (b) => setState(() {
-                      _billing = b;
+                    onSelect: (o) => setState(() {
+                      _offer = o;
                       _error = null;
                     }),
                   ),
                 ),
-              if (needsPhone && !_resubmitFree) ...[
-                const SizedBox(height: 16),
-                MobileMoneyField(controller: _phone, enabled: !_busy),
+              if (!_resubmitFree) ...[
+                const SizedBox(height: 6),
+                _Notice(
+                  icon: LucideIcons.globe,
+                  text:
+                      'Le paiement se fait sur notre page web sécurisée '
+                      '(Mobile Money), puis vous revenez dans l’app.',
+                ),
               ],
               if (_error != null) ...[
                 const SizedBox(height: 16),
@@ -637,7 +582,7 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
           palette: p,
           label: _publishLabel,
           icon: LucideIcons.send,
-          enabled: !_busy && (_resubmitFree || _billing != null),
+          enabled: !_busy && (_resubmitFree || _offer != null),
           onPressed: _publish,
         ),
       ],
@@ -646,34 +591,30 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
 
   String get _publishLabel {
     if (_resubmitFree) return 'Renvoyer à la rédaction';
-    final b = _billing;
-    if (b is _PaySingle) return 'Payer ${b.offer.priceLabel} et publier';
-    if (b is _BuyPass) return 'Acheter le forfait (${b.offer.priceLabel})';
-    return 'Publier';
+    final o = _offer;
+    if (o != null) return 'Payer ${o.priceLabel} sur le web';
+    return 'Continuer vers le paiement';
   }
 }
 
-/// Liste des modes de financement disponibles.
+/// Tarifs de publication disponibles (prix + durée d’affichage).
 class _BillingOptions extends StatelessWidget {
   const _BillingOptions({
     required this.offers,
-    required this.passes,
     required this.selected,
     required this.enabled,
     required this.onSelect,
   });
 
   final List<StatusOffer> offers;
-  final StatusPasses passes;
-  final _Billing? selected;
+  final StatusOffer? selected;
   final bool enabled;
-  final ValueChanged<_Billing> onSelect;
+  final ValueChanged<StatusOffer> onSelect;
 
   @override
   Widget build(BuildContext context) {
     final singles = offers.where((o) => !o.isPass).toList();
-    final packs = offers.where((o) => o.isPass).toList();
-    if (!passes.hasActivePass && offers.isEmpty) {
+    if (singles.isEmpty) {
       return const _Notice(
         icon: LucideIcons.clock,
         text:
@@ -681,57 +622,22 @@ class _BillingOptions extends StatelessWidget {
             'Revenez bientôt !',
       );
     }
-    final until = passes.activeUntil;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (passes.hasActivePass)
-          _OptionTile(
-            icon: LucideIcons.badgeCheck,
-            title: 'Utiliser mon forfait',
-            subtitle: [
-              passes.remaining == null
-                  ? 'Publications illimitées'
-                  : '${passes.remaining} publication${(passes.remaining ?? 0) > 1 ? 's' : ''} restante${(passes.remaining ?? 0) > 1 ? 's' : ''}',
-              if (until != null)
-                'jusqu’au ${until.day.toString().padLeft(2, '0')}/${until.month.toString().padLeft(2, '0')}',
-            ].join(' · '),
-            trailing: 'Inclus',
-            selected: selected is _UsePass,
-            enabled: enabled,
-            onTap: () => onSelect(const _UsePass()),
-          ),
         for (final o in singles)
           _OptionTile(
-            icon: LucideIcons.zap,
+            icon: LucideIcons.timer,
             title: o.label,
-            subtitle: o.description ?? o.detail,
+            subtitle: [
+              'Visible ${o.lifetimeLabel}',
+              if ((o.description ?? '').isNotEmpty) o.description!,
+            ].join(' · '),
             trailing: o.priceLabel,
-            selected:
-                selected is _PaySingle &&
-                (selected as _PaySingle).offer.id == o.id,
+            selected: selected?.id == o.id,
             enabled: enabled,
-            onTap: () => onSelect(_PaySingle(o)),
+            onTap: () => onSelect(o),
           ),
-        if (packs.isNotEmpty && !passes.hasActivePass) ...[
-          const SizedBox(height: 14),
-          _SectionTitle(
-            'Ou prenez un forfait',
-            palette: AccountPalette.of(context),
-          ),
-          for (final o in packs)
-            _OptionTile(
-              icon: LucideIcons.layers,
-              title: o.label,
-              subtitle: o.description ?? o.detail,
-              trailing: o.priceLabel,
-              selected:
-                  selected is _BuyPass &&
-                  (selected as _BuyPass).offer.id == o.id,
-              enabled: enabled,
-              onTap: () => onSelect(_BuyPass(o)),
-            ),
-        ],
       ],
     );
   }

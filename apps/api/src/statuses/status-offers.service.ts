@@ -58,8 +58,9 @@ export class StatusOffersService {
 
   async listActive() {
     const items = await this.prisma.statusOffer.findMany({
-      where: { isActive: true },
-      orderBy: [{ kind: 'asc' }, { sortOrder: 'asc' }, { priceCents: 'asc' }],
+      // Plus de forfaits « Statuts » : l’abonnement couvre toute la plateforme
+      where: { isActive: true, kind: StatusOfferKind.SINGLE },
+      orderBy: [{ sortOrder: 'asc' }, { priceCents: 'asc' }],
       select: OFFER_SELECT,
     });
     return { items };
@@ -161,18 +162,21 @@ export class StatusOffersService {
   }
 
   async create(dto: CreateStatusOfferDto, actorId: string) {
-    this.assertPassFields(dto.kind, dto.periodDays);
+    if (dto.kind === StatusOfferKind.PASS) {
+      throw new BadRequestException(
+        'Les forfaits Statuts ne sont plus proposés : chaque tarif est une publication avec sa propre durée',
+      );
+    }
     const offer = await this.prisma.statusOffer.create({
       data: {
-        kind: dto.kind,
+        kind: StatusOfferKind.SINGLE,
         label: dto.label.trim(),
         description: dto.description?.trim() || null,
         priceCents: dto.priceCents,
         currency: (dto.currency ?? 'USD').toUpperCase(),
         statusLifetimeHours: dto.statusLifetimeHours ?? 24,
-        quota: dto.kind === StatusOfferKind.PASS ? (dto.quota ?? null) : null,
-        periodDays:
-          dto.kind === StatusOfferKind.PASS ? (dto.periodDays ?? null) : null,
+        quota: null,
+        periodDays: null,
         isActive: dto.isActive ?? true,
         sortOrder: dto.sortOrder ?? 0,
       },

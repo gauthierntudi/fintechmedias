@@ -110,9 +110,8 @@ GoRouter createAppRouter(OnboardingController onboarding) {
       ),
       GoRoute(
         path: '/shorts/:slug',
-        builder: (context, state) => ShortsScreen(
-          initialSlug: state.pathParameters['slug'],
-        ),
+        builder: (context, state) =>
+            ShortsScreen(initialSlug: state.pathParameters['slug']),
       ),
       GoRoute(
         path: '/connexion',
