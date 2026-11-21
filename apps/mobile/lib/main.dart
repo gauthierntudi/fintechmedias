@@ -7,6 +7,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:media_kit/media_kit.dart';
 import 'app.dart';
 import 'core/onboarding.dart';
+import 'core/theme_mode.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -15,10 +16,14 @@ Future<void> main() async {
   FlutterNativeSplash.preserve(widgetsBinding: binding);
 
   OnboardingController onboarding;
+  var themeMode = ThemeMode.system;
   try {
     await initializeDateFormatting('fr');
     onboarding = await OnboardingController.load().timeout(
       const Duration(seconds: 3),
+    );
+    themeMode = await ThemeModeController.loadInitial().timeout(
+      const Duration(seconds: 2),
     );
   } catch (e, st) {
     debugPrint('Bootstrap prefs/locale failed: $e\n$st');
@@ -44,6 +49,7 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         onboardingProvider.overrideWith((ref) => onboarding),
+        themeModeProvider.overrideWith((ref) => ThemeModeController(themeMode)),
       ],
       child: const FintechApp(),
     ),

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router.dart';
+import 'core/theme_mode.dart';
 import 'theme/app_theme.dart';
 import 'widgets/now_playing_overlay.dart';
 
@@ -44,7 +45,7 @@ class _FintechAppState extends ConsumerState<FintechApp> {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: ref.watch(themeModeProvider),
       routerConfig: router,
       builder: (context, child) {
         final overlay = AppTheme.statusBarForMode(

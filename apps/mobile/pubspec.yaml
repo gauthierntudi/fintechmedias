@@ -50,7 +50,8 @@ dependencies:
   google_sign_in: ^7.2.0
   google_fonts: ^8.2.1
   image_picker: ^1.2.4
-
+  image: ^4.13.1
+  pro_video_editor: ^2.54.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -59,6 +59,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabs;
 
+  /// Onglets dont le fil a quitté le haut : la recherche y est masquée.
+  final Set<int> _scrolledTabs = {};
+
+  bool _onFeedScroll(ScrollNotification n) {
+    if (n.metrics.axis != Axis.vertical) return false;
+    final tab = _tabs.index;
+    final px = n.metrics.pixels - n.metrics.minScrollExtent;
+    final scrolled = _scrolledTabs.contains(tab);
+    // Masquage dès le premier défilement, réaffichage seulement au point
+    // de départ (tout en haut).
+    if (!scrolled && px > 4) {
+      setState(() => _scrolledTabs.add(tab));
+    } else if (scrolled && px <= 0) {
+      setState(() => _scrolledTabs.remove(tab));
+    }
+    return false;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -115,6 +133,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         ? context.push('/connexion')
                         : openStatusComposer(context),
                     onSearch: () => context.push('/recherche'),
+                    searchVisible: !_scrolledTabs.contains(_tabs.index),
                   ),
                   tabs,
                 ],
@@ -123,41 +142,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           Expanded(
             child: Stack(
               children: [
-                TabBarView(
-                  controller: _tabs,
-                  physics: shortTab
-                      ? const NeverScrollableScrollPhysics()
-                      : null,
-                  children: [
-                    async.when(
-                      loading: () => const HomeFeedSkeleton(),
-                      error: (e, _) => _Retry(
-                        message: ref.read(apiClientProvider).apiError(e),
-                        onRetry: () => ref.refresh(homeProvider),
+                NotificationListener<ScrollNotification>(
+                  onNotification: _onFeedScroll,
+                  child: TabBarView(
+                    controller: _tabs,
+                    physics: shortTab
+                        ? const NeverScrollableScrollPhysics()
+                        : null,
+                    children: [
+                      async.when(
+                        loading: () => const HomeFeedSkeleton(),
+                        error: (e, _) => _Retry(
+                          message: ref.read(apiClientProvider).apiError(e),
+                          onRetry: () => ref.refresh(homeProvider),
+                        ),
+                        data: (data) {
+                          final feed = data.feed;
+                          final une = _unique([...feed.featured]);
+                          return _UnePage(
+                            une: une,
+                            feed: feed,
+                            magazines: data.magazines,
+                            onRefresh: () async {
+                              ref
+                                ..invalidate(statusesProvider)
+                                ..invalidate(homeProvider);
+                              await ref.read(homeProvider.future);
+                            },
+                          );
+                        },
                       ),
-                      data: (data) {
-                        final feed = data.feed;
-                        final une = _unique([...feed.featured]);
-                        return _UnePage(
-                          une: une,
-                          feed: feed,
-                          magazines: data.magazines,
-                          onRefresh: () async {
-                            ref
-                              ..invalidate(statusesProvider)
-                              ..invalidate(homeProvider);
-                            await ref.read(homeProvider.future);
-                          },
-                        );
-                      },
-                    ),
-                    for (final r in kRubriques)
-                      CategoryFeedView(
-                        slug: r.slug,
-                        showExcerpt: showRubriqueExcerpt(r.slug),
-                      ),
-                    ShortsFeedView(active: shortTab),
-                  ],
+                      for (final r in kRubriques)
+                        CategoryFeedView(
+                          slug: r.slug,
+                          showExcerpt: showRubriqueExcerpt(r.slug),
+                        ),
+                      ShortsFeedView(active: shortTab),
+                    ],
+                  ),
                 ),
                 if (shortTab)
                   Positioned(
@@ -222,8 +244,7 @@ class _UnePage extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
             bleed: 20,
           ),
-          if (une.isNotEmpty)
-            FeaturedCard(article: une.first, playlist: une),
+          if (une.isNotEmpty) FeaturedCard(article: une.first, playlist: une),
           Builder(
             builder: (context) {
               final top = feed.topGrid.isNotEmpty
@@ -414,8 +435,7 @@ class _CoverCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () =>
-              openArticleCard(context, article, playlist: playlist),
+          onTap: () => openArticleCard(context, article, playlist: playlist),
           borderRadius: BorderRadius.circular(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,

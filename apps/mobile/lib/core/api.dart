@@ -69,6 +69,9 @@ class SessionController extends StateNotifier<Subscriber?> {
   Future<void> refreshMe() async {
     state = await _api.me();
   }
+
+  /// Met à jour la session avec l'utilisateur renvoyé par l'API.
+  void setUser(Subscriber user) => state = user;
 }
 
 class ApiClient {
@@ -328,16 +331,56 @@ class ApiClient {
     required String name,
     required String email,
     String? phone,
+    String? country,
+    String? address,
   }) async {
     final res = await _dio.patch<Map<String, dynamic>>(
       '/auth/me',
       data: {
         'name': name,
         'email': email,
-        if (phone case final p?) 'phone': p,
+        'phone': ?phone,
+        'country': ?country,
+        'address': ?address,
       },
     );
     return Subscriber.fromJson(_map(res.data));
+  }
+
+  /// Photo de profil (PNG/JPEG, 1 Mo max côté API).
+  Future<Subscriber> uploadAvatar(
+    String filePath, {
+    void Function(double progress)? onProgress,
+  }) async {
+    final name = filePath.split('/').last;
+    final form = FormData.fromMap({
+      'file': await MultipartFile.fromFile(
+        filePath,
+        filename: name,
+        contentType: DioMediaType.parse(_imageMime(name)),
+      ),
+    });
+    final res = await _dio.post<dynamic>(
+      '/auth/me/avatar',
+      data: form,
+      onSendProgress: (sent, total) {
+        if (total > 0) onProgress?.call(sent / total);
+      },
+    );
+    return Subscriber.fromJson(_map(res.data));
+  }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await _dio.post<dynamic>(
+      '/auth/me/password',
+      data: {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      },
+    );
   }
 
   Future<void> forgotPassword(String email, {String? turnstileToken}) async {

@@ -9,6 +9,9 @@ Future<void> showHomeMenuSheet(
 }) {
   return showModalBottomSheet<void>(
     context: context,
+    // Navigateur racine : la feuille passe au-dessus de la barre d’onglets
+    // du bas (et la masque) au lieu de s’afficher dans l’onglet courant.
+    useRootNavigator: true,
     showDragHandle: true,
     useSafeArea: true,
     builder: (ctx) {

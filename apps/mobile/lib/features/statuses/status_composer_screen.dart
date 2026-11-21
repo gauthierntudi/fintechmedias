@@ -1,14 +1,19 @@
 import 'dart:io';
+import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:pro_video_editor/pro_video_editor.dart' as pve;
 
 import '../../core/api.dart';
 import '../../core/models.dart';
 import '../../theme/app_theme.dart';
+import '../account/account_palette.dart';
+import '../editor/photo_editor.dart';
 import 'status_payment.dart';
 
 /// Ouvre l’écran de création d’un statut (ou de correction d’un statut refusé).
@@ -74,7 +79,14 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
   final _phone = TextEditingController();
 
   XFile? _media;
+
+  /// Fichier choisi avant retouche (pour pouvoir retoucher à nouveau).
+  File? _source;
   bool _isVideo = false;
+
+  /// Première image et durée de la vidéo retenue (aperçu).
+  Uint8List? _videoPoster;
+  Duration? _videoDuration;
   int _mediaSize = 0;
 
   int _step = 0;
@@ -120,7 +132,6 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
   // ------------------------------------------------------------ média
 
   Future<void> _pick({required bool video, required bool camera}) async {
-    Navigator.of(context).maybePop();
     try {
       final source = camera ? ImageSource.camera : ImageSource.gallery;
       final file = video
@@ -135,16 +146,6 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
               maxHeight: 1920,
             );
       if (file == null) return;
-      final size = await file.length();
-      final max = video ? _videoMaxBytes : _imageMaxBytes;
-      if (size > max) {
-        setState(
-          () => _error = video
-              ? 'La vidéo dépasse 100 Mo.'
-              : 'L’image dépasse 10 Mo.',
-        );
-        return;
-      }
       final name = file.path.toLowerCase();
       if (video &&
           !(name.endsWith('.mp4') ||
@@ -153,13 +154,7 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
         setState(() => _error = 'Formats vidéo acceptés : MP4 ou MOV.');
         return;
       }
-      setState(() {
-        _media = file;
-        _isVideo = video;
-        _mediaSize = size;
-        _mediaSent = false;
-        _error = null;
-      });
+      await _edit(File(file.path), video: video);
     } catch (e) {
       setState(
         () => _error =
@@ -168,40 +163,73 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
     }
   }
 
+  /// Ouvre l'éditeur (photo 9:16 ou vidéo) puis retient le résultat.
+  Future<void> _edit(File source, {required bool video}) async {
+    if (!mounted) return;
+    final edited = video
+        ? await openVideoEditor(context, source)
+        : await openPhotoEditor(
+            context,
+            source,
+            aspect: 9 / 16,
+            round: false,
+            discardMessage: 'L’image ne sera pas ajoutée au statut.',
+          );
+    if (edited == null || !mounted) return;
+    final size = await edited.length();
+    final max = video ? _videoMaxBytes : _imageMaxBytes;
+    if (size > max) {
+      setState(
+        () => _error = video
+            ? 'La vidéo dépasse 100 Mo : coupez-la davantage.'
+            : 'L’image dépasse 10 Mo.',
+      );
+      return;
+    }
+    Uint8List? poster;
+    Duration? duration;
+    if (video) {
+      try {
+        final v = pve.EditorVideo.file(edited);
+        duration = (await pve.ProVideoEditor.instance.getMetadata(v)).duration;
+        final thumbs = await pve.ProVideoEditor.instance.getThumbnails(
+          pve.ThumbnailConfigs(
+            video: v,
+            outputSize: const Size(540, 960),
+            timestamps: const [Duration(milliseconds: 300)],
+          ),
+        );
+        poster = thumbs.isEmpty ? null : thumbs.first;
+      } catch (_) {}
+      if (!mounted) return;
+    }
+    setState(() {
+      _videoPoster = poster;
+      _videoDuration = duration;
+      _source = source;
+      _media = XFile(edited.path);
+      _isVideo = video;
+      _mediaSize = size;
+      _mediaSent = false;
+      _error = null;
+    });
+  }
+
   void _openPicker() {
+    final p = AccountPalette.of(context);
     showModalBottomSheet<void>(
       context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      builder: (ctx) => SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(LucideIcons.image),
-              title: const Text('Photo de la galerie'),
-              onTap: () => _pick(video: false, camera: false),
-            ),
-            ListTile(
-              leading: const Icon(LucideIcons.film),
-              title: const Text('Vidéo de la galerie'),
-              subtitle: const Text('60 s max · 100 Mo'),
-              onTap: () => _pick(video: true, camera: false),
-            ),
-            ListTile(
-              leading: const Icon(LucideIcons.camera),
-              title: const Text('Prendre une photo'),
-              onTap: () => _pick(video: false, camera: true),
-            ),
-            ListTile(
-              leading: const Icon(LucideIcons.video),
-              title: const Text('Filmer une vidéo'),
-              onTap: () => _pick(video: true, camera: true),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
+      useRootNavigator: true,
+      backgroundColor: p.group,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => _PickerSheet(
+        palette: p,
+        onPick: (video, camera) {
+          Navigator.of(ctx).pop();
+          _pick(video: video, camera: camera);
+        },
       ),
     );
   }
@@ -374,10 +402,14 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
   @override
   Widget build(BuildContext context) {
     final title = widget.edit != null ? 'Corriger le statut' : 'Nouveau statut';
+    final p = AccountPalette.of(context);
     return PopScope(
       canPop: !_busy,
       child: Scaffold(
+        backgroundColor: p.bg,
         appBar: AppBar(
+          backgroundColor: p.bg,
+          surfaceTintColor: Colors.transparent,
           title: Text(title),
           leading: _step == 1 && !_done
               ? IconButton(
@@ -399,218 +431,214 @@ class _StatusComposerScreenState extends ConsumerState<StatusComposerScreen> {
   }
 
   Widget _buildMediaStep(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final p = AccountPalette.of(context);
     final media = _media;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+    final previewMax = MediaQuery.sizeOf(context).height * 0.46;
+
+    return Column(
       children: [
-        if (widget.edit?.refusalReason != null) ...[
-          _Notice(
-            icon: LucideIcons.circleAlert,
-            text: 'Refusé : ${widget.edit!.refusalReason}',
-          ),
-          const SizedBox(height: 16),
-        ],
-        // Aperçu vertical, plafonné à ~45 % de l'écran pour que le texte,
-        // le lien et « Continuer » restent visibles sans défiler.
-        Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.sizeOf(context).height * 0.45,
-            ),
-            child: AspectRatio(
-              aspectRatio: 9 / 14,
-              child: Material(
-                color: scheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(18),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: _busy ? null : _openPicker,
-                  child: media == null
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              LucideIcons.imagePlus,
-                              size: 44,
-                              color: scheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Ajouter une image ou une vidéo',
-                              style: AppTheme.sansText(
-                                size: 15,
-                                weight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Format vertical conseillé',
-                              style: AppTheme.sansText(
-                                size: 13,
-                                color: scheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        )
-                      : Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            if (_isVideo)
-                              ColoredBox(
-                                color: Colors.black,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      LucideIcons.circlePlay,
-                                      size: 56,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      'Vidéo · ${(_mediaSize / 1e6).toStringAsFixed(1)} Mo',
-                                      style: AppTheme.sansText(
-                                        size: 14,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
-                              Image.file(File(media.path), fit: BoxFit.cover),
-                            Positioned(
-                              right: 12,
-                              bottom: 12,
-                              child: FilledButton.tonalIcon(
-                                onPressed: _busy ? null : _openPicker,
-                                icon: const Icon(LucideIcons.repeat, size: 16),
-                                label: const Text('Changer'),
-                              ),
-                            ),
-                          ],
-                        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+            children: [
+              _StepHeader(
+                palette: p,
+                step: 1,
+                title: 'Votre média',
+                subtitle:
+                    'Une photo ou une vidéo verticale, retouchée '
+                    'avant publication.',
+              ),
+              if (widget.edit?.refusalReason != null) ...[
+                const SizedBox(height: 16),
+                _Notice(
+                  icon: LucideIcons.circleAlert,
+                  text: 'Refusé : ${widget.edit!.refusalReason}',
+                ),
+              ],
+              const SizedBox(height: 18),
+              if (media == null)
+                SizedBox(
+                  height: math.min(previewMax, 330),
+                  child: _EmptyMedia(
+                    palette: p,
+                    enabled: !_busy,
+                    onPick: (video, camera) =>
+                        _pick(video: video, camera: camera),
+                  ),
+                )
+              else
+                Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxHeight: previewMax),
+                    child: AspectRatio(
+                      aspectRatio: 9 / 16,
+                      child: _MediaPreview(
+                        palette: p,
+                        path: media.path,
+                        isVideo: _isVideo,
+                        poster: _videoPoster,
+                        duration: _videoDuration,
+                        sizeBytes: _mediaSize,
+                        onEdit: _busy || _source == null
+                            ? null
+                            : () => _edit(_source!, video: _isVideo),
+                        onChange: _busy ? null : _openPicker,
+                      ),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 26),
+              _SectionTitle('Détails', palette: p),
+              Container(
+                decoration: BoxDecoration(
+                  color: p.group,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Column(
+                  children: [
+                    _InlineField(
+                      palette: p,
+                      icon: LucideIcons.messageSquareText,
+                      controller: _caption,
+                      hint: 'Ajouter un texte (optionnel)',
+                      maxLength: 500,
+                      maxLines: 4,
+                      capitalization: TextCapitalization.sentences,
+                    ),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      indent: 54,
+                      color: p.divider,
+                    ),
+                    _InlineField(
+                      palette: p,
+                      icon: LucideIcons.link,
+                      controller: _link,
+                      hint: 'https://votre-site.com',
+                      keyboard: TextInputType.url,
+                    ),
+                  ],
                 ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
+                child: Text(
+                  'Le lien s’affiche en bouton « En savoir plus » sur votre '
+                  'statut.',
+                  style: AppTheme.sansText(size: 12.5, color: p.muted),
+                ),
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 16),
+                _ErrorText(_error!),
+              ],
+            ],
           ),
         ),
-        const SizedBox(height: 20),
-        TextField(
-          controller: _caption,
-          maxLength: 500,
-          maxLines: 3,
-          minLines: 1,
-          textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-            labelText: 'Texte (optionnel)',
-            hintText: 'Message affiché sur votre statut',
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _link,
-          keyboardType: TextInputType.url,
-          autocorrect: false,
-          decoration: const InputDecoration(
-            labelText: 'Lien (optionnel)',
-            hintText: 'https://votre-site.com',
-            helperText: 'Affiché en bouton « En savoir plus »',
-          ),
-        ),
-        if (_error != null) ...[
-          const SizedBox(height: 16),
-          _ErrorText(_error!),
-        ],
-        const SizedBox(height: 24),
-        FilledButton(
-          onPressed: _busy ? null : _next,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppTheme.gold,
-            foregroundColor: const Color(0xFF0B0B0B),
-            minimumSize: const Size.fromHeight(50),
-          ),
-          child: const Text('Continuer'),
+        _BottomCta(
+          palette: p,
+          label: 'Continuer',
+          enabled: !_busy && media != null,
+          onPressed: _next,
         ),
       ],
     );
   }
 
   Widget _buildBillingStep(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final p = AccountPalette.of(context);
     final async = ref.watch(_billingProvider);
     final needsPhone = _billing is _PaySingle || _billing is _BuyPass;
+    final media = _media;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+    return Column(
       children: [
-        Text('Publication', style: AppTheme.displayText(size: 22)),
-        const SizedBox(height: 6),
-        Text(
-          'Votre statut est vérifié par la rédaction avant d’apparaître en '
-          'tête de l’accueil avec la mention « Sponsorisé ».',
-          style: AppTheme.sansText(
-            size: 14,
-            height: 1.4,
-            color: scheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 18),
-        if (_resubmitFree)
-          const _Notice(
-            icon: LucideIcons.badgeCheck,
-            text:
-                'Votre publication est déjà payée : le statut corrigé est '
-                'renvoyé à la rédaction sans nouveau paiement.',
-          )
-        else
-          async.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 32),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (e, _) => Column(
-              children: [
-                _ErrorText(ref.read(apiClientProvider).apiError(e)),
-                TextButton(
-                  onPressed: () => ref.invalidate(_billingProvider),
-                  child: const Text('Réessayer'),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+            children: [
+              _StepHeader(
+                palette: p,
+                step: 2,
+                title: 'Publication',
+                subtitle:
+                    'Votre statut est vérifié par la rédaction avant '
+                    'd’apparaître en tête de l’accueil avec la mention « Sponsorisé ».',
+              ),
+              if (media != null) ...[
+                const SizedBox(height: 18),
+                _MediaRecap(
+                  palette: p,
+                  path: media.path,
+                  isVideo: _isVideo,
+                  poster: _videoPoster,
+                  duration: _videoDuration,
+                  sizeBytes: _mediaSize,
+                  caption: _caption.text.trim(),
+                  onEdit: _busy ? null : () => setState(() => _step = 0),
                 ),
               ],
-            ),
-            data: (data) => _BillingOptions(
-              offers: data.offers,
-              passes: data.passes,
-              selected: _billing,
-              enabled: !_busy,
-              onSelect: (b) => setState(() {
-                _billing = b;
-                _error = null;
-              }),
-            ),
+              const SizedBox(height: 22),
+              _SectionTitle(
+                _resubmitFree ? 'Paiement' : 'Mode de publication',
+                palette: p,
+              ),
+              if (_resubmitFree)
+                const _Notice(
+                  icon: LucideIcons.badgeCheck,
+                  text:
+                      'Votre publication est déjà payée : le statut corrigé est '
+                      'renvoyé à la rédaction sans nouveau paiement.',
+                )
+              else
+                async.when(
+                  loading: () => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 32),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (e, _) => Column(
+                    children: [
+                      _ErrorText(ref.read(apiClientProvider).apiError(e)),
+                      TextButton(
+                        onPressed: () => ref.invalidate(_billingProvider),
+                        child: const Text('Réessayer'),
+                      ),
+                    ],
+                  ),
+                  data: (data) => _BillingOptions(
+                    offers: data.offers,
+                    passes: data.passes,
+                    selected: _billing,
+                    enabled: !_busy,
+                    onSelect: (b) => setState(() {
+                      _billing = b;
+                      _error = null;
+                    }),
+                  ),
+                ),
+              if (needsPhone && !_resubmitFree) ...[
+                const SizedBox(height: 16),
+                MobileMoneyField(controller: _phone, enabled: !_busy),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 16),
+                _ErrorText(_error!),
+              ],
+              if (_busy && _progressText != null) ...[
+                const SizedBox(height: 20),
+                StatusProgressLine(text: _progressText!, progress: _progress),
+              ],
+            ],
           ),
-        if (needsPhone && !_resubmitFree) ...[
-          const SizedBox(height: 16),
-          MobileMoneyField(controller: _phone, enabled: !_busy),
-        ],
-        if (_error != null) ...[
-          const SizedBox(height: 16),
-          _ErrorText(_error!),
-        ],
-        const SizedBox(height: 24),
-        if (_busy && _progressText != null) ...[
-          StatusProgressLine(text: _progressText!, progress: _progress),
-          const SizedBox(height: 16),
-        ],
-        FilledButton(
-          onPressed: _busy ? null : _publish,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppTheme.gold,
-            foregroundColor: const Color(0xFF0B0B0B),
-            minimumSize: const Size.fromHeight(50),
-          ),
-          child: Text(_publishLabel),
+        ),
+        _BottomCta(
+          palette: p,
+          label: _publishLabel,
+          icon: LucideIcons.send,
+          enabled: !_busy && (_resubmitFree || _billing != null),
+          onPressed: _publish,
         ),
       ],
     );
@@ -686,12 +714,10 @@ class _BillingOptions extends StatelessWidget {
             onTap: () => onSelect(_PaySingle(o)),
           ),
         if (packs.isNotEmpty && !passes.hasActivePass) ...[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(2, 14, 2, 8),
-            child: Text(
-              'Ou prenez un forfait',
-              style: AppTheme.sansText(size: 13, weight: FontWeight.w700),
-            ),
+          const SizedBox(height: 14),
+          _SectionTitle(
+            'Ou prenez un forfait',
+            palette: AccountPalette.of(context),
           ),
           for (final o in packs)
             _OptionTile(
@@ -732,28 +758,36 @@ class _OptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final p = AccountPalette.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
-        color: selected
-            ? AppTheme.gold.withValues(alpha: 0.12)
-            : Colors.transparent,
+        color: selected ? AppTheme.gold.withValues(alpha: 0.10) : p.group,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
           side: BorderSide(
-            color: selected ? AppTheme.gold : scheme.outlineVariant,
-            width: selected ? 1.6 : 1,
+            color: selected ? AppTheme.gold : Colors.transparent,
+            width: 1.6,
           ),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: enabled ? onTap : null,
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.fromLTRB(14, 14, 16, 14),
             child: Row(
               children: [
-                Icon(icon, size: 22, color: AppTheme.gold),
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? AppTheme.gold.withValues(alpha: 0.18)
+                        : p.iconBg,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, size: 20, color: AppTheme.gold),
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -763,29 +797,60 @@ class _OptionTile extends StatelessWidget {
                         title,
                         style: AppTheme.sansText(
                           size: 15,
-                          weight: FontWeight.w600,
+                          weight: FontWeight.w700,
                           height: 1.3,
+                          color: p.fg,
                         ),
                       ),
-                      Text(
-                        subtitle,
-                        style: AppTheme.sansText(
-                          size: 13,
-                          height: 1.3,
-                          color: scheme.onSurfaceVariant,
+                      if (subtitle.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle,
+                          style: AppTheme.sansText(
+                            size: 13,
+                            height: 1.35,
+                            color: p.muted,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  trailing,
-                  style: AppTheme.sansText(
-                    size: 14,
-                    weight: FontWeight.w700,
-                    height: 1.2,
-                  ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      trailing,
+                      style: AppTheme.sansText(
+                        size: 14,
+                        weight: FontWeight.w800,
+                        height: 1.2,
+                        color: p.fg,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: selected ? AppTheme.gold : Colors.transparent,
+                        border: Border.all(
+                          color: selected ? AppTheme.gold : p.muted,
+                          width: 1.6,
+                        ),
+                      ),
+                      child: selected
+                          ? const Icon(
+                              LucideIcons.check,
+                              size: 13,
+                              color: Color(0xFF0B0B0B),
+                            )
+                          : null,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -796,7 +861,110 @@ class _OptionTile extends StatelessWidget {
   }
 }
 
-/// Écran final : statut envoyé (ou paiement encore en attente).
+/// Rappel compact du média à l’étape 2.
+class _MediaRecap extends StatelessWidget {
+  const _MediaRecap({
+    required this.palette,
+    required this.path,
+    required this.isVideo,
+    required this.poster,
+    required this.duration,
+    required this.sizeBytes,
+    required this.caption,
+    required this.onEdit,
+  });
+
+  final AccountPalette palette;
+  final String path;
+  final bool isVideo;
+  final Uint8List? poster;
+  final Duration? duration;
+  final int sizeBytes;
+  final String caption;
+  final VoidCallback? onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = palette;
+    final mo = '${(sizeBytes / 1e6).toStringAsFixed(1)} Mo';
+    String kind = isVideo ? 'Vidéo' : 'Photo';
+    final d = duration;
+    if (isVideo && d != null) {
+      final secs = (d.inMilliseconds / 1000).round();
+      kind += ' · ${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')}';
+    }
+    final Widget thumb = isVideo
+        ? (poster != null
+              ? Image.memory(poster!, fit: BoxFit.cover)
+              : ColoredBox(color: p.iconBg))
+        : Image.file(File(path), fit: BoxFit.cover, cacheWidth: 200);
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: p.group,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: SizedBox(
+              width: 54,
+              height: 96,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  thumb,
+                  if (isVideo)
+                    const Center(
+                      child: Icon(
+                        LucideIcons.play,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$kind · $mo',
+                  style: AppTheme.sansText(
+                    size: 13,
+                    weight: FontWeight.w700,
+                    color: AppTheme.gold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  caption.isEmpty ? 'Sans texte' : caption,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTheme.sansText(
+                    size: 14,
+                    height: 1.35,
+                    color: caption.isEmpty ? p.muted : p.fg,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: onEdit,
+            tooltip: 'Modifier',
+            icon: Icon(LucideIcons.pencil, size: 18, color: p.muted),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _DoneView extends StatelessWidget {
   const _DoneView({required this.paymentPending});
 
@@ -865,12 +1033,12 @@ class _Notice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final p = AccountPalette.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14),
+        color: p.group,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -900,6 +1068,692 @@ class _ErrorText extends StatelessWidget {
         size: 14,
         height: 1.35,
         color: Theme.of(context).colorScheme.error,
+      ),
+    );
+  }
+}
+
+// ───────────────────────────── Étape média ─────────────────────────────
+
+/// « Étape n sur 2 » + barre segmentée + titre.
+class _StepHeader extends StatelessWidget {
+  const _StepHeader({
+    required this.palette,
+    required this.step,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final AccountPalette palette;
+  final int step;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = palette;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            for (var i = 1; i <= 2; i++) ...[
+              Expanded(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: i <= step ? AppTheme.gold : p.divider,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              if (i < 2) const SizedBox(width: 6),
+            ],
+          ],
+        ),
+        const SizedBox(height: 14),
+        Text(
+          'ÉTAPE $step SUR 2',
+          style: AppTheme.sansText(
+            size: 11.5,
+            weight: FontWeight.w700,
+            color: AppTheme.gold,
+            letterSpacing: 1.1,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          title,
+          style: AppTheme.displayText(
+            size: 24,
+            weight: FontWeight.w800,
+            color: p.fg,
+            letterSpacing: -0.4,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          style: AppTheme.sansText(size: 14, color: p.muted, height: 1.4),
+        ),
+      ],
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.text, {required this.palette});
+
+  final String text;
+  final AccountPalette palette;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(6, 0, 6, 10),
+      child: Text(
+        text.toUpperCase(),
+        style: AppTheme.sansText(
+          size: 12,
+          weight: FontWeight.w700,
+          color: palette.muted,
+          letterSpacing: 1.1,
+        ),
+      ),
+    );
+  }
+}
+
+typedef _PickCallback = void Function(bool video, bool camera);
+
+const _pickOptions = <(IconData, String, String, bool, bool)>[
+  (LucideIcons.image, 'Photo', 'Galerie', false, false),
+  (LucideIcons.film, 'Vidéo', 'Galerie', true, false),
+  (LucideIcons.camera, 'Photo', 'Appareil', false, true),
+  (LucideIcons.video, 'Filmer', 'Appareil', true, true),
+];
+
+/// Zone vide : cadre pointillé + raccourcis galerie / appareil.
+class _EmptyMedia extends StatelessWidget {
+  const _EmptyMedia({
+    required this.palette,
+    required this.enabled,
+    required this.onPick,
+  });
+
+  final AccountPalette palette;
+  final bool enabled;
+  final _PickCallback onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = palette;
+    return CustomPaint(
+      foregroundPainter: _DashedBorderPainter(
+        color: p.muted.withValues(alpha: 0.45),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: p.group,
+          borderRadius: BorderRadius.circular(22),
+        ),
+        padding: const EdgeInsets.fromLTRB(14, 18, 14, 18),
+        child: Column(
+          children: [
+            const Spacer(),
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppTheme.gold.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                LucideIcons.imagePlus,
+                size: 28,
+                color: AppTheme.gold,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              'Ajoutez votre média',
+              textAlign: TextAlign.center,
+              style: AppTheme.displayText(
+                size: 17,
+                weight: FontWeight.w800,
+                color: p.fg,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Format vertical 9:16\nVidéo : 60 s max · 100 Mo',
+              textAlign: TextAlign.center,
+              style: AppTheme.sansText(size: 12.5, color: p.muted, height: 1.4),
+            ),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                for (final o in _pickOptions)
+                  _QuickPick(
+                    palette: p,
+                    icon: o.$1,
+                    label: o.$2,
+                    sub: o.$3,
+                    onTap: enabled ? () => onPick(o.$4, o.$5) : null,
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickPick extends StatelessWidget {
+  const _QuickPick({
+    required this.palette,
+    required this.icon,
+    required this.label,
+    required this.sub,
+    required this.onTap,
+  });
+
+  final AccountPalette palette;
+  final IconData icon;
+  final String label;
+  final String sub;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = palette;
+    return Semantics(
+      button: true,
+      label: '$label · $sub',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          width: 64,
+          child: Column(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: p.iconBg,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 21, color: p.fg),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                maxLines: 1,
+                style: AppTheme.sansText(
+                  size: 11.5,
+                  weight: FontWeight.w700,
+                  color: p.fg,
+                  height: 1.2,
+                ),
+              ),
+              Text(
+                sub,
+                maxLines: 1,
+                style: AppTheme.sansText(
+                  size: 10.5,
+                  color: p.muted,
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DashedBorderPainter extends CustomPainter {
+  _DashedBorderPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rrect = RRect.fromRectAndRadius(
+      (Offset.zero & size).deflate(0.75),
+      const Radius.circular(22),
+    );
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    for (final metric in (Path()..addRRect(rrect)).computeMetrics()) {
+      var d = 0.0;
+      while (d < metric.length) {
+        canvas.drawPath(metric.extractPath(d, d + 7), paint);
+        d += 13;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedBorderPainter old) => old.color != color;
+}
+
+/// Aperçu du média retenu, avec badges et actions superposés.
+class _MediaPreview extends StatelessWidget {
+  const _MediaPreview({
+    required this.palette,
+    required this.path,
+    required this.isVideo,
+    required this.poster,
+    required this.duration,
+    required this.sizeBytes,
+    required this.onEdit,
+    required this.onChange,
+  });
+
+  final AccountPalette palette;
+  final String path;
+  final bool isVideo;
+  final Uint8List? poster;
+  final Duration? duration;
+  final int sizeBytes;
+  final VoidCallback? onEdit;
+  final VoidCallback? onChange;
+
+  String get _badge {
+    final mo = '${(sizeBytes / 1e6).toStringAsFixed(1)} Mo';
+    if (!isVideo) return 'Photo · $mo';
+    final d = duration;
+    if (d == null) return 'Vidéo · $mo';
+    final secs = (d.inMilliseconds / 1000).round();
+    return 'Vidéo · ${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')} · $mo';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget visual = isVideo
+        ? (poster != null
+              ? Image.memory(poster!, fit: BoxFit.cover, gaplessPlayback: true)
+              : const ColoredBox(color: Colors.black))
+        : Image.file(File(path), fit: BoxFit.cover, gaplessPlayback: true);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(22),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          visual,
+          // Dégradés haut/bas pour la lisibilité des badges.
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: [0, 0.22, 0.7, 1],
+                colors: [
+                  Color(0x66000000),
+                  Color(0x00000000),
+                  Color(0x00000000),
+                  Color(0x99000000),
+                ],
+              ),
+            ),
+          ),
+          if (isVideo)
+            Center(
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white70, width: 1.5),
+                ),
+                child: const Icon(
+                  LucideIcons.play,
+                  size: 24,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          Positioned(
+            top: 12,
+            left: 12,
+            child: _GlassChip(
+              icon: isVideo ? LucideIcons.film : LucideIcons.image,
+              text: _badge,
+            ),
+          ),
+          Positioned(
+            left: 12,
+            right: 12,
+            bottom: 12,
+            child: Row(
+              children: [
+                Expanded(
+                  child: _GlassButton(
+                    icon: LucideIcons.slidersHorizontal,
+                    label: 'Retoucher',
+                    onTap: onEdit,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _GlassButton(
+                  icon: LucideIcons.repeat,
+                  tooltip: 'Changer de média',
+                  onTap: onChange,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GlassChip extends StatelessWidget {
+  const _GlassChip({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: Colors.white),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: AppTheme.sansText(
+              size: 12,
+              weight: FontWeight.w600,
+              color: Colors.white,
+              height: 1.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GlassButton extends StatelessWidget {
+  const _GlassButton({
+    required this.icon,
+    required this.onTap,
+    this.label,
+    this.tooltip,
+  });
+
+  final IconData icon;
+  final String? label;
+  final String? tooltip;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final child = Material(
+      color: Colors.black.withValues(alpha: 0.55),
+      shape: const StadiumBorder(),
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          height: 42,
+          width: label == null ? 42 : null,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 17, color: Colors.white),
+              if (label != null) ...[
+                const SizedBox(width: 8),
+                Text(
+                  label!,
+                  style: AppTheme.sansText(
+                    size: 14,
+                    weight: FontWeight.w700,
+                    color: Colors.white,
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+    return tooltip == null ? child : Tooltip(message: tooltip!, child: child);
+  }
+}
+
+/// Champ intégré à un groupe (icône + saisie sans bordure).
+class _InlineField extends StatelessWidget {
+  const _InlineField({
+    required this.palette,
+    required this.icon,
+    required this.controller,
+    required this.hint,
+    this.maxLength,
+    this.maxLines = 1,
+    this.keyboard,
+    this.capitalization = TextCapitalization.none,
+  });
+
+  final AccountPalette palette;
+  final IconData icon;
+  final TextEditingController controller;
+  final String hint;
+  final int? maxLength;
+  final int maxLines;
+  final TextInputType? keyboard;
+  final TextCapitalization capitalization;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = palette;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 4, 14, 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: p.iconBg,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, size: 15, color: p.fg),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              maxLength: maxLength,
+              minLines: 1,
+              maxLines: maxLines,
+              keyboardType: keyboard,
+              autocorrect: keyboard != TextInputType.url,
+              textCapitalization: capitalization,
+              style: AppTheme.sansText(size: 15.5, color: p.fg, height: 1.35),
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: AppTheme.sansText(size: 15.5, color: p.muted),
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                counterStyle: AppTheme.sansText(size: 11, color: p.muted),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Bouton principal collé en bas de l'écran.
+class _BottomCta extends StatelessWidget {
+  const _BottomCta({
+    required this.palette,
+    required this.label,
+    required this.enabled,
+    required this.onPressed,
+    this.icon = LucideIcons.arrowRight,
+  });
+
+  final AccountPalette palette;
+  final String label;
+  final bool enabled;
+  final VoidCallback onPressed;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = palette;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: p.bg,
+        border: Border(top: BorderSide(color: p.divider)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+        child: FilledButton(
+          onPressed: enabled ? onPressed : null,
+          style: FilledButton.styleFrom(
+            backgroundColor: AppTheme.gold,
+            foregroundColor: const Color(0xFF0B0B0B),
+            disabledBackgroundColor: p.iconBg,
+            disabledForegroundColor: p.muted,
+            minimumSize: const Size.fromHeight(52),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                label,
+                style: AppTheme.sansText(size: 16, weight: FontWeight.w700),
+              ),
+              const SizedBox(width: 8),
+              Icon(icon, size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Feuille « Changer de média ».
+class _PickerSheet extends StatelessWidget {
+  const _PickerSheet({required this.palette, required this.onPick});
+
+  final AccountPalette palette;
+  final _PickCallback onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = palette;
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: p.muted.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Choisir un média',
+              textAlign: TextAlign.center,
+              style: AppTheme.displayText(
+                size: 20,
+                weight: FontWeight.w800,
+                color: p.fg,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Vous pourrez le retoucher avant de continuer.',
+              textAlign: TextAlign.center,
+              style: AppTheme.sansText(size: 14, color: p.muted, height: 1.4),
+            ),
+            const SizedBox(height: 20),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 1.9,
+              children: [
+                for (final o in _pickOptions)
+                  Material(
+                    color: p.iconBg,
+                    borderRadius: BorderRadius.circular(16),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () => onPick(o.$4, o.$5),
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Icon(o.$1, size: 22, color: p.fg),
+                            Text(
+                              '${o.$2} · ${o.$3}',
+                              style: AppTheme.sansText(
+                                size: 14,
+                                weight: FontWeight.w600,
+                                color: p.fg,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

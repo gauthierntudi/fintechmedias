@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../theme/app_theme.dart';
-import 'studrc_logo.dart';
 
-/// En-tête de l’accueil (style « grand titre ») :
+/// En-tête de l’accueil :
 /// - ligne d’actions : menu « … » à gauche, notifications + « + » (publier
 ///   un statut) à droite ;
-/// - logo Fintech Médias en grand, aligné à gauche ;
 /// - champ de recherche (ouvre l’écran Recherche).
 class FintechHomeHeader extends StatelessWidget {
   const FintechHomeHeader({
@@ -15,12 +13,16 @@ class FintechHomeHeader extends StatelessWidget {
     required this.onNotify,
     required this.onAddStatus,
     required this.onSearch,
+    this.searchVisible = true,
   });
 
   final VoidCallback onMenu;
   final VoidCallback onNotify;
   final VoidCallback onAddStatus;
   final VoidCallback onSearch;
+
+  /// Masqué dès que le fil défile ; réaffiché une fois revenu tout en haut.
+  final bool searchVisible;
 
   @override
   Widget build(BuildContext context) {
@@ -65,41 +67,57 @@ class FintechHomeHeader extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: FintechLogo(height: 34, onDark: dark),
-          ),
-          const SizedBox(height: 14),
-          Semantics(
-            button: true,
-            label: 'Rechercher',
-            child: Material(
-              color: chip,
-              borderRadius: BorderRadius.circular(14),
-              child: InkWell(
-                onTap: onSearch,
-                borderRadius: BorderRadius.circular(14),
-                child: SizedBox(
-                  height: 44,
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 12),
-                      Icon(LucideIcons.search, size: 19, color: muted),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Rechercher un article, une rubrique…',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTheme.sansText(
-                            size: 16,
-                            height: 1.2,
-                            color: muted,
+          ClipRect(
+            child: AnimatedAlign(
+              duration: const Duration(milliseconds: 240),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              heightFactor: searchVisible ? 1 : 0,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 180),
+                opacity: searchVisible ? 1 : 0,
+                child: IgnorePointer(
+                  ignoring: !searchVisible,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 14),
+                    child: Semantics(
+                      button: true,
+                      label: 'Rechercher',
+                      child: Material(
+                        color: chip,
+                        borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          onTap: onSearch,
+                          borderRadius: BorderRadius.circular(14),
+                          child: SizedBox(
+                            height: 44,
+                            child: Row(
+                              children: [
+                                const SizedBox(width: 12),
+                                Icon(
+                                  LucideIcons.search,
+                                  size: 19,
+                                  color: muted,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Rechercher un article, une rubrique…',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTheme.sansText(
+                                      size: 16,
+                                      height: 1.2,
+                                      color: muted,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),

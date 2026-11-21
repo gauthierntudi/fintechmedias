@@ -1,3 +1,5 @@
+import 'constants.dart';
+
 String? _optionalUrl(Object? raw) {
   final s = raw is String ? raw.trim() : '';
   return s.isEmpty ? null : s;
@@ -293,6 +295,8 @@ class Subscriber {
     required this.name,
     required this.email,
     this.phone,
+    this.country,
+    this.address,
     this.avatarUrl,
     this.emailVerified = false,
   });
@@ -301,6 +305,8 @@ class Subscriber {
   final String name;
   final String email;
   final String? phone;
+  final String? country;
+  final String? address;
   final String? avatarUrl;
   final bool emailVerified;
 
@@ -310,9 +316,19 @@ class Subscriber {
       name: '${json['name'] ?? ''}',
       email: '${json['email'] ?? ''}',
       phone: json['phone'] as String?,
-      avatarUrl: json['avatarUrl'] as String?,
+      country: json['country'] as String?,
+      address: json['address'] as String?,
+      avatarUrl: _absoluteAvatar(json['avatarUrl'] as String?),
       emailVerified: json['emailVerified'] == true,
     );
+  }
+
+  /// L'API renvoie parfois un chemin relatif (`/legacy/profil/…`) servi par le site.
+  static String? _absoluteAvatar(String? raw) {
+    final v = raw?.trim() ?? '';
+    if (v.isEmpty) return null;
+    if (v.startsWith('http://') || v.startsWith('https://')) return v;
+    return '$kSiteUrl${v.startsWith('/') ? '' : '/'}$v';
   }
 }
 
