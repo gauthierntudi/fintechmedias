@@ -131,8 +131,8 @@
 }
 
 .auth-input-wrap:focus-within {
-  border-color: #02d0d1;
-  box-shadow: 0 0 0 3px rgba(2, 208, 209, 0.15);
+  border-color: #4ed319;
+  box-shadow: 0 0 0 3px rgba(78, 211, 25, 0.15);
 }
 
 .auth-input-icon {
@@ -167,7 +167,7 @@
 }
 
 .auth-row a {
-  color: #02d0d1;
+  color: #4ed319;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -220,7 +220,7 @@
 }
 
 .auth-check__text a {
-  color: #02d0d1;
+  color: #4ed319;
   text-decoration: none;
 }
 
@@ -241,7 +241,7 @@
   height: 48px;
   border: 0;
   border-radius: 10px;
-  background: linear-gradient(135deg, #02d0d1 0%, #00b4b5 100%);
+  background: linear-gradient(135deg, #4ed319 0%, #00b4b5 100%);
   color: #fff;
   font-family: KelsonBd, sans-serif;
   font-size: 0.95rem;
@@ -252,7 +252,7 @@
 
 .auth-submit:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(2, 208, 209, 0.35);
+  box-shadow: 0 8px 20px rgba(78, 211, 25, 0.35);
   color: #fff;
 }
 
@@ -275,13 +275,13 @@
 }
 
 .auth-switch a:hover {
-  color: #02d0d1;
+  color: #4ed319;
 }
 
 .auth-reveal {
   border: 0;
   background: transparent;
-  color: #02d0d1;
+  color: #4ed319;
   font-size: 0.78rem;
   padding: 0;
   cursor: pointer;

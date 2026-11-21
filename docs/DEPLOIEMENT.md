@@ -28,7 +28,7 @@ Cible : VPS **51.254.214.47**, stack Docker (nginx / web / api / worker / Postgr
                            │
               ┌────────────┴────────────┐
               ▼                         ▼
-     lentrevuemag.com              api.lentrevuemag.com
+     fintechmedias.com              api.fintechmedias.com
               │                         │
               └────────────┬────────────┘
                            ▼
@@ -43,7 +43,7 @@ Cible : VPS **51.254.214.47**, stack Docker (nginx / web / api / worker / Postgr
                          │
                          ▼
                    Cloudflare R2
-                   cdn.lentrevuemag.com
+                   cdn.fintechmedias.com
 ```
 
 ### Pourquoi cette découpe
@@ -87,13 +87,13 @@ Firewall Droplet (Cloud Firewall DO) :
 - 1 bucket prod (+ 1 staging optionnel)
 - Clés API limitées au bucket
 - CORS autorisant les domaines web
-- **Lecture PDF (viewer)** : en prod, nginx sert `/cdn-media/*` en proxy stream vers `cdn.lentrevuemag.com` (évite CORS + timeout Next sur gros PDF). Repli : `/api/media-proxy`.
-- **Uploads PDF admin (presigned)** : le navigateur envoie le fichier en `PUT` direct vers R2. CORS bucket obligatoire (`GET`, `PUT`, `HEAD`) pour `APP_URL` / `https://lentrevuemag.com` / localhost. Configurer avec :
+- **Lecture PDF (viewer)** : en prod, nginx sert `/cdn-media/*` en proxy stream vers `cdn.fintechmedias.com` (évite CORS + timeout Next sur gros PDF). Repli : `/api/media-proxy`.
+- **Uploads PDF admin (presigned)** : le navigateur envoie le fichier en `PUT` direct vers R2. CORS bucket obligatoire (`GET`, `PUT`, `HEAD`) pour `APP_URL` / `https://fintechmedias.com` / localhost. Configurer avec :
   ```bash
-  pnpm --filter @entrevue/api configure:r2-cors
+  pnpm --filter @fintechmedias/api configure:r2-cors
   ```
-  Origins supplémentaires : `R2_CORS_ORIGINS=https://www.lentrevuemag.com`
-- **Custom domain** (`cdn.lentrevuemag.com`) : à lier au bucket dans Cloudflare R2 → Settings → Custom Domains. Sans enregistrement DNS, le navigateur renvoie `ERR_NAME_NOT_RESOLVED` (ce n’est pas un problème CORS). En attendant : `AVATAR_USE_CDN=false` sert les photos via `/legacy/profil`.
+  Origins supplémentaires : `R2_CORS_ORIGINS=https://www.fintechmedias.com`
+- **Custom domain** (`cdn.fintechmedias.com`) : à lier au bucket dans Cloudflare R2 → Settings → Custom Domains. Sans enregistrement DNS, le navigateur renvoie `ERR_NAME_NOT_RESOLVED` (ce n’est pas un problème CORS). En attendant : `AVATAR_USE_CDN=false` sert les photos via `/legacy/profil`.
 
 ## 3. Services Docker (cible)
 
@@ -133,7 +133,7 @@ Le viewer flip utilise les images si `pagesStatus=READY` (ou pages déjà upload
 Les pages WebP sont servies via **proxy API** (`GET /api/magazines/:id/pages/:n`, aperçu 1–15 public, au-delà cookie JWT + droits). Le navigateur ne voit plus les URLs R2. Le CDN `cdn…/pages/` doit rester bloqué (WAF).
 
 - Relancer un numéro : `POST /api/admin/magazines/:id/pages/reprocess`
-- Backfill bulk : `pnpm --filter @entrevue/api enqueue:magazine-pages` (option `--limit=10`)
+- Backfill bulk : `pnpm --filter @fintechmedias/api enqueue:magazine-pages` (option `--limit=10`)
 - Prérequis : `REDIS_URL` + service Compose `worker` up
 
 ### Vidéo (HLS)
@@ -204,8 +204,8 @@ services:
 
 ### Routage Nginx
 
-- `lentrevuemag.com` / `www.lentrevuemag.com` → `web:3000`
-- `api.lentrevuemag.com` → `api:3001`
+- `fintechmedias.com` / `www.fintechmedias.com` → `web:3000`
+- `api.fintechmedias.com` → `api:3001`
 
 TLS : Certbot (Let’s Encrypt) ou certificats Cloudflare (Full Strict).
 
@@ -216,14 +216,14 @@ Fichier sur le Droplet : `/opt/magazine/v2/.env` (jamais commitré).
 ```bash
 # Apps
 NODE_ENV=production
-APP_URL=https://lentrevuemag.com
-API_URL=https://api.lentrevuemag.com
-NEXT_PUBLIC_API_URL=https://api.lentrevuemag.com
+APP_URL=https://fintechmedias.com
+API_URL=https://api.fintechmedias.com
+NEXT_PUBLIC_API_URL=https://api.fintechmedias.com
 
 # Auth
 JWT_ACCESS_SECRET=
 JWT_REFRESH_SECRET=
-COOKIE_DOMAIN=.lentrevuemag.com
+COOKIE_DOMAIN=.fintechmedias.com
 
 # Database (Postgres Docker sur le VPS)
 DATABASE_URL=postgresql://entrevue:pass@postgres:5432/entrevue
@@ -235,9 +235,9 @@ REDIS_URL=redis://redis:6379
 R2_ACCOUNT_ID=
 R2_ACCESS_KEY_ID=
 R2_SECRET_ACCESS_KEY=
-R2_BUCKET=entrevue
+R2_BUCKET=fintech-files
 R2_ENDPOINT=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
-R2_PUBLIC_URL=https://cdn.lentrevuemag.com
+R2_PUBLIC_URL=https://cdn.fintechmedias.com
 
 # FlexPaie (mobile)
 FLEXPAIE_MERCHANT=
@@ -245,11 +245,11 @@ FLEXPAIE_TOKEN=
 FLEXPAIE_MOBILE_API_URL=https://backend.flexpay.cd/api/rest/v1/paymentService
 FLEXPAIE_CARD_API_URL=https://cardpayment.flexpay.cd/v1.1/pay
 FLEXPAIE_CHECK_API_URL=https://backend.flexpay.cd/api/rest/v1/check
-FLEXPAIE_CALLBACK_URL=https://api.lentrevuemag.com/api/payments/flexpaie/callback
+FLEXPAIE_CALLBACK_URL=https://api.fintechmedias.com/api/payments/flexpaie/callback
 
 # Email — Resend
 RESEND_API_KEY=re_...
-MAIL_FROM="L'Entrevue <noreply@lentrevuemag.com>"
+MAIL_FROM="Fintech Médias <noreply@fintechmedias.com>"
 ```
 
 > **Note** : MaxiCash / PayPal / MoMo ne sont plus utilisés en v2. Emails via **Resend** (pas SMTP).
@@ -260,7 +260,7 @@ MAIL_FROM="L'Entrevue <noreply@lentrevuemag.com>"
 
 1. [ ] VPS Ubuntu 24.04 — `51.254.214.47`
 2. [ ] Firewall OVH : 22 / 80 / 443
-3. [ ] DNS A `lentrevuemag.com` / `www` / `api` → cette IP
+3. [ ] DNS A `fintechmedias.com` / `www` / `api` → cette IP
 4. [ ] Accès SSH clé uniquement
 
 ### OS VPS
@@ -281,9 +281,9 @@ sudo ufw enable
 
 ### Cloudflare
 
-1. [ ] DNS `A` `lentrevuemag.com` / `www` / `api` → `51.254.214.47`
+1. [ ] DNS `A` `fintechmedias.com` / `www` / `api` → `51.254.214.47`
 2. [ ] Bucket R2 + token API
-3. [ ] Custom domain CDN `cdn.lentrevuemag.com` (R2, pas le VPS)
+3. [ ] Custom domain CDN `cdn.fintechmedias.com` (R2, pas le VPS)
 4. [ ] SSL mode Full (strict) si proxy orange Cloudflare
 
 ### Application
@@ -407,7 +407,7 @@ Toujours : DB et bucket R2 **séparés** de la prod.
 | Managed Postgres | ~$/mois |
 | Managed Redis | ~$/mois |
 | R2 | stockage + class A/B ops (souvent faible) |
-| Domaine / Resend | variable (domaine `lentrevuemag.com` vérifié chez Resend) |
+| Domaine / Resend | variable (domaine `fintechmedias.com` vérifié chez Resend) |
 
 Documenter les montants réels dans un suivi interne une fois les plans choisis.
 

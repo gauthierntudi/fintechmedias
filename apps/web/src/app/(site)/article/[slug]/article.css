@@ -91,7 +91,7 @@ html[data-theme="dark"] .opt-article {
   border-radius: 999px;
   object-fit: cover;
   flex-shrink: 0;
-  background: var(--entrevue-red, #4ed319);
+  background: var(--brand-red, #4ed319);
 }
 
 /*
@@ -910,7 +910,7 @@ html[data-theme="dark"] .opt-article__hero .opt-article__title,
 
 .opt-article__tags a:hover {
   color: #111;
-  background: var(--entrevue-red, #4ed319);
+  background: var(--brand-red, #4ed319);
   border-color: transparent;
 }
 
@@ -1027,7 +1027,7 @@ html[data-theme="dark"] .opt-article__hero .opt-article__title,
 
 .opt-article__lock-actions a:first-child,
 .opt-article__lock-actions a:first-child:hover {
-  background: var(--entrevue-red, #4ed319);
+  background: var(--brand-red, #4ed319);
   color: #111;
 }
 

@@ -45,6 +45,10 @@ type Env = {
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   NEXT_PUBLIC_GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_ID_IOS?: string;
+  GOOGLE_CLIENT_ID_ANDROID?: string;
+  GOOGLE_IOS_CLIENT_ID?: string;
+  GOOGLE_ANDROID_CLIENT_ID?: string;
 };
 
 function pickEnv(
@@ -92,6 +96,10 @@ const API_ENV_KEYS = [
   "GOOGLE_CLIENT_ID",
   "GOOGLE_CLIENT_SECRET",
   "NEXT_PUBLIC_GOOGLE_CLIENT_ID",
+  "GOOGLE_CLIENT_ID_IOS",
+  "GOOGLE_CLIENT_ID_ANDROID",
+  "GOOGLE_IOS_CLIENT_ID",
+  "GOOGLE_ANDROID_CLIENT_ID",
 ] as const satisfies readonly (keyof Env)[];
 
 export class WebContainer extends Container<Env> {

@@ -80,6 +80,10 @@
     "CAPTCHA": "true",
     "GOOGLE_CLIENT_ID": "773749541861-b6rm42jlrtt6icd3mprgjomsan5nk80s.apps.googleusercontent.com",
     "NEXT_PUBLIC_GOOGLE_CLIENT_ID": "773749541861-b6rm42jlrtt6icd3mprgjomsan5nk80s.apps.googleusercontent.com",
+    "GOOGLE_CLIENT_ID_IOS": "773749541861-c5pojqagt93dv9fpodggkpgc0gluta0t.apps.googleusercontent.com",
+    "GOOGLE_CLIENT_ID_ANDROID": "773749541861-2pn12b57nui1g8ppsh8tfu7dsdtvjrch.apps.googleusercontent.com",
+    "GOOGLE_IOS_CLIENT_ID": "773749541861-c5pojqagt93dv9fpodggkpgc0gluta0t.apps.googleusercontent.com",
+    "GOOGLE_ANDROID_CLIENT_ID": "773749541861-2pn12b57nui1g8ppsh8tfu7dsdtvjrch.apps.googleusercontent.com",
     "TURNSTILE_SITE_KEY": "0x4AAAAAAFaZBLYfGHD9_lB0"
   }
 

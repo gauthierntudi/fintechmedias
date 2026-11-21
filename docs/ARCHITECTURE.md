@@ -1,4 +1,4 @@
-# Architecture — MAGAZINE v2
+# Architecture — Fintech Médias
 
 ## Vue d’ensemble
 
@@ -10,8 +10,8 @@ Internet
    ▼
 DigitalOcean Droplet (Docker Compose)
 ├─ nginx          :80 / :443  (reverse proxy + TLS)
-├─ web            :3000       Next.js 16     → https://entrevue.com
-├─ api            :3001       NestJS         → https://api.entrevue.com
+├─ web            :3000       Next.js 16     → https://fintechmedias.com
+├─ api            :3001       NestJS         → https://api.fintechmedias.com
 └─ worker                     même image NestJS, process BullMQ
          │
          ├── Managed PostgreSQL (Prisma)
@@ -23,9 +23,9 @@ Domaines :
 
 | Hôte | Service |
 |------|---------|
-| `entrevue.com` / `www.entrevue.com` | Front Next.js |
-| `api.entrevue.com` | API NestJS (+ callback FlexPaie) |
-| `cdn.entrevue.com` (optionnel) | Médias R2 |
+| `fintechmedias.com` / `www.fintechmedias.com` | Front Next.js |
+| `api.fintechmedias.com` | API NestJS (+ callback FlexPaie) |
+| `cdn.fintechmedias.com` (optionnel) | Médias R2 |
 
 ## Applications
 

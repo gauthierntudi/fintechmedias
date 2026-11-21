@@ -23,6 +23,9 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { PaymentsModule } from './payments/payments.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
 import { HomeVideoModule } from './home-video/home-video.module';
+import { EventsModule } from './events/events.module';
+import { JobsModule } from './jobs/jobs.module';
+import { StatusesModule } from './statuses/statuses.module';
 
 const envApi = join(__dirname, '../.env');
 const envRoot = join(__dirname, '../../../.env');
@@ -54,8 +57,10 @@ if (existsSync(envRoot)) loadEnv({ path: envRoot, override: true });
     SettingsModule,
     AuthorsModule,
     SponsorsModule,
+    EventsModule,
+    JobsModule,
+    StatusesModule,
     MonitoringModule,
   ],
 })
 export class AppModule {}
-

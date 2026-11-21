@@ -331,6 +331,152 @@ export class PaymentsService {
     };
   }
 
+  /**
+   * Paiement FlexPaie générique (statuts : publication unique, forfait).
+   * `metadata` porte l’objet à activer (statusId / passId) : il est relu par
+   * `markPaymentSuccess`, ce qui évite toute course avec le callback.
+   */
+  async startFlexpaieCharge(opts: {
+    subscriberId: string;
+    amountCents: number;
+    currency: string;
+    purpose: PaymentPurpose;
+    phone: string;
+    referencePrefix?: string;
+    metadata?: Record<string, string | number | null>;
+  }) {
+    const subscriber = await this.prisma.subscriber.findUnique({
+      where: { id: opts.subscriberId },
+      select: { id: true, isActive: true },
+    });
+    if (!subscriber || !subscriber.isActive) {
+      throw new NotFoundException('Compte introuvable');
+    }
+    if (!Number.isInteger(opts.amountCents) || opts.amountCents <= 0) {
+      throw new BadRequestException('Montant invalide');
+    }
+    const phone = this.normalizePhone(opts.phone);
+    const merchant = this.config.get<string>('FLEXPAIE_MERCHANT')?.trim();
+    const token = this.config.get<string>('FLEXPAIE_TOKEN')?.trim();
+    const apiUrl = this.config.get<string>('FLEXPAIE_MOBILE_API_URL')?.trim();
+    const callbackUrl =
+      this.config.get<string>('FLEXPAIE_CALLBACK_URL')?.trim() ||
+      `${this.config.get<string>('API_URL')?.replace(/\/$/, '')}/api/payments/flexpaie/callback`;
+
+    if (!merchant || !token || !apiUrl) {
+      throw new BadRequestException('FlexPaie non configuré');
+    }
+
+    const prefix = (opts.referencePrefix ?? 'OPT').toUpperCase();
+    const reference = `${prefix}${Date.now().toString(36).toUpperCase()}${randomBytes(2).toString('hex').toUpperCase()}`;
+    const baseMeta = {
+      ...(opts.metadata ?? {}),
+      phone,
+      reference,
+      channel: 'mobile',
+    };
+
+    const payment = await this.prisma.payment.create({
+      data: {
+        provider: PaymentProvider.FLEXPAIE,
+        providerRef: reference,
+        amountCents: opts.amountCents,
+        currency: opts.currency,
+        status: PaymentStatus.PENDING,
+        purpose: opts.purpose,
+        subscriberId: subscriber.id,
+        metadata: baseMeta,
+      },
+    });
+
+    let flexRes: {
+      code?: string | number;
+      message?: string;
+      orderNumber?: string;
+    };
+    try {
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: token.startsWith('Bearer ')
+            ? token
+            : `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          merchant,
+          type: '1',
+          phone,
+          reference,
+          amount: this.centsToMajorAmount(opts.amountCents),
+          currency: opts.currency.toUpperCase(),
+          callbackUrl,
+        }),
+      });
+      flexRes = (await res.json()) as typeof flexRes;
+      if (!res.ok) {
+        throw new Error(flexRes.message || `HTTP ${res.status}`);
+      }
+    } catch (err) {
+      await this.prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: PaymentStatus.FAILED,
+          metadata: {
+            ...baseMeta,
+            error: err instanceof Error ? err.message : 'FlexPaie error',
+          },
+        },
+      });
+      throw new BadRequestException(
+        err instanceof Error
+          ? `FlexPaie : ${err.message}`
+          : 'Échec initiation FlexPaie',
+      );
+    }
+
+    if (String(flexRes.code ?? '') !== '0') {
+      await this.prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: PaymentStatus.FAILED,
+          metadata: { ...baseMeta, flex: flexRes },
+        },
+      });
+      throw new BadRequestException(
+        flexRes.message || 'FlexPaie a refusé la transaction',
+      );
+    }
+
+    await this.prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        metadata: {
+          ...baseMeta,
+          orderNumber: flexRes.orderNumber ?? null,
+          flex: flexRes,
+        },
+      },
+    });
+
+    void this.activity.log({
+      actorType: ActivityActorType.SUBSCRIBER,
+      subscriberId: subscriber.id,
+      action: 'payment_flexpaie_started',
+      entity: 'payment',
+      entityId: payment.id,
+      meta: { ...(opts.metadata ?? {}), purpose: opts.purpose, phone },
+    });
+
+    return {
+      paymentId: payment.id,
+      reference,
+      orderNumber: flexRes.orderNumber ?? null,
+      message:
+        'Validez le paiement sur votre téléphone (USSD / notification Mobile Money).',
+    };
+  }
+
   async handleFlexpaieCallback(body: Record<string, unknown>) {
     const nested =
       body.transaction &&
@@ -339,9 +485,7 @@ export class PaymentsService {
         ? (body.transaction as Record<string, unknown>)
         : {};
 
-    const reference = String(
-      body.reference ?? nested.reference ?? '',
-    ).trim();
+    const reference = String(body.reference ?? nested.reference ?? '').trim();
     const orderNumber = String(
       body.orderNumber ?? nested.orderNumber ?? '',
     ).trim();
@@ -365,7 +509,7 @@ export class PaymentsService {
           metadata: {
             path: ['orderNumber'],
             equals: orderNumber,
-          } as object,
+          },
         },
         orderBy: { createdAt: 'desc' },
       });
@@ -404,9 +548,7 @@ export class PaymentsService {
     const rootCode = String(body.code ?? body.status ?? '').trim();
 
     const success =
-      providerReference.length > 0 ||
-      txStatus === '0' ||
-      txStatus === '00';
+      providerReference.length > 0 || txStatus === '0' || txStatus === '00';
 
     const failed =
       txStatus === '1' ||
@@ -417,7 +559,7 @@ export class PaymentsService {
 
     const metaBase = {
       ...(typeof payment.metadata === 'object' && payment.metadata
-        ? (payment.metadata as Record<string, unknown>)
+        ? payment.metadata
         : {}),
       callback: body,
       confirmedVia: 'webhook',
@@ -511,7 +653,7 @@ export class PaymentsService {
         await this.markPaymentSuccess(payment.id, {
           metadata: {
             ...(typeof payment.metadata === 'object' && payment.metadata
-              ? (payment.metadata as Record<string, unknown>)
+              ? payment.metadata
               : {}),
             check: data,
             confirmedVia: 'check',
@@ -523,7 +665,7 @@ export class PaymentsService {
         await this.markPaymentFailed(payment.id, {
           metadata: {
             ...(typeof payment.metadata === 'object' && payment.metadata
-              ? (payment.metadata as Record<string, unknown>)
+              ? payment.metadata
               : {}),
             check: data,
             confirmedVia: 'check',
@@ -689,10 +831,7 @@ export class PaymentsService {
       });
     }
 
-    if (
-      payment.purpose === PaymentPurpose.PURCHASE &&
-      payment.magazineId
-    ) {
+    if (payment.purpose === PaymentPurpose.PURCHASE && payment.magazineId) {
       await this.activatePurchase({
         id: payment.id,
         subscriberId: payment.subscriberId,
@@ -701,6 +840,13 @@ export class PaymentsService {
         currency: payment.currency,
         providerRef,
       });
+    }
+
+    if (
+      payment.purpose === PaymentPurpose.STATUS ||
+      payment.purpose === PaymentPurpose.STATUS_PLAN
+    ) {
+      await this.activateStatusPayment(payment);
     }
 
     void this.activity.log({
@@ -744,10 +890,7 @@ export class PaymentsService {
     ).replace(/\/$/, '');
 
     try {
-      if (
-        payment.purpose === PaymentPurpose.PURCHASE &&
-        payment.magazine
-      ) {
+      if (payment.purpose === PaymentPurpose.PURCHASE && payment.magazine) {
         await this.mail.sendPaymentConfirmation({
           to: subscriber.email,
           name: subscriber.name,
@@ -763,10 +906,7 @@ export class PaymentsService {
         return;
       }
 
-      if (
-        payment.purpose === PaymentPurpose.SUBSCRIPTION &&
-        payment.plan
-      ) {
+      if (payment.purpose === PaymentPurpose.SUBSCRIPTION && payment.plan) {
         await this.mail.sendPaymentConfirmation({
           to: subscriber.email,
           name: subscriber.name,
@@ -857,6 +997,71 @@ export class PaymentsService {
       meta: {
         paymentId: payment.id,
         startsAt: startsAt.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+      },
+    });
+  }
+
+  /** Paiement statut réussi : statut payé (→ modération) ou forfait activé. */
+  private async activateStatusPayment(payment: {
+    id: string;
+    purpose: PaymentPurpose;
+    subscriberId: string;
+    metadata: Prisma.JsonValue | null;
+  }) {
+    const meta =
+      payment.metadata &&
+      typeof payment.metadata === 'object' &&
+      !Array.isArray(payment.metadata)
+        ? (payment.metadata as Record<string, unknown>)
+        : {};
+
+    if (payment.purpose === PaymentPurpose.STATUS) {
+      const statusId = typeof meta.statusId === 'string' ? meta.statusId : '';
+      if (!statusId) return;
+      await this.prisma.status.updateMany({
+        where: { id: statusId, subscriberId: payment.subscriberId },
+        data: { paymentState: 'PAID', paymentId: payment.id },
+      });
+      void this.activity.log({
+        actorType: ActivityActorType.SUBSCRIBER,
+        subscriberId: payment.subscriberId,
+        action: 'status_paid',
+        entity: 'status',
+        entityId: statusId,
+        meta: { paymentId: payment.id },
+      });
+      return;
+    }
+
+    const passId = typeof meta.passId === 'string' ? meta.passId : '';
+    if (!passId) return;
+    const pass = await this.prisma.statusPass.findUnique({
+      where: { id: passId },
+      include: { offer: { select: { periodDays: true } } },
+    });
+    if (!pass || pass.subscriberId !== payment.subscriberId) return;
+    if (pass.paymentState === 'PAID') return;
+    const startsAt = new Date();
+    const days = pass.offer?.periodDays ?? 30;
+    const expiresAt = new Date(startsAt.getTime() + days * 86_400_000);
+    await this.prisma.statusPass.update({
+      where: { id: pass.id },
+      data: {
+        paymentState: 'PAID',
+        paymentId: payment.id,
+        startsAt,
+        expiresAt,
+      },
+    });
+    void this.activity.log({
+      actorType: ActivityActorType.SUBSCRIBER,
+      subscriberId: payment.subscriberId,
+      action: 'status_pass_activated',
+      entity: 'status_pass',
+      entityId: pass.id,
+      meta: {
+        paymentId: payment.id,
         expiresAt: expiresAt.toISOString(),
       },
     });

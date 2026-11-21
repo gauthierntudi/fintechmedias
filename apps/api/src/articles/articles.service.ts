@@ -140,7 +140,7 @@ const ARTICLE_SELECT = {
   },
 } satisfies Prisma.ArticleSelect;
 
-const PUBLIC_CARD_SELECT = {
+export const PUBLIC_CARD_SELECT = {
   id: true,
   title: true,
   slug: true,
@@ -297,7 +297,6 @@ export class ArticlesService {
       international,
       portrait,
       entreprise,
-      events,
       plusVus,
       aNePasManquer,
     ] = await Promise.all([
@@ -324,7 +323,6 @@ export class ArticlesService {
       this.byCategory('international', 5),
       this.byCategory('portrait', 5),
       this.byCategory('entreprise', 5),
-      this.byCategory('events', 5),
       this.prisma.article.findMany({
         where: published,
         orderBy: [{ viewCount: 'desc' }, { publishedAt: 'desc' }],
@@ -350,7 +348,6 @@ export class ArticlesService {
       international,
       portrait,
       entreprise,
-      events,
     };
     const featured: PublicCardRow[] =
       featuredRows.length > 0
@@ -375,7 +372,6 @@ export class ArticlesService {
       international: international.map((a) => this.toPublicCard(a)),
       portrait: portrait.map((a) => this.toPublicCard(a)),
       entreprise: entreprise.map((a) => this.toPublicCard(a)),
-      events: events.map((a) => this.toPublicCard(a)),
       filInfo: filInfo.map((a) => this.toPublicCard(a)),
       // Clés historiques lues par l’app mobile encore sur l’ancien découpage.
       ecosystemePme: actualites.map((a) => this.toPublicCard(a)),
@@ -820,7 +816,7 @@ export class ArticlesService {
     });
   }
 
-  private toPublicCard(
+  toPublicCard(
     article: Prisma.ArticleGetPayload<{ select: typeof PUBLIC_CARD_SELECT }>,
   ) {
     const meta = categoryDisplay(article.category);

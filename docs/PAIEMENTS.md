@@ -1,6 +1,6 @@
 # Paiements — FlexPaie
 
-Provider retenu pour ENTREVUE (le legacy MaxiCash / PayPal / MoMo n’est pas porté).
+Provider retenu pour Fintech Médias (le legacy MaxiCash / PayPal / MoMo n’est pas porté).
 
 | Canal | Provider | Public cible |
 |-------|----------|--------------|
@@ -39,7 +39,7 @@ FLEXPAIE_TOKEN=Bearer ...
 FLEXPAIE_MOBILE_API_URL=https://backend.flexpay.cd/api/rest/v1/paymentService
 FLEXPAIE_CARD_API_URL=https://cardpayment.flexpay.cd/v1.1/pay
 FLEXPAIE_CHECK_API_URL=https://backend.flexpay.cd/api/rest/v1/check
-FLEXPAIE_CALLBACK_URL=https://api.entrevue.com/payments/flexpaie/callback
+FLEXPAIE_CALLBACK_URL=https://api.fintechmedias.com/payments/flexpaie/callback
 ```
 
 > En prod, `FLEXPAIE_CALLBACK_URL` doit être une URL **HTTPS publique**, pas `localhost`.

@@ -475,7 +475,7 @@ export default function AdminStaffPage() {
                   required
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  placeholder="agent@entrevue.com"
+                  placeholder="agent@fintechmedias.com"
                   autoComplete="email"
                 />
               </label>

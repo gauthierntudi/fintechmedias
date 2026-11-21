@@ -10,10 +10,14 @@ import '../../core/now_playing.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/article_tile.dart';
 import '../../widgets/cover.dart';
+import '../../widgets/skeleton.dart';
 import '../../widgets/studrc_filter_tabs.dart';
-import '../../widgets/studrc_masthead.dart';
+import '../../widgets/home_header.dart';
 import '../news/category_feed.dart';
 import '../shorts/shorts_feed.dart';
+import '../statuses/status_composer_screen.dart';
+import '../statuses/status_sheets.dart';
+import '../statuses/statuses.dart';
 
 final homeProvider = FutureProvider((ref) async {
   final api = ref.watch(apiClientProvider);
@@ -82,7 +86,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final async = ref.watch(homeProvider);
     final user = ref.watch(sessionProvider);
     final shortTab = _tabs.index == _tabLabels.length - 1;
-    final tabs = EntrevueFilterTabs(controller: _tabs, labels: _tabLabels);
+    final tabs = FintechFilterTabs(controller: _tabs, labels: _tabLabels);
 
     ref.listen(shortsFeedProvider, (prev, next) {
       final items = next.valueOrNull?.items;
@@ -101,11 +105,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               bottom: false,
               child: Column(
                 children: [
-                  EntrevueMasthead(
-                    onSearch: () => context.push('/recherche'),
+                  FintechHomeHeader(
+                    onMenu: () =>
+                        showHomeMenuSheet(context, signedIn: user != null),
                     onNotify: () => context.push(
                       user == null ? '/connexion' : '/notifications',
                     ),
+                    onAddStatus: () => user == null
+                        ? context.push('/connexion')
+                        : openStatusComposer(context),
+                    onSearch: () => context.push('/recherche'),
                   ),
                   tabs,
                 ],
@@ -121,7 +130,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       : null,
                   children: [
                     async.when(
-                      loading: () => const _HomeSkeleton(),
+                      loading: () => const HomeFeedSkeleton(),
                       error: (e, _) => _Retry(
                         message: ref.read(apiClientProvider).apiError(e),
                         onRetry: () => ref.refresh(homeProvider),
@@ -133,8 +142,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           une: une,
                           feed: feed,
                           magazines: data.magazines,
-                          onRefresh: () async =>
-                              ref.refresh(homeProvider.future),
+                          onRefresh: () async {
+                            ref
+                              ..invalidate(statusesProvider)
+                              ..invalidate(homeProvider);
+                            await ref.read(homeProvider.future);
+                          },
                         );
                       },
                     ),
@@ -204,6 +217,11 @@ class _UnePage extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
         children: [
+          // Statuts (rédaction + abonnés) : bulles, la 1re pour publier
+          const StatusBubbles(
+            padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
+            bleed: 20,
+          ),
           if (une.isNotEmpty)
             FeaturedCard(article: une.first, playlist: une),
           Builder(
@@ -663,55 +681,6 @@ String? _issueLabel(String? value) {
     return trimmed;
   }
   return '#$trimmed';
-}
-
-class _HomeSkeleton extends StatelessWidget {
-  const _HomeSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    final fill = Theme.of(context).colorScheme.surfaceContainerHighest;
-    Widget box({double h = 16, double r = 10}) => Container(
-      height: h,
-      decoration: BoxDecoration(
-        color: fill,
-        borderRadius: BorderRadius.circular(r),
-      ),
-    );
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: Column(
-        children: [
-          AspectRatio(
-            aspectRatio: 4 / 3,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: fill,
-                borderRadius: BorderRadius.circular(22),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final w = (constraints.maxWidth - 12) / 2.2;
-              final h = w * 4 / 3;
-              return SizedBox(
-                height: h,
-                child: Row(
-                  children: [
-                    Expanded(child: box(h: h, r: 16)),
-                    const SizedBox(width: 12),
-                    Expanded(child: box(h: h, r: 16)),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _Retry extends StatelessWidget {

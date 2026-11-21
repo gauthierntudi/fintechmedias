@@ -34,23 +34,35 @@ html[data-theme="dark"] .opt-rubrique--dark {
   --opt-tone: #4ed319;
 }
 
+.opt-rubrique--green,
 .opt-rubrique--red {
-  --opt-tone: var(--opt-cat-red, #4ed319);
+  --opt-tone: #4ed319;
+}
+.opt-rubrique--gray,
+.opt-rubrique--black {
+  --opt-tone: #6b7280;
 }
 .opt-rubrique--blue {
-  --opt-tone: var(--opt-cat-blue, #111111);
+  --opt-tone: #2563eb;
 }
 .opt-rubrique--teal {
-  --opt-tone: var(--opt-cat-teal, #111111);
+  --opt-tone: #4ed319;
 }
+.opt-rubrique--violet,
 .opt-rubrique--dark {
-  --opt-tone: var(--opt-cat-dark, #111);
-}
-.opt-rubrique--gold {
-  --opt-tone: var(--opt-cat-gold, #4ed319);
+  --opt-tone: #7c3aed;
 }
 .opt-rubrique--orange {
-  --opt-tone: var(--opt-cat-orange, #4ed319);
+  --opt-tone: #ea580c;
+}
+.opt-rubrique--rose {
+  --opt-tone: #db2777;
+}
+.opt-rubrique--gold {
+  --opt-tone: #ca8a04;
+}
+.opt-rubrique--cyan {
+  --opt-tone: #0891b2;
 }
 
 .opt-rubrique__inner {
@@ -113,9 +125,9 @@ html[data-theme="dark"] .opt-rubrique--dark {
   overflow: hidden;
   margin: 0;
   padding: 0;
-  --swiper-theme-color: var(--entrevue-red, #4ed319);
-  --swiper-pagination-color: var(--entrevue-red, #4ed319);
-  --swiper-pagination-bullet-inactive-color: var(--entrevue-red, #4ed319);
+  --swiper-theme-color: var(--brand-red, #4ed319);
+  --swiper-pagination-color: var(--brand-red, #4ed319);
+  --swiper-pagination-bullet-inactive-color: var(--brand-red, #4ed319);
 }
 
 .opt-rubrique__hero-card {
@@ -336,7 +348,7 @@ html[data-theme="dark"] .opt-rubrique--dark {
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 999px;
-  background: var(--entrevue-red, #4ed319);
+  background: var(--brand-red, #4ed319);
   opacity: 0.38;
   transition:
     width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
@@ -351,7 +363,7 @@ html[data-theme="dark"] .opt-rubrique--dark {
 .opt-rubrique__hero-bullet.is-active::before {
   width: 1.65rem;
   opacity: 1;
-  background: var(--entrevue-red, #4ed319);
+  background: var(--brand-red, #4ed319);
 }
 
 .opt-rubrique__hero-bullet:focus-visible {
@@ -359,7 +371,7 @@ html[data-theme="dark"] .opt-rubrique--dark {
 }
 
 .opt-rubrique__hero-bullet:focus-visible::before {
-  box-shadow: 0 0 0 2px var(--opt-focus-ring), 0 0 0 4px var(--entrevue-red, #4ed319);
+  box-shadow: 0 0 0 2px var(--opt-focus-ring), 0 0 0 4px var(--brand-red, #4ed319);
 }
 
 /* —— Nos autres articles + plus lus —— */
@@ -444,7 +456,7 @@ html[data-theme="dark"] .opt-rubrique--dark {
 }
 
 .opt-rubrique__feed-link:hover .opt-rubrique__feed-title {
-  color: var(--entrevue-red, #4ed319);
+  color: var(--brand-red, #4ed319);
 }
 
 .opt-rubrique__feed-excerpt {

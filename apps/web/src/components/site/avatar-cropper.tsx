@@ -21,6 +21,11 @@ type ImageCropperProps = {
   maxHeight?: number;
   maxBytes?: number;
   wide?: boolean;
+  /**
+   * Zoom minimal (< 1 = dézoom possible : l’image peut tenir entièrement dans
+   * le cadre, les marges restent transparentes — utile pour les logos).
+   */
+  minZoom?: number;
   /** jpeg = fond opaque ; png = conserve l’alpha ; auto = png si transparence */
   output?: "jpeg" | "png" | "auto";
   onCancel: () => void;
@@ -100,16 +105,16 @@ async function getCroppedCanvas(
   ctx.clearRect(0, 0, width, height);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
+  // Dessine l’image entière décalée : fonctionne aussi quand la zone de
+  // recadrage déborde de l’image (dézoom), les marges restant transparentes.
+  const sx = width / pixelCrop.width;
+  const sy = height / pixelCrop.height;
   ctx.drawImage(
     image,
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height,
-    0,
-    0,
-    width,
-    height,
+    -pixelCrop.x * sx,
+    -pixelCrop.y * sy,
+    image.naturalWidth * sx,
+    image.naturalHeight * sy,
   );
   return canvas;
 }
@@ -130,6 +135,7 @@ export function ImageCropper({
   maxBytes = 5_000_000,
   wide = false,
   output = "jpeg",
+  minZoom = 1,
   onCancel,
   onConfirm,
 }: ImageCropperProps) {
@@ -257,6 +263,8 @@ export function ImageCropper({
             onCropChange={setCrop}
             onZoomChange={setZoom}
             onCropComplete={onCropComplete}
+            minZoom={minZoom}
+            restrictPosition={minZoom >= 1}
           />
         </div>
 
@@ -268,7 +276,7 @@ export function ImageCropper({
           <input
             id="opt-crop-zoom"
             type="range"
-            min={1}
+            min={minZoom}
             max={3}
             step={0.05}
             value={zoom}

@@ -79,7 +79,7 @@ export class NewsletterOutboxService implements OnModuleInit, OnModuleDestroy {
         send: (input) => this.mail.sendCampaign(input),
         appUrl:
           this.config.get<string>('APP_URL')?.replace(/\/$/, '') ||
-          'https://lentrevuemag.com',
+          'https://fintechmedias.com',
         apiUrl:
           this.config.get<string>('API_URL')?.replace(/\/$/, '') ||
           'http://localhost:3001',

@@ -1,4 +1,18 @@
-export type CategoryTone = 'red' | 'blue' | 'gold' | 'teal' | 'dark';
+/** Une teinte unique par rubrique (vert charte, noir, + palette). */
+export type CategoryTone =
+  | 'green'
+  | 'gray'
+  | 'black'
+  | 'blue'
+  | 'teal'
+  | 'violet'
+  | 'orange'
+  | 'rose'
+  | 'gold'
+  | 'cyan'
+  // Legacy (encore acceptés côté clients)
+  | 'red'
+  | 'dark';
 
 export type CategoryMeta = {
   label: string;
@@ -24,12 +38,24 @@ export function publicSiteCategorySlugs(): string[] {
 export const CATEGORY_META: Record<string, CategoryMeta> = {
   actualites: {
     label: 'Actualités',
-    tone: 'red',
-    aliases: ['Actualités', 'actualités', 'actualite', 'actualité'],
+    tone: 'green',
+    aliases: [
+      'Actualités',
+      'actualités',
+      'actualite',
+      'actualité',
+      // Ancienne rubrique « Events » (désactivée — voir module Événements)
+      'events',
+      'Events',
+      'événement',
+      'evenement',
+      'événements',
+      'evenements',
+    ],
   },
   interview: {
     label: 'Interview',
-    tone: 'gold',
+    tone: 'gray',
     aliases: [
       'Interview',
       'rencontre-avec',
@@ -64,17 +90,17 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
   },
   international: {
     label: 'Int’l',
-    tone: 'dark',
+    tone: 'violet',
     aliases: ['Int’l', "Int'l", 'intl', "int'l", 'int’l', 'international'],
   },
   portrait: {
     label: 'Édito',
-    tone: 'gold',
+    tone: 'orange',
     aliases: ['Portrait', 'portrait', 'femme', 'edito', 'Édito', 'Edito'],
   },
   entreprise: {
     label: 'Entreprise',
-    tone: 'red',
+    tone: 'rose',
     aliases: [
       'Entreprise',
       'entreprendre',
@@ -85,14 +111,9 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
       'zoom',
     ],
   },
-  events: {
-    label: 'Events',
-    tone: 'teal',
-    aliases: ['Events', 'événement', 'evenement', 'événements', 'evenements'],
-  },
   [SHORT_CATEGORY_SLUG]: {
     label: 'SHORT',
-    tone: 'gold',
+    tone: 'cyan',
     mobileOnly: true,
     aliases: ['short'],
   },
@@ -139,7 +160,7 @@ export function categoryDisplay(raw: string | null | undefined): {
   const canonical = resolveCategorySlug(key) ?? key;
   const meta = CATEGORY_META[canonical];
   if (meta) return { label: meta.label, tone: meta.tone };
-  return { label: key || 'Actualités', tone: 'red' };
+  return { label: key || 'Actualités', tone: 'green' };
 }
 
 export function isShortCategory(raw: string | null | undefined): boolean {

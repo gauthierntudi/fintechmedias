@@ -11,7 +11,7 @@ import {
 
 const DEFAULT_CONTACT = {
   address: '8 Avenue Kalemie, Kinshasa-Gombe',
-  email: 'contact@lentrevuemag.com',
+  email: 'contact@fintechmedias.com',
   phone: '+243 813 212 772',
 } as const;
 

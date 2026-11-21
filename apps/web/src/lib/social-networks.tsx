@@ -78,32 +78,32 @@ export const SOCIAL_NETWORK_META: Record<
   facebook: {
     label: "Facebook",
     tone: "#1877f2",
-    placeholder: "https://facebook.com/entrevue",
+    placeholder: "https://facebook.com/fintechmedias",
   },
   twitter: {
     label: "X / Twitter",
     tone: "#111111",
-    placeholder: "https://x.com/entrevue",
+    placeholder: "https://x.com/fintechmedias",
   },
   instagram: {
     label: "Instagram",
     tone: "#e1306c",
-    placeholder: "https://instagram.com/entrevue",
+    placeholder: "https://instagram.com/fintechmedias",
   },
   linkedin: {
     label: "LinkedIn",
     tone: "#0a66c2",
-    placeholder: "https://linkedin.com/company/entrevue",
+    placeholder: "https://linkedin.com/company/fintechmedias",
   },
   youtube: {
     label: "YouTube",
     tone: "#ff0000",
-    placeholder: "https://youtube.com/@entrevue",
+    placeholder: "https://youtube.com/@fintechmedias",
   },
   tiktok: {
     label: "TikTok",
     tone: "#111111",
-    placeholder: "https://tiktok.com/@entrevue",
+    placeholder: "https://tiktok.com/@fintechmedias",
   },
   whatsapp: {
     label: "WhatsApp",
@@ -113,12 +113,12 @@ export const SOCIAL_NETWORK_META: Record<
   telegram: {
     label: "Telegram",
     tone: "#229ed9",
-    placeholder: "https://t.me/opt1mum",
+    placeholder: "https://t.me/fintechmedias",
   },
   threads: {
     label: "Threads",
     tone: "#111111",
-    placeholder: "https://threads.net/@entrevue",
+    placeholder: "https://threads.net/@fintechmedias",
   },
   other: {
     label: "Autre",

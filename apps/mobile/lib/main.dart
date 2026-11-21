@@ -11,8 +11,7 @@ import 'theme/app_theme.dart';
 
 Future<void> main() async {
   final binding = WidgetsFlutterBinding.ensureInitialized();
-  // Garde le splash natif jusqu’à ce que le SplashView Flutter soit peint
-  // (évite le flash icône / autre logo avant le lockup).
+  // Garde le splash natif jusqu’au 1er frame Flutter (pas de 2e splash UI).
   FlutterNativeSplash.preserve(widgetsBinding: binding);
 
   OnboardingController onboarding;
@@ -46,9 +45,8 @@ Future<void> main() async {
       overrides: [
         onboardingProvider.overrideWith((ref) => onboarding),
       ],
-      child: const EntrevueApp(),
+      child: const FintechApp(),
     ),
   );
-  // Ne pas appeler FlutterNativeSplash.remove() ici : c’est SplashView / app.dart
-  // qui le retirent après le 1er frame Flutter (même logo, pas de saut).
+  // FlutterNativeSplash.remove() est appelé depuis app.dart après le 1er frame.
 }

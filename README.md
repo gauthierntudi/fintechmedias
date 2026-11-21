@@ -1,8 +1,8 @@
-# ENTREVUE
+# Fintech Médias
 
-Plateforme média et observatoire du système éducatif de la République Démocratique du Congo.
+Média de référence de la FinTech en Afrique — actualités, interviews, magazine et kiosque numérique.
 
-**Domaine :** [lentrevuemag.com](https://lentrevuemag.com) · API `api.lentrevuemag.com`
+**Domaine :** [fintechmedias.com](https://fintechmedias.com) · API `api.fintechmedias.com`
 
 Monorepo Next.js 16 + NestJS + Flutter.
 
@@ -16,7 +16,7 @@ Monorepo Next.js 16 + NestJS + Flutter.
 | Paiements | FlexPaie |
 | Email | Resend |
 | Médias | Cloudflare R2 |
-| Deploy | DigitalOcean Droplet + Docker Compose |
+| Deploy | Cloudflare (Workers + Containers + D1) — ancien VPS Docker Compose conservé |
 
 ## Structure
 
@@ -61,11 +61,11 @@ pnpm cf:deploy
 
 - Site : http://localhost:3000  
 - API health : http://localhost:3001/api/health
-- Prod : https://lentrevuemag.com · https://api.lentrevuemag.com/api/health
+- Prod : https://fintechmedias.com · https://api.fintechmedias.com/api/health
 
 ### App mobile (Flutter)
 
-Pointe par défaut sur l’API **en ligne** (`https://api.entrevue.com/api`).
+Pointe par défaut sur l’API **en ligne** (`https://api.fintechmedias.com/api`).
 
 ```bash
 cd apps/mobile
@@ -94,7 +94,8 @@ Configurer les secrets dans `.env` (jamais committer).
 - [x] Auth abonnés (register / login / me / refresh / logout)
 - [x] Auth finalisée (verify email Resend, reset password, admin)
 - [x] Design system Opt1mum (tokens + shells public/admin)
-- [x] Site + API en production (`lentrevuemag.com` / `api.lentrevuemag.com`)
+- [x] Rebranding L’Entrevue → Fintech Médias (code, deploy, docs)
+- [ ] Site + API en production (`fintechmedias.com` / `api.fintechmedias.com`)
 - [x] App Flutter (`apps/mobile`) — lecteur public sur l’API en ligne
 - [ ] Jetons JWT mobile déployés (login app)
 - [ ] Google Sign-In iOS / Android

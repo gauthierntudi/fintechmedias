@@ -49,7 +49,7 @@
 }
 
 a.opt-purchases__row:hover {
-  border-color: rgba(2, 208, 209, 0.45);
+  border-color: rgba(78, 211, 25, 0.45);
   box-shadow: 0 8px 24px rgba(13, 32, 61, 0.08);
 }
 
@@ -109,7 +109,7 @@ a.opt-purchases__row:hover {
   min-width: 4.5rem;
   padding: 0.4rem 0.7rem;
   border-radius: 8px;
-  background: rgba(2, 208, 209, 0.15);
+  background: rgba(78, 211, 25, 0.15);
   color: #0a7a7b;
   font-family: var(--opt-font-sans);
   font-size: 0.75rem;

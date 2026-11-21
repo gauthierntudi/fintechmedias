@@ -8,17 +8,17 @@ Pas de SMTP classique. Envoi via API Resend depuis NestJS, idéalement passé pa
 
 ```bash
 RESEND_API_KEY=re_...
-MAIL_FROM=ENTREVUE <noreply@entrevue.com>
+MAIL_FROM="Fintech Médias <noreply@fintechmedias.com>"
 ```
 
 ## Setup Resend (checklist)
 
 1. [ ] Compte Resend + créer une API key
-2. [ ] Ajouter le domaine `entrevue.com` dans Resend
+2. [ ] Ajouter le domaine `fintechmedias.com` dans Resend
 3. [ ] Configurer les DNS (SPF, DKIM, éventuellement DMARC) selon Resend
 4. [ ] Attendre la vérification du domaine
 5. [ ] Coller `RESEND_API_KEY` dans `v2/.env`
-6. [ ] Expéditeur : adresse d’un domaine vérifié (`noreply@entrevue.com`)
+6. [ ] Expéditeur : adresse d’un domaine vérifié (`noreply@fintechmedias.com`)
 
 Sans domaine vérifié, Resend limite souvent l’envoi (ex. uniquement vers ton email de compte).
 
@@ -51,7 +51,7 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 await resend.emails.send({
-  from: process.env.MAIL_FROM!, // ENTREVUE <noreply@entrevue.com>
+  from: process.env.MAIL_FROM!, // Fintech Médias <noreply@fintechmedias.com>
   to: user.email,
   subject: '...',
   html: '...', // ou React Email plus tard

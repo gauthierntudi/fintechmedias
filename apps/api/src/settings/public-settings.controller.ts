@@ -34,7 +34,9 @@ export class PublicSettingsController {
       this.config.get<string>('NEXT_PUBLIC_GOOGLE_CLIENT_ID')?.trim() ||
       '';
     const googleIosClientId =
-      this.config.get<string>('GOOGLE_IOS_CLIENT_ID')?.trim() || '';
+      this.config.get<string>('GOOGLE_CLIENT_ID_IOS')?.trim() ||
+      this.config.get<string>('GOOGLE_IOS_CLIENT_ID')?.trim() ||
+      '';
     const apiBase = (
       this.config.get<string>('API_URL') || 'http://localhost:3001'
     ).replace(/\/$/, '');

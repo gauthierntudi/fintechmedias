@@ -23,7 +23,7 @@ type AuthPanelProps = {
   /** Badge haut droite — action alternative (ex. S'inscrire sur la page login) */
   badge?: string;
   badgeHref?: string;
-  /** Surtitre éditorial au-dessus du titre (ex. L'Entrevue). */
+  /** Surtitre éditorial au-dessus du titre (ex. Fintech Médias). */
   kicker?: string;
   /** Accroche sur le panneau photo, au-dessus du titre de slide. */
   brandKicker?: string;

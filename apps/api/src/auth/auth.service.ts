@@ -248,7 +248,9 @@ export class AuthService {
       this.config.get<string>('GOOGLE_CLIENT_ID'),
       this.config.get<string>('NEXT_PUBLIC_GOOGLE_CLIENT_ID'),
       this.config.get<string>('GOOGLE_IOS_CLIENT_ID'),
+      this.config.get<string>('GOOGLE_CLIENT_ID_IOS'),
       this.config.get<string>('GOOGLE_ANDROID_CLIENT_ID'),
+      this.config.get<string>('GOOGLE_CLIENT_ID_ANDROID'),
       ...extra,
     ];
     return [...new Set(raw.map((v) => v?.trim() ?? '').filter(Boolean))];

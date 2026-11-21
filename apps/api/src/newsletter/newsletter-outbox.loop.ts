@@ -15,7 +15,7 @@ export function startNewsletterOutboxLoop(): { stop: () => void } {
     process.env.MAIL_FROM?.trim() ||
     'Fintech Médias <noreply@fintechmedias.com>';
   const appUrl =
-    process.env.APP_URL?.replace(/\/$/, '') || 'https://lentrevuemag.com';
+    process.env.APP_URL?.replace(/\/$/, '') || 'https://fintechmedias.com';
   const r2PublicUrl =
     process.env.R2_PUBLIC_URL?.replace(/\/$/, '') || null;
 
@@ -28,7 +28,7 @@ export function startNewsletterOutboxLoop(): { stop: () => void } {
         appUrl,
         apiUrl:
           process.env.API_URL?.replace(/\/$/, '') ||
-          'https://api.lentrevuemag.com',
+          'https://api.fintechmedias.com',
         r2PublicUrl,
         send: async (input) => {
           const sent = await resend.emails.send({

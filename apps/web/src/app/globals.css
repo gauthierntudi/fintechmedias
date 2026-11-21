@@ -5,26 +5,26 @@
 
 
 :root {
-  --entrevue-black: #111111;
-  --entrevue-red: #4ed319;
-  --entrevue-white: #ffffff;
-  --entrevue-navy: var(--entrevue-black);
-  --entrevue-blue: var(--entrevue-black);
-  --entrevue-gold: var(--entrevue-red);
+  --brand-black: #111111;
+  --brand-red: #4ed319;
+  --brand-white: #ffffff;
+  --brand-navy: var(--brand-black);
+  --brand-blue: var(--brand-black);
+  --brand-gold: var(--brand-red);
 
-  --opt-cyan: var(--entrevue-red);
-  --opt-red: var(--entrevue-red);
-  --opt-navy: var(--entrevue-black);
-  --opt-navy-deep: var(--entrevue-black);
-  --opt-gold: var(--entrevue-red);
-  --opt-cat-red: var(--entrevue-red);
-  --opt-cat-blue: var(--entrevue-black);
-  --opt-cat-teal: var(--entrevue-black);
-  --opt-cat-dark: var(--entrevue-black);
-  --opt-cat-gold: var(--entrevue-red);
-  --opt-cat-orange: var(--entrevue-red);
+  --opt-cyan: var(--brand-red);
+  --opt-red: var(--brand-red);
+  --opt-navy: var(--brand-black);
+  --opt-navy-deep: var(--brand-black);
+  --opt-gold: var(--brand-red);
+  --opt-cat-red: var(--brand-red);
+  --opt-cat-blue: var(--brand-black);
+  --opt-cat-teal: var(--brand-black);
+  --opt-cat-dark: var(--brand-black);
+  --opt-cat-gold: var(--brand-red);
+  --opt-cat-orange: var(--brand-red);
 
-  /* Identité typo ENTREVUE — Familjen Grotesk (corps + titres) */
+  /* Identité typo Fintech Médias — Familjen Grotesk (corps + titres) */
   --opt-font-sans: var(--font-familjen), "Familjen Grotesk", system-ui, sans-serif;
   --opt-font-display: var(--font-familjen), "Familjen Grotesk", system-ui, sans-serif;
 
@@ -94,75 +94,102 @@ h6 {
   background: #111111;
 }
 
+.opt-top__badge--green,
+.opt-rub__tag--green,
+.opt-rsplit__tag--green,
 .opt-top__badge--red,
 .opt-rub__tag--red,
 .opt-rsplit__tag--red {
-  background: var(--entrevue-red);
+  background: #4ed319;
   color: #111111;
+}
+
+.opt-top__badge--gray,
+.opt-rub__tag--gray,
+.opt-rsplit__tag--gray,
+.opt-top__badge--black,
+.opt-rub__tag--black,
+.opt-rsplit__tag--black {
+  background: #6b7280;
+  color: #fff;
 }
 
 .opt-top__badge--blue,
 .opt-rub__tag--blue,
 .opt-rsplit__tag--blue {
-  background: var(--entrevue-black);
+  background: #2563eb;
   color: #fff;
 }
 
 .opt-top__badge--teal,
 .opt-rub__tag--teal,
 .opt-rsplit__tag--teal {
-  background: var(--entrevue-black);
-  color: #fff;
+  background: #4ed319;
+  color: #111111;
 }
 
+.opt-top__badge--violet,
+.opt-rub__tag--violet,
+.opt-rsplit__tag--violet,
 .opt-top__badge--dark,
 .opt-rub__tag--dark,
 .opt-rsplit__tag--dark {
-  background: var(--entrevue-black);
+  background: #7c3aed;
+  color: #fff;
+}
+
+.opt-top__badge--orange,
+.opt-rub__tag--orange,
+.opt-rsplit__tag--orange {
+  background: #ea580c;
+  color: #fff;
+}
+
+.opt-top__badge--rose,
+.opt-rub__tag--rose,
+.opt-rsplit__tag--rose {
+  background: #db2777;
   color: #fff;
 }
 
 .opt-top__badge--gold,
 .opt-rub__tag--gold,
-.opt-rsplit__tag--gold {
-  background: var(--entrevue-red);
-  color: #111111;
-}
-
-.opt-rub__tag--orange,
-.opt-rsplit__tag--orange {
-  background: var(--entrevue-red);
-  color: #111111;
-}
-
+.opt-rsplit__tag--gold,
 .opt-rub__tag--yellow {
-  background: var(--opt-cat-gold);
+  background: #ca8a04;
   color: #111111;
+}
+
+.opt-top__badge--cyan,
+.opt-rub__tag--cyan,
+.opt-rsplit__tag--cyan {
+  background: #0891b2;
+  color: #fff;
 }
 
 .opt-rub__title--teal,
 .opt-rsplit__title--teal {
-  color: var(--entrevue-black);
+  color: var(--brand-black);
 }
 
 .opt-rub__title--red,
 .opt-rsplit__title--red {
-  color: var(--entrevue-red);
+  color: var(--brand-red);
 }
 
 .opt-rub__title--blue,
 .opt-rsplit__title--blue {
-  color: var(--entrevue-black);
+  color: var(--brand-black);
 }
 
 .opt-rub__title--dark,
 .opt-rsplit__title--dark {
-  color: var(--entrevue-black);
+  color: var(--brand-black);
 }
 
 .opt-rub__title--gold,
 .opt-rsplit__title--gold {
-  color: var(--entrevue-red);
+  color: var(--brand-red);
 }
 
 .opt-rub__title--orange,
@@ -195,32 +222,32 @@ h6 {
 }
 
 .opt-rub__title--navy {
-  color: var(--entrevue-black);
+  color: var(--brand-black);
 }
 
 .opt-rub__dot--teal,
 .opt-rsplit__title--teal .opt-rsplit__dot {
-  background: var(--entrevue-black);
+  background: var(--brand-black);
 }
 
 .opt-rub__dot--red,
 .opt-rsplit__title--red .opt-rsplit__dot {
-  background: var(--entrevue-red);
+  background: var(--brand-red);
 }
 
 .opt-rub__dot--blue,
 .opt-rsplit__title--blue .opt-rsplit__dot {
-  background: var(--entrevue-black);
+  background: var(--brand-black);
 }
 
 .opt-rub__dot--dark,
 .opt-rsplit__title--dark .opt-rsplit__dot {
-  background: var(--entrevue-black);
+  background: var(--brand-black);
 }
 
 .opt-rub__dot--gold,
 .opt-rsplit__title--gold .opt-rsplit__dot {
-  background: var(--entrevue-red);
+  background: var(--brand-red);
 }
 
 .opt-rub__dot--orange,
@@ -229,5 +256,5 @@ h6 {
 }
 
 .opt-rub__dot--navy {
-  background: var(--entrevue-black);
+  background: var(--brand-black);
 }

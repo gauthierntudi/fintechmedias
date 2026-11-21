@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'models.dart';
 import '../features/account/account_screen.dart';
 import '../features/account/notifications_screen.dart';
 import '../features/account/profile_screen.dart';
@@ -18,6 +19,8 @@ import '../features/reader/reader_screen.dart';
 import '../features/rubrique/rubrique_screen.dart';
 import '../features/search/search_screen.dart';
 import '../features/shell/app_shell.dart';
+import '../features/statuses/my_statuses_screen.dart';
+import '../features/statuses/status_composer_screen.dart';
 import '../features/shorts/shorts_feed.dart';
 import 'onboarding.dart';
 
@@ -139,6 +142,15 @@ GoRouter createAppRouter(OnboardingController onboarding) {
         path: '/magazine/:id',
         builder: (context, state) =>
             ReaderScreen(magazineId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/statut/nouveau',
+        builder: (context, state) =>
+            StatusComposerScreen(edit: state.extra as MyStatus?),
+      ),
+      GoRoute(
+        path: '/mes-statuts',
+        builder: (context, state) => const MyStatusesScreen(),
       ),
       GoRoute(
         path: '/acheter/:id',

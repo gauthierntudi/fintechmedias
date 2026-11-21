@@ -27,7 +27,7 @@ compose() {
 
 if [[ "${DEPLOY_USE_GIT:-0}" == "1" ]]; then
   echo "==> git sync origin/main"
-  git remote set-url origin git@github.com:gauthierntudi/entrevue.git
+  git remote set-url origin git@github.com:gauthierntudi/fintechmedias.git
   git fetch origin main
   git reset --hard origin/main
 fi

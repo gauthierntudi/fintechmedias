@@ -24,6 +24,16 @@ const FEATURED = {
   label: "Magazine",
 };
 
+const EVENTS_LINK = {
+  href: "/evenements",
+  label: "Événements",
+};
+
+const JOBS_LINK = {
+  href: "/jobs",
+  label: "Jobs",
+};
+
 function navIsActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -193,6 +203,24 @@ export function HeaderRubriqueNav({ hidden = false }: { hidden?: boolean }) {
           );
         })}
         <li className="opt-header__nav-sep" aria-hidden onMouseEnter={closeNow} />
+        <li onMouseEnter={closeNow}>
+          <Link
+            href={EVENTS_LINK.href}
+            className={navIsActive(pathname, EVENTS_LINK.href) ? "is-active" : undefined}
+            aria-current={navIsActive(pathname, EVENTS_LINK.href) ? "page" : undefined}
+          >
+            {EVENTS_LINK.label}
+          </Link>
+        </li>
+        <li onMouseEnter={closeNow}>
+          <Link
+            href={JOBS_LINK.href}
+            className={navIsActive(pathname, JOBS_LINK.href) ? "is-active" : undefined}
+            aria-current={navIsActive(pathname, JOBS_LINK.href) ? "page" : undefined}
+          >
+            {JOBS_LINK.label}
+          </Link>
+        </li>
         <li onMouseEnter={closeNow}>
           <Link
             href={FEATURED.href}

@@ -209,7 +209,7 @@ export async function processArticleVideoJob(
     },
   });
 
-  const workDir = join(tmpdir(), `entrevue-video-${articleId}`);
+  const workDir = join(tmpdir(), `fintech-video-${articleId}`);
   const sourcePath = join(workDir, 'source.bin');
   const hlsDir = join(workDir, 'hls');
   const posterPath = join(workDir, 'poster.jpg');

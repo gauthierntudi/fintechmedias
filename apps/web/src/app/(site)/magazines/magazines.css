@@ -130,8 +130,8 @@
 }
 
 .opt-mags__search:focus-within {
-  border-color: rgba(2, 208, 209, 0.65);
-  box-shadow: 0 0 0 3px rgba(2, 208, 209, 0.12);
+  border-color: rgba(78, 211, 25, 0.65);
+  box-shadow: 0 0 0 3px rgba(78, 211, 25, 0.12);
 }
 
 .opt-mags__search input {

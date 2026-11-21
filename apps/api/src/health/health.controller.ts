@@ -47,7 +47,7 @@ export class HealthController {
 
     return {
       status: database === 'up' ? 'ok' : 'degraded',
-      service: 'entrevue-api',
+      service: 'fintechmedias-api',
       database,
       driver,
       d1Proxy,

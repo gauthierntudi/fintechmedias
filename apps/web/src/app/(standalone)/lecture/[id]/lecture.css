@@ -772,7 +772,7 @@ body:has(.opt-lecture) {
   padding: 0.2rem 0.4rem 0.35rem 0.35rem;
   scroll-snap-type: y proximity;
   scrollbar-width: thin;
-  scrollbar-color: rgba(2, 208, 209, 0.45) transparent;
+  scrollbar-color: rgba(78, 211, 25, 0.45) transparent;
 }
 
 .opt-flip__thumbs-scroll::-webkit-scrollbar {
@@ -780,7 +780,7 @@ body:has(.opt-lecture) {
 }
 
 .opt-flip__thumbs-scroll::-webkit-scrollbar-thumb {
-  background: rgba(2, 208, 209, 0.4);
+  background: rgba(78, 211, 25, 0.4);
   border-radius: 999px;
 }
 
@@ -803,13 +803,13 @@ body:has(.opt-lecture) {
 }
 
 .opt-flip__thumb:hover {
-  border-color: rgba(2, 208, 209, 0.45);
+  border-color: rgba(78, 211, 25, 0.45);
   transform: translateX(2px);
 }
 
 .opt-flip__thumb.is-active {
   border-color: var(--opt-teal);
-  box-shadow: 0 0 0 1px rgba(2, 208, 209, 0.35);
+  box-shadow: 0 0 0 1px rgba(78, 211, 25, 0.35);
 }
 
 .opt-flip__thumb img,

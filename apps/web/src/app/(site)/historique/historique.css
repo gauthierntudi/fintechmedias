@@ -24,8 +24,8 @@
 }
 
 .opt-history__search:focus-within {
-  border-color: rgba(2, 208, 209, 0.65);
-  box-shadow: 0 0 0 3px rgba(2, 208, 209, 0.12);
+  border-color: rgba(78, 211, 25, 0.65);
+  box-shadow: 0 0 0 3px rgba(78, 211, 25, 0.12);
 }
 
 .opt-history__search input {
@@ -97,8 +97,8 @@
 
 .opt-history__filters select:focus {
   outline: none;
-  border-color: rgba(2, 208, 209, 0.65);
-  box-shadow: 0 0 0 3px rgba(2, 208, 209, 0.12);
+  border-color: rgba(78, 211, 25, 0.65);
+  box-shadow: 0 0 0 3px rgba(78, 211, 25, 0.12);
 }
 
 .opt-history__reset {
@@ -177,7 +177,7 @@
 }
 
 .opt-history__item--open {
-  border-color: rgba(2, 208, 209, 0.4);
+  border-color: rgba(78, 211, 25, 0.4);
   box-shadow: 0 8px 24px rgba(13, 32, 61, 0.06);
 }
 
@@ -283,7 +283,7 @@
 }
 
 .opt-history__copy:hover {
-  border-color: rgba(2, 208, 209, 0.55);
+  border-color: rgba(78, 211, 25, 0.55);
   color: #0a7a7b;
 }
 
@@ -299,7 +299,7 @@
 }
 
 .opt-history__icon--sub {
-  background: rgba(2, 208, 209, 0.14);
+  background: rgba(78, 211, 25, 0.14);
   color: #0a7a7b;
 }
 
@@ -390,7 +390,7 @@
 }
 
 .opt-history__status--ok {
-  background: rgba(2, 208, 209, 0.15);
+  background: rgba(78, 211, 25, 0.15);
   color: #0a7a7b;
 }
 
@@ -539,7 +539,7 @@
 
 .opt-history__pager-btn:hover:not(:disabled),
 .opt-history__pager-num:hover:not(:disabled) {
-  border-color: rgba(2, 208, 209, 0.55);
+  border-color: rgba(78, 211, 25, 0.55);
   color: #0a7a7b;
 }
 

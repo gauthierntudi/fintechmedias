@@ -5,7 +5,7 @@ WORKDIR /app
 FROM base AS deps
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY apps/web/package.json ./apps/web/
-RUN pnpm install --filter @entrevue/web... --frozen-lockfile
+RUN pnpm install --filter @fintechmedias/web... --frozen-lockfile
 
 FROM base AS build
 COPY --from=deps /app /app

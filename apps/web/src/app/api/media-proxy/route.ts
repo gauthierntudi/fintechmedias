@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 /** CDN autorisés pour le proxy lecture PDF (évite CORS navigateur → R2). */
 const ALLOWED_HOSTS = new Set([
+  "cdn.fintechmedias.com",
+  // Legacy (médias migrés depuis L'Entrevue)
   "cdn.lentrevuemag.com",
   "cdn.entrevue.com",
   "cdn.opt1mum.com",

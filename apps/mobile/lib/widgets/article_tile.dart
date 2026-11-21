@@ -66,7 +66,7 @@ class ArticleTile extends StatelessWidget {
                           size: 11,
                           weight: FontWeight.w700,
                           letterSpacing: 0,
-                          color: AppTheme.toneColor(article.categoryTone),
+                          color: AppTheme.toneColor(articleToneOf(article)),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -134,7 +134,7 @@ class FeaturedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final video = article.hasReadyVideo;
     final clock = article.durationClock;
-    final tone = AppTheme.toneColor(article.categoryTone);
+    final tone = AppTheme.toneColor(articleToneOf(article));
     final label =
         badge ??
         (article.categoryLabel.isNotEmpty

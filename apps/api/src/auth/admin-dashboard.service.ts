@@ -167,4 +167,6 @@ export const PURPOSE_LABELS: Record<PaymentPurpose, string> = {
   PURCHASE: 'Achat magazine',
   ARTICLE: 'Achat article',
   AD: 'Publicité',
+  STATUS: 'Statut',
+  STATUS_PLAN: 'Forfait statuts',
 };

@@ -10,11 +10,13 @@ class GoogleSignInButton extends ConsumerWidget {
     required this.onPressed,
     this.busy = false,
     this.dividerLabel = 'Connexion rapide',
+    this.borderRadius = 12,
   });
 
   final VoidCallback? onPressed;
   final bool busy;
   final String dividerLabel;
+  final double borderRadius;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -56,7 +58,7 @@ class GoogleSignInButton extends ConsumerWidget {
               foregroundColor: scheme.onSurface,
               side: BorderSide(color: line),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(borderRadius),
               ),
             ),
             child: busy

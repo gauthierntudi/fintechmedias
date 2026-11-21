@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_store.dart';
@@ -226,6 +227,20 @@ class ApiClient {
         },
       );
 
+  /// Suggestions aléatoires (écran recherche au focus / requête courte).
+  Future<List<ArticleCard>> randomArticles({int take = 10}) => _get(
+        '/articles/random',
+        query: {'take': take},
+        parse: (d) {
+          final items = _map(d)['items'] as List?;
+          return items
+                  ?.whereType<Map>()
+                  .map((e) => ArticleCard.fromJson(Map<String, dynamic>.from(e)))
+                  .toList() ??
+              const <ArticleCard>[];
+        },
+      );
+
   Future<({List<ArticleCard> items, int total})> search(
     String q, {
     String? category,
@@ -436,6 +451,204 @@ class ApiClient {
   Future<Map<String, dynamic>> checkPayment(String id) async {
     final res = await _dio.post<Map<String, dynamic>>('/payments/$id/check');
     return _map(res.data);
+  }
+
+  // ------------------------------------------------------------- statuts
+
+  /// Statuts en ligne (bulles de l’accueil).
+  Future<List<StatusItem>> statuses() => _get(
+    '/statuses',
+    parse: (d) {
+      final items = _map(d)['items'];
+      if (items is! List) return const <StatusItem>[];
+      return items
+          .whereType<Map>()
+          .map((e) => StatusItem.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    },
+  );
+
+  Future<void> markStatusViewed(String id) async {
+    try {
+      await _dio.post('/statuses/${Uri.encodeComponent(id)}/view');
+    } catch (_) {}
+  }
+
+  /// Tarifs des statuts abonnés (publication unique et forfaits).
+  Future<List<StatusOffer>> statusOffers() => _get(
+    '/statuses/offers',
+    parse: (d) {
+      final items = _map(d)['items'];
+      if (items is! List) return const <StatusOffer>[];
+      return items
+          .whereType<Map>()
+          .map((e) => StatusOffer.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    },
+  );
+
+  Future<StatusPasses> myStatusPasses() => _get(
+    '/me/status-passes',
+    parse: (d) => StatusPasses.fromJson(_map(d)),
+  );
+
+  Future<List<MyStatus>> myStatuses() => _get(
+    '/me/statuses',
+    parse: (d) {
+      final items = _map(d)['items'];
+      if (items is! List) return const <MyStatus>[];
+      return items
+          .whereType<Map>()
+          .map((e) => MyStatus.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    },
+  );
+
+  /// Crée un brouillon de statut (le média s’ajoute ensuite).
+  Future<String> createMyStatus({String? title}) async {
+    final res = await _dio.post<dynamic>(
+      '/me/statuses',
+      data: {if (title != null && title.trim().isNotEmpty) 'title': title},
+    );
+    return '${_map(res.data)['id']}';
+  }
+
+  Future<String> addMyStatusSlide(
+    String statusId, {
+    String? caption,
+    String? linkUrl,
+  }) async {
+    final res = await _dio.post<dynamic>(
+      '/me/statuses/${Uri.encodeComponent(statusId)}/slides',
+      data: {
+        if (caption != null && caption.trim().isNotEmpty) 'caption': caption,
+        if (linkUrl != null && linkUrl.trim().isNotEmpty) 'linkUrl': linkUrl,
+      },
+    );
+    return '${_map(res.data)['id']}';
+  }
+
+  /// Envoie l’image d’une diapo (multipart, 10 Mo max).
+  Future<void> uploadMyStatusImage(
+    String slideId,
+    String filePath, {
+    void Function(double progress)? onProgress,
+  }) async {
+    final name = filePath.split('/').last;
+    final form = FormData.fromMap({
+      'file': await MultipartFile.fromFile(
+        filePath,
+        filename: name,
+        contentType: DioMediaType.parse(_imageMime(name)),
+      ),
+    });
+    await _dio.post<dynamic>(
+      '/me/statuses/slides/${Uri.encodeComponent(slideId)}/image',
+      data: form,
+      onSendProgress: (sent, total) {
+        if (total > 0) onProgress?.call(sent / total);
+      },
+    );
+  }
+
+  /// Envoie la vidéo d’une diapo : URL signée R2 puis confirmation.
+  Future<void> uploadMyStatusVideo(
+    String slideId,
+    String filePath,
+    int size, {
+    void Function(double progress)? onProgress,
+  }) async {
+    final name = filePath.split('/').last;
+    final lower = name.toLowerCase();
+    final mime = lower.endsWith('.mov') ? 'video/quicktime' : 'video/mp4';
+    final signed = _map(
+      (await _dio.post<dynamic>(
+        '/me/statuses/slides/${Uri.encodeComponent(slideId)}/video/presign',
+        data: {'filename': name, 'size': size, 'contentType': mime},
+      )).data,
+    );
+    final headers = <String, dynamic>{
+      'Content-Type': mime,
+      'Content-Length': size,
+    };
+    final extra = signed['headers'];
+    if (extra is Map) {
+      extra.forEach((k, v) => headers['$k'] = '$v');
+    }
+    // Envoi direct vers R2 : client sans l’intercepteur d’authentification
+    await Dio().put<dynamic>(
+      '${signed['uploadUrl']}',
+      data: File(filePath).openRead(),
+      options: Options(
+        headers: headers,
+        sendTimeout: const Duration(minutes: 10),
+        receiveTimeout: const Duration(minutes: 2),
+      ),
+      onSendProgress: (sent, total) {
+        final t = total > 0 ? total : size;
+        if (t > 0) onProgress?.call(sent / t);
+      },
+    );
+    await _dio.post<dynamic>(
+      '/me/statuses/slides/${Uri.encodeComponent(slideId)}/video/complete',
+      data: {'key': signed['key']},
+    );
+  }
+
+  /// Soumet le statut à la rédaction : `PASS` (forfait) ou `SINGLE`
+  /// (paiement Mobile Money — renvoie alors l’id du paiement).
+  Future<String?> submitMyStatus(
+    String statusId, {
+    required String billing,
+    String? offerId,
+    String? phone,
+  }) async {
+    final res = await _dio.post<dynamic>(
+      '/me/statuses/${Uri.encodeComponent(statusId)}/submit',
+      data: {
+        'billing': billing,
+        if (offerId != null) 'offerId': offerId,
+        if (phone != null) 'phone': phone,
+      },
+    );
+    final payment = _map(res.data)['payment'];
+    return payment is Map ? '${payment['paymentId']}' : null;
+  }
+
+  /// Relance le paiement d’un statut « publication unique ».
+  Future<String> payMyStatus(String statusId, String phone) async {
+    final res = await _dio.post<dynamic>(
+      '/me/statuses/${Uri.encodeComponent(statusId)}/pay',
+      data: {'phone': phone},
+    );
+    return '${_map(res.data)['paymentId']}';
+  }
+
+  Future<void> deleteMyStatusSlide(String slideId) async {
+    await _dio.delete<dynamic>(
+      '/me/statuses/slides/${Uri.encodeComponent(slideId)}',
+    );
+  }
+
+  Future<void> deleteMyStatus(String statusId) async {
+    await _dio.delete<dynamic>('/me/statuses/${Uri.encodeComponent(statusId)}');
+  }
+
+  /// Achète un forfait « Statuts » — renvoie l’id du paiement.
+  Future<String> checkoutStatusPass(String offerId, String phone) async {
+    final res = await _dio.post<dynamic>(
+      '/me/status-passes/checkout',
+      data: {'offerId': offerId, 'phone': phone},
+    );
+    final payment = _map(res.data)['payment'];
+    return payment is Map ? '${payment['paymentId']}' : '';
+  }
+
+  String _imageMime(String name) {
+    final lower = name.toLowerCase();
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    return 'image/jpeg';
   }
 
   Map<String, dynamic> _map(dynamic data) {

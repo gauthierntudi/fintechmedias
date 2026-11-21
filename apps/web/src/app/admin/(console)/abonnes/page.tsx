@@ -81,7 +81,7 @@ const AVATAR_PALETTE = [
   { bg: "#84cc16", fg: "#14200a" },
   { bg: "#111111", fg: "#ffffff" },
   { bg: "#6366f1", fg: "#ffffff" },
-  { bg: "#14b8a6", fg: "#041512" },
+  { bg: "#4ed319", fg: "#041512" },
 ] as const;
 
 function avatarTone(seed: string): (typeof AVATAR_PALETTE)[number] {

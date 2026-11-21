@@ -49,7 +49,7 @@ class _NewsScreenState extends ConsumerState<NewsScreen>
   Widget build(BuildContext context) {
     final user = ref.watch(sessionProvider);
     final shortTab = _tabs.index == kNewsRubriques.length;
-    final tabs = EntrevueFilterTabs(controller: _tabs, labels: _newsTabLabels);
+    final tabs = FintechFilterTabs(controller: _tabs, labels: _newsTabLabels);
 
     ref.listen(shortsFeedProvider, (prev, next) {
       final items = next.valueOrNull?.items;
@@ -68,7 +68,7 @@ class _NewsScreenState extends ConsumerState<NewsScreen>
               bottom: false,
               child: Column(
                 children: [
-                  EntrevueMasthead(
+                  FintechMasthead(
                     onSearch: () => context.push('/recherche'),
                     onNotify: () => context.push(
                       user == null ? '/connexion' : '/notifications',

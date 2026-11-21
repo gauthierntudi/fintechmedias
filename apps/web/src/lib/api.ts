@@ -4,7 +4,7 @@ import { ARTICLE_CATEGORY_OPTIONS } from "@/lib/rubriques";
 /**
  * Côté navigateur : URL publique (NEXT_PUBLIC_*).
  * Côté serveur (SSR Docker) : préférer API_INTERNAL_URL (ex. http://api:3001)
- * pour éviter le hairpin NAT vers api.entrevue.com.
+ * pour éviter le hairpin NAT vers api.fintechmedias.com.
  */
 const API_URL =
   (typeof window === "undefined"
@@ -1621,7 +1621,6 @@ export type PublicHomeArticles = {
   international?: PublicArticleCard[];
   portrait?: PublicArticleCard[];
   entreprise?: PublicArticleCard[];
-  events?: PublicArticleCard[];
   ecosystemePme: PublicArticleCard[];
   filInfo: PublicArticleCard[];
   entreprendre: PublicArticleCard[];
@@ -2663,3 +2662,905 @@ export const adminArticlesApi = {
     return this.completeVideo(id, { key: signed.key, size: file.size });
   },
 };
+
+// ─── Événements (informatifs) ───────────────────────────────────────────────
+
+export type EventTypeName =
+  | "CONFERENCE"
+  | "SUMMIT"
+  | "MEETUP"
+  | "WEBINAR"
+  | "WORKSHOP"
+  | "OTHER";
+export type EventFormatName = "IN_PERSON" | "ONLINE" | "HYBRID";
+export type EventStatusName = "DRAFT" | "PUBLISHED";
+
+export type EventPrice = { currency: string; amount: number };
+
+export type EventTicketTier = {
+  id: string;
+  name: string;
+  description: string | null;
+  prices: EventPrice[];
+};
+
+export type EventProgrammeItem = {
+  day: string | null;
+  time: string;
+  endTime: string | null;
+  title: string;
+  description: string | null;
+  speakers: string[];
+};
+
+export type EventSpeaker = {
+  id: string;
+  name: string;
+  role: string | null;
+  organization: string | null;
+  photoKey: string | null;
+  photoUrl: string | null;
+  bio: string | null;
+};
+
+export type EventCoOrganizer = {
+  id: string;
+  name: string;
+  logoKey: string | null;
+  logoUrl: string | null;
+  /** Couleur de fond détectée sur le logo (#rrggbb) */
+  logoBg?: string | null;
+  url: string | null;
+};
+
+export type EventSponsorItem = {
+  id: string;
+  name: string;
+  url: string | null;
+  logoUrl: string | null;
+  tier: string | null;
+};
+
+export type PublicEventCard = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  type: EventTypeName;
+  format: EventFormatName;
+  startsAt: string;
+  endsAt: string | null;
+  city: string | null;
+  country: string | null;
+  venueName: string | null;
+  coverUrl: string | null;
+  hasTicketing: boolean;
+  isFree: boolean;
+  minPrices: EventPrice[];
+  hasFreeTier: boolean;
+  sponsorsCount: number;
+};
+
+export type PublicEventDetail = PublicEventCard & {
+  description: string | null;
+  organizer: string | null;
+  organizerLogoUrl: string | null;
+  organizerLogoBg?: string | null;
+  coOrganizers: EventCoOrganizer[];
+  venueAddress: string | null;
+  mapUrl: string | null;
+  onlineUrl: string | null;
+  ticketUrl: string | null;
+  /** Couleur de la charte (#RRGGBB) ou null = couleur du site. */
+  themeColor: string | null;
+  programme: EventProgrammeItem[];
+  speakers: EventSpeaker[];
+  ticketTiers: EventTicketTier[];
+  sponsors: EventSponsorItem[];
+};
+
+export type PublicEventListResponse = {
+  items: PublicEventCard[];
+  total: number;
+  take: number;
+  skip: number;
+  cities: string[];
+};
+
+export type EventListParams = {
+  when?: "upcoming" | "past";
+  city?: string;
+  format?: EventFormatName;
+  type?: EventTypeName;
+  take?: number;
+  skip?: number;
+  /** Jour précis YYYY-MM-DD (Kinshasa) — remplace `when`. */
+  date?: string;
+};
+
+export type EventDaysParams = {
+  from: string;
+  to: string;
+  city?: string;
+  format?: EventFormatName;
+};
+
+export const eventsPublicApi = {
+  list(params: EventListParams = {}) {
+    const qs = new URLSearchParams();
+    if (params.when) qs.set("when", params.when);
+    if (params.city?.trim()) qs.set("city", params.city.trim());
+    if (params.format) qs.set("format", params.format);
+    if (params.type) qs.set("type", params.type);
+    if (params.take != null) qs.set("take", String(params.take));
+    if (params.skip != null) qs.set("skip", String(params.skip));
+    if (params.date) qs.set("date", params.date);
+    const suffix = qs.toString() ? `?${qs}` : "";
+    return apiFetch<PublicEventListResponse>(`/events${suffix}`);
+  },
+
+  /** Jours (YYYY-MM-DD) ayant au moins un événement sur la plage. */
+  days(params: EventDaysParams) {
+    const qs = new URLSearchParams({ from: params.from, to: params.to });
+    if (params.city?.trim()) qs.set("city", params.city.trim());
+    if (params.format) qs.set("format", params.format);
+    return apiFetch<{ days: string[] }>(`/events/days?${qs}`);
+  },
+
+  bySlug(slug: string) {
+    return apiFetch<PublicEventDetail>(`/events/${encodeURIComponent(slug)}`);
+  },
+
+  trackView(slug: string) {
+    return apiFetch<{ ok: true }>(
+      `/events/${encodeURIComponent(slug)}/view`,
+      { method: "POST" },
+    );
+  },
+
+  ticketClick(slug: string) {
+    return apiFetch<{ ok: true; ticketUrl: string }>(
+      `/events/${encodeURIComponent(slug)}/ticket-click`,
+      { method: "POST" },
+    );
+  },
+};
+
+export type AdminEvent = PublicEventDetail & {
+  status: EventStatusName;
+  coverKey: string | null;
+  organizerLogoKey: string | null;
+  viewCount: number;
+  ticketClicks: number;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminEventInput = {
+  title: string;
+  slug?: string;
+  summary?: string | null;
+  description?: string | null;
+  type?: EventTypeName;
+  format?: EventFormatName;
+  status?: EventStatusName;
+  startsAt: string;
+  endsAt?: string | null;
+  organizer?: string | null;
+  organizerLogoKey?: string | null;
+  organizerLogoBg?: string | null;
+  coOrganizers?: Omit<EventCoOrganizer, "logoUrl">[];
+  city?: string | null;
+  country?: string | null;
+  venueName?: string | null;
+  venueAddress?: string | null;
+  mapUrl?: string | null;
+  onlineUrl?: string | null;
+  ticketUrl?: string | null;
+  themeColor?: string | null;
+  programme?: Omit<EventProgrammeItem, never>[];
+  speakers?: Omit<EventSpeaker, "photoUrl">[];
+  ticketTiers?: EventTicketTier[];
+  sponsors?: { sponsorId: string; tier?: string | null }[];
+};
+
+export type AdminEventListResponse = {
+  items: AdminEvent[];
+  total: number;
+  take: number;
+  skip: number;
+  summary: { total: number; published: number; drafts: number; upcoming: number };
+};
+
+export type AdminEventStats = {
+  totals: {
+    views: number;
+    ticketClicks: number;
+    views30d: number;
+    ticketClicks30d: number;
+  };
+  series: { day: string; views: number; ticketClicks: number }[];
+  events: {
+    id: string;
+    title: string;
+    slug: string;
+    status: EventStatusName;
+    startsAt: string;
+    city: string | null;
+    views: number;
+    ticketClicks: number;
+    hasTicketing: boolean;
+    clickRate: number;
+  }[];
+};
+
+export const adminEventsApi = {
+  list(params?: {
+    q?: string;
+    status?: EventStatusName | "";
+    when?: "upcoming" | "past" | "";
+    take?: number;
+    skip?: number;
+  }) {
+    const qs = new URLSearchParams();
+    if (params?.q?.trim()) qs.set("q", params.q.trim());
+    if (params?.status) qs.set("status", params.status);
+    if (params?.when) qs.set("when", params.when);
+    if (params?.take != null) qs.set("take", String(params.take));
+    if (params?.skip != null) qs.set("skip", String(params.skip));
+    const suffix = qs.toString() ? `?${qs}` : "";
+    return apiFetch<AdminEventListResponse>(`/admin/events${suffix}`);
+  },
+
+  get(id: string) {
+    return apiFetch<AdminEvent>(`/admin/events/${id}`);
+  },
+
+  create(input: AdminEventInput) {
+    return apiFetch<AdminEvent>("/admin/events", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  update(id: string, input: Partial<AdminEventInput>) {
+    return apiFetch<AdminEvent>(`/admin/events/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+  },
+
+  remove(id: string) {
+    return apiFetch<{ ok: boolean }>(`/admin/events/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  uploadCover(id: string, file: File) {
+    const body = new FormData();
+    body.append("file", file);
+    return apiFetchForm<AdminEvent>(`/admin/events/${id}/cover`, body);
+  },
+
+  uploadImage(id: string, file: File) {
+    const body = new FormData();
+    body.append("file", file);
+    return apiFetchForm<{ key: string; url: string | null; bg?: string | null }>(
+      `/admin/events/${id}/image`,
+      body,
+    );
+  },
+
+  stats(eventId?: string) {
+    const suffix = eventId ? `?eventId=${encodeURIComponent(eventId)}` : "";
+    return apiFetch<AdminEventStats>(`/admin/events/stats${suffix}`);
+  },
+};
+
+// ─── Offres d’emploi (Jobs) ─────────────────────────────────────────────────
+
+export type JobContractTypeName =
+  | "CDI"
+  | "CDD"
+  | "INTERNSHIP"
+  | "FREELANCE"
+  | "CONSULTANCY"
+  | "APPRENTICESHIP"
+  | "VOLUNTEER"
+  | "OTHER";
+export type JobWorkModeName = "ON_SITE" | "REMOTE" | "HYBRID";
+export type JobStatusName = "DRAFT" | "PUBLISHED";
+
+export type PublicJobCard = {
+  id: string;
+  slug: string;
+  title: string;
+  companyName: string;
+  companyLogoUrl: string | null;
+  /** Secteur de l’entreprise (annuaire) */
+  companySector?: JobCompanySectorName | null;
+  /** Couleur de fond détectée sur la bordure du logo (#rrggbb) */
+  companyLogoBg?: string | null;
+  contractType: JobContractTypeName;
+  workMode: JobWorkModeName;
+  locations: string[];
+  /** Fin de journée (Kinshasa) de la date limite, ou null = sans limite */
+  deadline: string | null;
+  isOpen: boolean;
+  publishedAt: string | null;
+  excerpt: string | null;
+};
+
+export type PublicJobDetail = PublicJobCard & {
+  companyUrl: string | null;
+  description: string | null;
+  applyUrl: string | null;
+  applyEmail: string | null;
+  updatedAt: string;
+  related?: PublicJobCard[];
+};
+
+/** Entrée de l’annuaire des entreprises fintech qui recrutent. */
+export type JobCompanySectorName =
+  | "PAYMENTS"
+  | "BANKING"
+  | "MICROFINANCE"
+  | "LENDING"
+  | "INSURTECH"
+  | "WEALTH"
+  | "CRYPTO"
+  | "INFRASTRUCTURE"
+  | "REGTECH"
+  | "OTHER";
+
+export type PublicJobCompany = {
+  slug: string;
+  name: string;
+  logoUrl: string | null;
+  logoBg?: string | null;
+  url: string | null;
+  sector: JobCompanySectorName | null;
+  headquarters: string | null;
+  appStoreUrl: string | null;
+  playStoreUrl: string | null;
+  openJobs: number;
+};
+
+export type PublicJobListResponse = {
+  items: PublicJobCard[];
+  total: number;
+  take: number;
+  skip: number;
+  locations: string[];
+  /** Nombre d’offres par valeur (période courante, hors autres filtres) */
+  facets?: {
+    contract: Partial<Record<JobContractTypeName, number>>;
+    mode: Partial<Record<JobWorkModeName, number>>;
+  };
+};
+
+export type JobListParams = {
+  when?: "open" | "closed";
+  q?: string;
+  location?: string;
+  /** Plusieurs valeurs possibles (cases à cocher) */
+  contract?: JobContractTypeName[];
+  mode?: JobWorkModeName[];
+  sector?: JobCompanySectorName[];
+  sort?: "recent" | "deadline";
+  take?: number;
+  skip?: number;
+};
+
+export const jobsPublicApi = {
+  companies() {
+    return apiFetch<{ items: PublicJobCompany[]; total: number }>(
+      "/jobs/companies",
+    );
+  },
+
+  list(params: JobListParams = {}) {
+    const qs = new URLSearchParams();
+    if (params.when) qs.set("when", params.when);
+    if (params.q?.trim()) qs.set("q", params.q.trim());
+    if (params.location?.trim()) qs.set("location", params.location.trim());
+    if (params.contract?.length) qs.set("contract", params.contract.join(","));
+    if (params.mode?.length) qs.set("mode", params.mode.join(","));
+    if (params.sector?.length) qs.set("sector", params.sector.join(","));
+    if (params.sort && params.sort !== "recent") qs.set("sort", params.sort);
+    if (params.take != null) qs.set("take", String(params.take));
+    if (params.skip != null) qs.set("skip", String(params.skip));
+    const suffix = qs.toString() ? `?${qs}` : "";
+    return apiFetch<PublicJobListResponse>(`/jobs${suffix}`);
+  },
+
+  bySlug(slug: string) {
+    return apiFetch<PublicJobDetail>(`/jobs/${encodeURIComponent(slug)}`);
+  },
+
+  trackView(slug: string) {
+    return apiFetch<{ ok: true }>(`/jobs/${encodeURIComponent(slug)}/view`, {
+      method: "POST",
+    });
+  },
+
+  applyClick(slug: string) {
+    return apiFetch<{ ok: true }>(
+      `/jobs/${encodeURIComponent(slug)}/apply-click`,
+      { method: "POST" },
+    );
+  },
+};
+
+export type AdminJob = PublicJobDetail & {
+  status: JobStatusName;
+  companyLogoKey: string | null;
+  viewCount: number;
+  applyClicks: number;
+  createdAt: string;
+};
+
+export type AdminJobInput = {
+  title: string;
+  slug?: string;
+  companyName: string;
+  companyLogoKey?: string | null;
+  companyUrl?: string | null;
+  /** Fiche annuaire (enregistrés sur l’entreprise) */
+  companySector?: JobCompanySectorName | null;
+  companyHeadquarters?: string | null;
+  companyAppStoreUrl?: string | null;
+  companyPlayStoreUrl?: string | null;
+  contractType?: JobContractTypeName;
+  workMode?: JobWorkModeName;
+  status?: JobStatusName;
+  locations?: string[];
+  /** YYYY-MM-DD (jour à Kinshasa) */
+  deadline?: string | null;
+  description?: string | null;
+  applyUrl?: string | null;
+  applyEmail?: string | null;
+};
+
+export type AdminJobListResponse = {
+  items: AdminJob[];
+  total: number;
+  take: number;
+  skip: number;
+  summary: { total: number; published: number; drafts: number; open: number };
+};
+
+export type AdminJobCompany = {
+  id: string;
+  slug: string;
+  name: string;
+  logoKey: string | null;
+  logoUrl: string | null;
+  logoBg?: string | null;
+  url: string | null;
+  sector: JobCompanySectorName | null;
+  headquarters: string | null;
+  appStoreUrl: string | null;
+  playStoreUrl: string | null;
+  /** Nombre d’offres (liste admin) */
+  jobs?: number;
+};
+
+export type AdminJobCompanyInput = {
+  name?: string;
+  logoKey?: string | null;
+  url?: string | null;
+  sector?: JobCompanySectorName | null;
+  headquarters?: string | null;
+  appStoreUrl?: string | null;
+  playStoreUrl?: string | null;
+};
+
+export const adminJobsApi = {
+  list(params?: {
+    q?: string;
+    status?: JobStatusName | "";
+    when?: "open" | "closed" | "";
+    take?: number;
+    skip?: number;
+  }) {
+    const qs = new URLSearchParams();
+    if (params?.q?.trim()) qs.set("q", params.q.trim());
+    if (params?.status) qs.set("status", params.status);
+    if (params?.when) qs.set("when", params.when);
+    if (params?.take != null) qs.set("take", String(params.take));
+    if (params?.skip != null) qs.set("skip", String(params.skip));
+    const suffix = qs.toString() ? `?${qs}` : "";
+    return apiFetch<AdminJobListResponse>(`/admin/jobs${suffix}`);
+  },
+
+  get(id: string) {
+    return apiFetch<AdminJob>(`/admin/jobs/${id}`);
+  },
+
+  companies() {
+    return apiFetch<{ items: AdminJobCompany[] }>("/admin/jobs/companies");
+  },
+
+  updateCompany(id: string, input: AdminJobCompanyInput) {
+    return apiFetch<AdminJobCompany>(`/admin/jobs/companies/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+  },
+
+  uploadCompanyLogo(id: string, file: File) {
+    const body = new FormData();
+    body.append("file", file);
+    return apiFetchForm<AdminJobCompany>(
+      `/admin/jobs/companies/${id}/logo`,
+      body,
+    );
+  },
+
+  create(input: AdminJobInput) {
+    return apiFetch<AdminJob>("/admin/jobs", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  update(id: string, input: Partial<AdminJobInput>) {
+    return apiFetch<AdminJob>(`/admin/jobs/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+  },
+
+  remove(id: string) {
+    return apiFetch<{ ok: boolean }>(`/admin/jobs/${id}`, { method: "DELETE" });
+  },
+
+  uploadLogo(id: string, file: File) {
+    const body = new FormData();
+    body.append("file", file);
+    return apiFetchForm<AdminJob>(`/admin/jobs/${id}/logo`, body);
+  },
+};
+
+// ---------------------------------------------------------------- Statuts
+
+export type AdminStatusState =
+  | "draft"
+  | "awaiting_payment"
+  | "pending"
+  | "rejected"
+  | "active"
+  | "expired";
+
+export type AdminStatusSource = "ADMIN" | "SUBSCRIBER";
+export type AdminStatusBilling = "NONE" | "PASS" | "SINGLE";
+export type AdminStatusPaymentState = "FREE" | "PENDING" | "PAID";
+export type AdminStatusModeration = "PENDING" | "APPROVED" | "REJECTED";
+export type StatusOfferKind = "SINGLE" | "PASS";
+
+export type AdminStatusImageFit = "COVER" | "FIT";
+
+export type AdminStatusArticle = {
+  id: string;
+  title: string;
+  slug: string;
+  isPublished: boolean;
+  coverUrl: string | null;
+};
+
+/** Diapo d’un statut : image, vidéo, texte et/ou article lié */
+export type AdminStatusSlide = {
+  id: string;
+  position: number;
+  mediaType: "IMAGE" | "VIDEO" | null;
+  mediaUrl: string | null;
+  posterUrl: string | null;
+  imageFit: AdminStatusImageFit;
+  caption: string | null;
+  linkUrl: string | null;
+  articleId: string | null;
+  article: AdminStatusArticle | null;
+  durationSec: number;
+};
+
+/** Statut = une bulle dans l’app, avec une ou plusieurs diapos */
+export type AdminStatus = {
+  id: string;
+  /** Titre sous la bulle ; null = déduit des diapos */
+  title: string | null;
+  state: AdminStatusState;
+  slides: AdminStatusSlide[];
+  /** Position dans la rangée de bulles (0 = nouveau, en tête) */
+  sortOrder: number;
+  isPublished: boolean;
+  publishedAt: string | null;
+  expiresAt: string;
+  viewCount: number;
+  author: { id: string; name: string } | null;
+  source: AdminStatusSource;
+  /** Abonné auteur (statuts payants) */
+  subscriber: {
+    id: string;
+    name: string;
+    email: string;
+    avatarUrl: string | null;
+  } | null;
+  billing: AdminStatusBilling;
+  paymentState: AdminStatusPaymentState;
+  paymentId: string | null;
+  passId: string | null;
+  offer: {
+    id: string;
+    kind: StatusOfferKind;
+    label: string;
+    priceCents: number;
+    currency: string;
+    statusLifetimeHours: number;
+  } | null;
+  moderation: AdminStatusModeration;
+  refusalReason: string | null;
+  moderatedAt: string | null;
+  moderatedBy: { id: string; name: string } | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminStatusInput = {
+  title?: string | null;
+  ttlHours?: number;
+  isPublished?: boolean;
+  expiresAt?: string;
+};
+
+export type AdminStatusSlideInput = {
+  caption?: string | null;
+  linkUrl?: string | null;
+  articleId?: string | null;
+  durationSec?: number;
+  imageFit?: AdminStatusImageFit;
+  clearMedia?: boolean;
+};
+
+export type AdminStatusListResponse = {
+  items: AdminStatus[];
+  total: number;
+  take: number;
+  skip: number;
+  /** Statuts abonnés en attente de validation (badge) */
+  pendingCount: number;
+};
+
+export const adminStatusesApi = {
+  list(params?: {
+    state?: string;
+    source?: string;
+    take?: number;
+    skip?: number;
+  }) {
+    const qs = new URLSearchParams();
+    if (params?.state) qs.set("state", params.state);
+    if (params?.source) qs.set("source", params.source);
+    if (params?.take != null) qs.set("take", String(params.take));
+    if (params?.skip != null) qs.set("skip", String(params.skip));
+    const suffix = qs.toString() ? `?${qs}` : "";
+    return apiFetch<AdminStatusListResponse>(`/admin/statuses${suffix}`);
+  },
+
+  get(id: string) {
+    return apiFetch<AdminStatus>(`/admin/statuses/${id}`);
+  },
+
+  create(input: AdminStatusInput) {
+    return apiFetch<AdminStatus>("/admin/statuses", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  update(id: string, input: AdminStatusInput) {
+    return apiFetch<AdminStatus>(`/admin/statuses/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+  },
+
+  move(id: string, direction: "up" | "down") {
+    return apiFetch<{ ok: boolean }>(`/admin/statuses/${id}/move`, {
+      method: "POST",
+      body: JSON.stringify({ direction }),
+    });
+  },
+
+  /** Regroupe `id` dans `targetId` : ses diapos passent à la suite. */
+  merge(id: string, targetId: string) {
+    return apiFetch<AdminStatus>(`/admin/statuses/${id}/merge`, {
+      method: "POST",
+      body: JSON.stringify({ targetId }),
+    });
+  },
+
+  remove(id: string) {
+    return apiFetch<{ ok: boolean }>(`/admin/statuses/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  /** Valide un statut abonné : il passe en ligne */
+  approve(id: string, ttlHours?: number) {
+    return apiFetch<AdminStatus>(`/admin/statuses/${id}/approve`, {
+      method: "POST",
+      body: JSON.stringify(ttlHours ? { ttlHours } : {}),
+    });
+  },
+
+  reject(id: string, reason: string) {
+    return apiFetch<AdminStatus>(`/admin/statuses/${id}/reject`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    });
+  },
+
+  createSlide(statusId: string, input: AdminStatusSlideInput) {
+    return apiFetch<AdminStatusSlide>(`/admin/statuses/${statusId}/slides`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  updateSlide(slideId: string, input: AdminStatusSlideInput) {
+    return apiFetch<AdminStatusSlide>(`/admin/statuses/slides/${slideId}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+  },
+
+  removeSlide(slideId: string) {
+    return apiFetch<{ ok: boolean }>(`/admin/statuses/slides/${slideId}`, {
+      method: "DELETE",
+    });
+  },
+
+  reorderSlides(statusId: string, ids: string[]) {
+    return apiFetch<AdminStatus>(`/admin/statuses/${statusId}/slides/order`, {
+      method: "PUT",
+      body: JSON.stringify({ ids }),
+    });
+  },
+
+  uploadSlideImage(
+    slideId: string,
+    file: File,
+    onProgress?: (percent: number) => void,
+  ) {
+    const body = new FormData();
+    body.append("file", file);
+    return apiFetchForm<AdminStatusSlide>(
+      `/admin/statuses/slides/${slideId}/image`,
+      body,
+      false,
+      onProgress,
+    );
+  },
+
+  uploadSlidePoster(slideId: string, file: File) {
+    const body = new FormData();
+    body.append("file", file);
+    return apiFetchForm<AdminStatusSlide>(
+      `/admin/statuses/slides/${slideId}/poster`,
+      body,
+    );
+  },
+
+  async uploadSlideVideo(
+    slideId: string,
+    file: File,
+    opts?: { onProgress?: (percent: number) => void; signal?: AbortSignal },
+  ) {
+    const signed = await apiFetch<{
+      key: string;
+      uploadUrl: string;
+      headers: Record<string, string>;
+    }>(`/admin/statuses/slides/${slideId}/video/presign`, {
+      method: "POST",
+      body: JSON.stringify({
+        filename: file.name,
+        size: file.size,
+        contentType: file.type || "video/mp4",
+      }),
+    });
+    await putFileToPresignedUrl(file, signed.uploadUrl, signed.headers, opts);
+    return apiFetch<AdminStatusSlide>(
+      `/admin/statuses/slides/${slideId}/video/complete`,
+      {
+        method: "POST",
+        body: JSON.stringify({ key: signed.key }),
+      },
+    );
+  },
+};
+
+export type AdminStatusOffer = {
+  id: string;
+  kind: StatusOfferKind;
+  label: string;
+  description: string | null;
+  priceCents: number;
+  currency: string;
+  statusLifetimeHours: number;
+  quota: number | null;
+  periodDays: number | null;
+  isActive: boolean;
+  sortOrder: number;
+  statusCount?: number;
+  passCount?: number;
+};
+
+export type AdminStatusOfferInput = {
+  kind?: StatusOfferKind;
+  label?: string;
+  description?: string | null;
+  priceCents?: number;
+  currency?: string;
+  statusLifetimeHours?: number;
+  quota?: number | null;
+  periodDays?: number | null;
+  isActive?: boolean;
+  sortOrder?: number;
+};
+
+export type AdminStatusPass = {
+  id: string;
+  offer: { id: string; label: string } | null;
+  paymentState: AdminStatusPaymentState;
+  active: boolean;
+  startsAt: string | null;
+  expiresAt: string | null;
+  quota: number | null;
+  usedCount: number;
+  remaining: number | null;
+  createdAt: string;
+  subscriber: { id: string; name: string; email: string };
+};
+
+export const adminStatusOffersApi = {
+  list() {
+    return apiFetch<{ items: AdminStatusOffer[] }>("/admin/status-offers");
+  },
+
+  create(input: AdminStatusOfferInput) {
+    return apiFetch<AdminStatusOffer>("/admin/status-offers", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  update(id: string, input: AdminStatusOfferInput) {
+    return apiFetch<AdminStatusOffer>(`/admin/status-offers/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+  },
+
+  remove(id: string) {
+    return apiFetch<{ ok: boolean; deactivated: boolean }>(
+      `/admin/status-offers/${id}`,
+      { method: "DELETE" },
+    );
+  },
+
+  passes(params?: { take?: number; skip?: number }) {
+    const qs = new URLSearchParams();
+    if (params?.take != null) qs.set("take", String(params.take));
+    if (params?.skip != null) qs.set("skip", String(params.skip));
+    const suffix = qs.toString() ? `?${qs}` : "";
+    return apiFetch<{
+      items: AdminStatusPass[];
+      total: number;
+      take: number;
+      skip: number;
+    }>(`/admin/status-offers/passes${suffix}`);
+  },
+};
+

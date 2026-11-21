@@ -1,13 +1,13 @@
 /* Footer Opt1mum — presse moderne */
 
 .opt-ft {
-  --opt-ft-bg: var(--entrevue-navy, #111111);
+  --opt-ft-bg: var(--brand-navy, #111111);
   --opt-ft-panel: #1a1a1a;
   --opt-ft-line: rgba(255, 255, 255, 0.1);
   --opt-ft-muted: rgba(255, 255, 255, 0.62);
   --opt-ft-text: #f4f4f4;
-  --opt-ft-teal: var(--entrevue-red, #4ed319);
-  --opt-ft-red: var(--entrevue-red, #4ed319);
+  --opt-ft-teal: var(--brand-red, #4ed319);
+  --opt-ft-red: var(--brand-red, #4ed319);
 
   position: relative;
   background: var(--opt-ft-bg);
@@ -71,8 +71,10 @@
   transition: background 0.15s ease;
 }
 
-.opt-ft__cta:hover {
-  background: #c51f23;
+.opt-ft__cta:hover,
+.opt-ft__cta:focus-visible {
+  background: #ffffff;
+  color: #000000 !important;
 }
 
 .opt-ft__social {
@@ -254,7 +256,7 @@
 .opt-ft__copy a:focus,
 .opt-ft__copy a:active {
   font-weight: 800;
-  color: var(--entrevue-red, #4ed319);
+  color: var(--brand-red, #4ed319);
 }
 
 .opt-ft__legal {

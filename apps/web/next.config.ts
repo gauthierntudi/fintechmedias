@@ -65,6 +65,12 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        // Rubrique « Events » désactivée → agenda des événements
+        source: "/rubrique/events",
+        destination: "/evenements",
+        permanent: true,
+      },
+      {
         source: "/rubrique/stu-mag",
         destination: "/kiosque",
         permanent: true,
@@ -73,6 +79,11 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cdn.fintechmedias.com",
+      },
+      // Legacy (médias hérités de L'Entrevue)
       {
         protocol: "https",
         hostname: "cdn.lentrevuemag.com",

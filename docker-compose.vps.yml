@@ -1,0 +1,107 @@
+# Fintech Médias — VPS Hostinger partagé (paris-kin, medigo, kadi-sarl…).
+#
+# Isolation :
+#   - projet Compose dédié « fintechmedias » (réseau + volumes préfixés)
+#   - aucun port public : web/api liés à 127.0.0.1 uniquement
+#   - le Nginx de l'hôte proxifie via /etc/nginx/conf.d/fintechmedias.conf
+#   - Postgres / Redis propres (n'utilisent pas le Postgres natif de l'hôte)
+#
+# Usage (dans /opt/fintechmedias) :
+#   docker compose -f docker-compose.vps.yml up -d --build
+
+name: fintechmedias
+
+x-api-build: &api-build
+  context: .
+  dockerfile: apps/api/Dockerfile
+  args:
+    # Image VPS : client Prisma Postgres (l'image Cloudflare utilisait schema.d1.prisma)
+    PRISMA_SCHEMA: prisma/schema.prisma
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fintech}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD requis}
+      POSTGRES_DB: ${POSTGRES_DB:-fintechmedias}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Local seulement (import / maintenance via tunnel SSH). 5432 = Postgres de l'hôte.
+    ports:
+      - "127.0.0.1:5442:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fintech} -d ${POSTGRES_DB:-fintechmedias}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  api:
+    build: *api-build
+    image: fintechmedias-api:latest
+    env_file: .env
+    environment:
+      API_PORT: 3001
+      APP_ENTRY: dist/main.js
+      NEWSLETTER_SEND_IN_API: "0"
+    ports:
+      - "127.0.0.1:3011:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    image: fintechmedias-api:latest
+    env_file: .env
+    environment:
+      APP_ENTRY: dist/worker.js
+      NODE_OPTIONS: --max-old-space-size=2048
+    # Cap mémoire : protège les autres applis du VPS (pdf.js / rasterisation)
+    mem_limit: 2560m
+    memswap_limit: 2560m
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        # Même origine que sur Cloudflare : Nginx route /api/* vers Nest
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://fintechmedias.com}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://fintechmedias.com}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+        NEXT_PUBLIC_CAPTCHA: ${NEXT_PUBLIC_CAPTCHA:-true}
+    image: fintechmedias-web:latest
+    env_file: .env
+    environment:
+      # SSR → Nest sur le réseau Compose
+      API_INTERNAL_URL: http://api:3001
+    ports:
+      - "127.0.0.1:3010:3000"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

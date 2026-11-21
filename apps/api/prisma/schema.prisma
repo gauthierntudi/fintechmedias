@@ -37,6 +37,10 @@ enum PaymentPurpose {
   PURCHASE
   ARTICLE
   AD
+  /// Publication unique d’un statut (paiement à l’acte)
+  STATUS
+  /// Forfait « Statuts » (quota de publications sur une période)
+  STATUS_PLAN
 }
 
 enum AdminRole {
@@ -96,6 +100,8 @@ model Subscriber {
   comments          Comment[]
   activityLogs      ActivityLog[]
   notificationReads NotificationRead[]
+  statuses          Status[]
+  statusPasses      StatusPass[]
 
   @@map("subscribers")
 }
@@ -115,43 +121,46 @@ model NotificationRead {
 }
 
 model AdminUser {
-  id           String    @id @default(cuid())
-  legacyId     Int?      @unique
-  name         String
-  email        String    @unique
-  passwordHash String
-  role         AdminRole @default(EDITOR)
-  title        String?
-  phone        String?
-  avatarKey    String?
-  isActive     Boolean   @default(true)
+  id                          String    @id @default(cuid())
+  legacyId                    Int?      @unique
+  name                        String
+  email                       String    @unique
+  passwordHash                String
+  role                        AdminRole @default(EDITOR)
+  title                       String?
+  phone                       String?
+  avatarKey                   String?
+  isActive                    Boolean   @default(true)
   /// OTP actions sensibles (ex. forcer un paiement)
   sensitiveActionOtpHash      String?
   sensitiveActionOtpExpiresAt DateTime?
   sensitiveActionOtpAttempts  Int       @default(0)
   /// Contexte lié à l’OTP, ex. payment:{id}:SUCCESS
   sensitiveActionOtpContext   String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
 
-  articles      Article[]
-  authorProfile Author?
-  activityLogs  ActivityLog[]
+  articles          Article[]
+  authorProfile     Author?
+  activityLogs      ActivityLog[]
+  statuses          Status[]
+  /// Statuts d’abonnés modérés par cet admin
+  moderatedStatuses Status[]      @relation("StatusModerator")
 
   @@map("admin_users")
 }
 
 model Plan {
-  id          String   @id @default(cuid())
-  legacyId    Int?     @unique
-  name        String
-  description String?
-  priceCents  Int
-  currency    String   @default("USD")
+  id           String   @id @default(cuid())
+  legacyId     Int?     @unique
+  name         String
+  description  String?
+  priceCents   Int
+  currency     String   @default("USD")
   durationDays Int
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   subscriptions Subscription[]
   payments      Payment[]
@@ -160,29 +169,29 @@ model Plan {
 }
 
 model Magazine {
-  id           String              @id @default(cuid())
-  legacyId     Int?                @unique
-  title        String
-  description  String?
-  issueNumber  String?
-  accessType   AccessType          @default(PAID)
-  priceCents   Int?
-  currency     String              @default("USD")
-  coverKey     String?
-  pdfKey       String?
-  previewKey   String?
-  downloadKey  String?
-  pagesStatus  MagazinePagesStatus @default(PENDING)
-  pagesCount   Int?
-  pagesError   String?
-  viewCount    Int                 @default(0)
-  theme        Json?
-  highlights   Json?
-  isPublished  Boolean             @default(false)
-  isActive     Boolean             @default(true)
-  publishedAt  DateTime?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
+  id          String              @id @default(cuid())
+  legacyId    Int?                @unique
+  title       String
+  description String?
+  issueNumber String?
+  accessType  AccessType          @default(PAID)
+  priceCents  Int?
+  currency    String              @default("USD")
+  coverKey    String?
+  pdfKey      String?
+  previewKey  String?
+  downloadKey String?
+  pagesStatus MagazinePagesStatus @default(PENDING)
+  pagesCount  Int?
+  pagesError  String?
+  viewCount   Int                 @default(0)
+  theme       Json?
+  highlights  Json?
+  isPublished Boolean             @default(false)
+  isActive    Boolean             @default(true)
+  publishedAt DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
 
   purchases Purchase[]
   payments  Payment[]
@@ -202,6 +211,7 @@ model Sponsor {
   updatedAt DateTime @updatedAt
 
   articles Article[]
+  events   EventSponsor[]
 
   @@map("sponsors")
 }
@@ -241,17 +251,17 @@ model MagazinePage {
 }
 
 model Subscription {
-  id              String             @id @default(cuid())
-  legacyId        Int?               @unique
-  subscriberId    String
-  planId          String
-  status          SubscriptionStatus @default(ACTIVE)
-  paymentStatus   PaymentStatus      @default(PENDING)
-  transactionRef  String?
-  startsAt        DateTime
-  expiresAt       DateTime
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  id             String             @id @default(cuid())
+  legacyId       Int?               @unique
+  subscriberId   String
+  planId         String
+  status         SubscriptionStatus @default(ACTIVE)
+  paymentStatus  PaymentStatus      @default(PENDING)
+  transactionRef String?
+  startsAt       DateTime
+  expiresAt      DateTime
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 
   subscriber Subscriber @relation(fields: [subscriberId], references: [id])
   plan       Plan       @relation(fields: [planId], references: [id])
@@ -281,7 +291,9 @@ model Purchase {
   @@map("purchases")
 }
 
-/** Achat à l’unité d’un article payant. */
+/**
+ * Achat à l’unité d’un article payant.
+ */
 model ArticlePurchase {
   id             String        @id @default(cuid())
   subscriberId   String
@@ -302,19 +314,19 @@ model ArticlePurchase {
 }
 
 model Payment {
-  id            String          @id @default(cuid())
-  provider      PaymentProvider
-  providerRef   String?
-  amountCents   Int
-  currency      String          @default("USD")
-  status        PaymentStatus   @default(PENDING)
-  purpose       PaymentPurpose
-  subscriberId  String
-  planId        String?
-  magazineId    String?
-  metadata      Json?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id           String          @id @default(cuid())
+  provider     PaymentProvider
+  providerRef  String?
+  amountCents  Int
+  currency     String          @default("USD")
+  status       PaymentStatus   @default(PENDING)
+  purpose      PaymentPurpose
+  subscriberId String
+  planId       String?
+  magazineId   String?
+  metadata     Json?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
   subscriber Subscriber @relation(fields: [subscriberId], references: [id])
   plan       Plan?      @relation(fields: [planId], references: [id])
@@ -327,30 +339,30 @@ model Payment {
 }
 
 model Article {
-  id          String   @id @default(cuid())
-  legacyId    Int?     @unique
-  title       String
-  slug        String   @unique
+  id               String      @id @default(cuid())
+  legacyId         Int?        @unique
+  title            String
+  slug             String      @unique
   /// Legacy / search mirror — corps réel = `blocks`
-  content     String   @default("")
-  excerpt     String?
-  coverKey    String?
+  content          String      @default("")
+  excerpt          String?
+  coverKey         String?
   /// Légende sous la cover principale
-  coverCaption String?
-  category    String?
-  viewCount   Int      @default(0)
-  isPublished Boolean  @default(false)
+  coverCaption     String?
+  category         String?
+  viewCount        Int         @default(0)
+  isPublished      Boolean     @default(false)
   /// Mis en avant sur l’accueil (« À la une »)
-  isFeatured  Boolean  @default(false)
+  isFeatured       Boolean     @default(false)
   /// Début de la fenêtre « À la une » (30 jours)
-  featuredAt  DateTime?
-  authorId    String?
+  featuredAt       DateTime?
+  authorId         String?
   /// Auteur affiché sur l’article (staff ou invité)
-  bylineAuthorId String?
+  bylineAuthorId   String?
   /// Magazine lié (affiché sur l’article + kiosque)
-  magazineId  String?
+  magazineId       String?
   /// Sponsor (logo réutilisable)
-  sponsorId   String?
+  sponsorId        String?
   /// MP4 source (R2) — rubriques vidéo
   videoSourceKey   String?
   /// Playlist HLS master (R2)
@@ -361,23 +373,24 @@ model Article {
   videoError       String?
   videoDurationSec Int?
   /// Lien YouTube hérité (`videos` PHP)
-  youtubeUrl  String?
+  youtubeUrl       String?
   /// Lecture réservée aux abonnés ou à l’achat de l’article
-  isPaid      Boolean  @default(false)
+  isPaid           Boolean     @default(false)
   /// Prix à l’unité, en centimes USD
-  priceCents  Int?
-  publishedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  priceCents       Int?
+  publishedAt      DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
-  author       AdminUser? @relation(fields: [authorId], references: [id])
-  bylineAuthor Author?    @relation(fields: [bylineAuthorId], references: [id], onDelete: SetNull)
-  magazine     Magazine?  @relation(fields: [magazineId], references: [id], onDelete: SetNull)
-  sponsor      Sponsor?   @relation(fields: [sponsorId], references: [id], onDelete: SetNull)
-  comments Comment[]
-  blocks   ArticleBlock[]
+  author           AdminUser?         @relation(fields: [authorId], references: [id])
+  bylineAuthor     Author?            @relation(fields: [bylineAuthorId], references: [id], onDelete: SetNull)
+  magazine         Magazine?          @relation(fields: [magazineId], references: [id], onDelete: SetNull)
+  sponsor          Sponsor?           @relation(fields: [sponsorId], references: [id], onDelete: SetNull)
+  comments         Comment[]
+  blocks           ArticleBlock[]
   newsletterOutbox NewsletterOutbox[]
-  purchases ArticlePurchase[]
+  purchases        ArticlePurchase[]
+  statusSlides     StatusSlide[]
 
   @@index([isPublished, publishedAt])
   @@index([isFeatured, isPublished])
@@ -391,17 +404,17 @@ model Article {
 
 /// Sous-section d’un article : sous-titre / sous-cover / sous-description
 model ArticleBlock {
-  id        String   @id @default(cuid())
-  articleId String
-  position  Int      @default(0)
-  title     String?
-  coverKey  String?
+  id           String   @id @default(cuid())
+  articleId    String
+  position     Int      @default(0)
+  title        String?
+  coverKey     String?
   /// Légende sous la sous-cover
   coverCaption String?
   /// HTML riche (sous-description)
-  content   String   @default("")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  content      String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
@@ -453,18 +466,20 @@ model ContactMessage {
   @@map("contact_messages")
 }
 
-/** Inscriptions newsletter (formulaire accueil). */
+/**
+ * Inscriptions newsletter (formulaire accueil).
+ */
 model NewsletterSubscription {
-  id                String    @id @default(cuid())
-  email             String    @unique
-  acceptedTerms     Boolean   @default(true)
-  isActive          Boolean   @default(true)
-  source            String?   @default("home")
-  unsubscribeToken  String    @unique @default(cuid())
-  unsubscribedAt    DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  outbox            NewsletterOutbox[]
+  id               String             @id @default(cuid())
+  email            String             @unique
+  acceptedTerms    Boolean            @default(true)
+  isActive         Boolean            @default(true)
+  source           String?            @default("home")
+  unsubscribeToken String             @unique @default(cuid())
+  unsubscribedAt   DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  outbox           NewsletterOutbox[]
 
   @@index([createdAt])
   @@index([isActive])
@@ -479,7 +494,9 @@ enum NewsletterOutboxStatus {
   FAILED
 }
 
-/** File d’envoi « nouvel article » — 70 e-mails / jour max. */
+/**
+ * File d’envoi « nouvel article » — 70 e-mails / jour max.
+ */
 model NewsletterOutbox {
   id             String                 @id @default(cuid())
   articleId      String
@@ -501,17 +518,23 @@ model NewsletterOutbox {
   @@map("newsletter_outbox")
 }
 
-/** Réglages site (singleton) — réseaux sociaux footer, etc. */
+/**
+ * Réglages site (singleton) — réseaux sociaux footer, etc.
+ */
 model SiteSettings {
-  id             String   @id @default("default")
-  /** [{ id, network, label, url }] */
-  socialLinks    Json     @default("[]")
-  contactAddress String?
-  contactEmail   String?
-  contactPhone   String?
-  /** File newsletter : le worker n’envoie que si true (bouton admin). */
-  newsletterSendingEnabled Boolean @default(false)
-  updatedAt      DateTime @updatedAt
+  id                       String   @id @default("default")
+  /**
+   * [{ id, network, label, url }]
+   */
+  socialLinks              Json     @default("[]")
+  contactAddress           String?
+  contactEmail             String?
+  contactPhone             String?
+  /**
+   * File newsletter : le worker n’envoie que si true (bouton admin).
+   */
+  newsletterSendingEnabled Boolean  @default(false)
+  updatedAt                DateTime @updatedAt
 
   @@map("site_settings")
 }
@@ -605,7 +628,9 @@ model HomeVideo {
   @@map("home_videos")
 }
 
-/** Journal d'activité — staff admin et abonnés. */
+/**
+ * Journal d'activité — staff admin et abonnés.
+ */
 model ActivityLog {
   id           String            @id @default(cuid())
   actorType    ActivityActorType
@@ -627,4 +652,368 @@ model ActivityLog {
   @@index([action])
   @@index([actorType])
   @@map("activity_logs")
+}
+
+// ─── Événements (informatifs, sans billetterie interne) ─────────────────────
+
+enum EventType {
+  CONFERENCE
+  SUMMIT
+  MEETUP
+  WEBINAR
+  WORKSHOP
+  OTHER
+}
+
+enum EventFormat {
+  IN_PERSON
+  ONLINE
+  HYBRID
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/// Événement Fintech Médias (conférence, summit, rencontre, webinaire).
+/// `programme`, `speakers` et `ticketTiers` sont des listes JSON éditées en bloc.
+model Event {
+  id               String      @id @default(cuid())
+  slug             String      @unique
+  title            String
+  summary          String?
+  description      String?
+  type             EventType   @default(CONFERENCE)
+  format           EventFormat @default(IN_PERSON)
+  status           EventStatus @default(DRAFT)
+  startsAt         DateTime
+  endsAt           DateTime?
+  organizer        String?
+  /// Logo de l’organisateur principal (clé R2)
+  organizerLogoKey String?
+  /// Couleur de fond détectée sur le logo (#rrggbb)
+  organizerLogoBg  String?
+  /// Co-organisateurs : [{ id, name, logoKey?, logoBg?, url? }]
+  coOrganizers     Json?
+  city             String?
+  country          String?
+  venueName        String?
+  venueAddress     String?
+  mapUrl           String?
+  onlineUrl        String?
+  /// Billetterie externe (aucune vente sur le site)
+  ticketUrl        String?
+  coverKey         String?
+  /// Couleur de la charte de l’événement (#RRGGBB) — accent de la fiche
+  themeColor       String?
+  /// [{ time, endTime?, title, description?, speakers?: string[] }]
+  programme        Json?
+  /// [{ id, name, role?, organization?, photoKey?, bio? }]
+  speakers         Json?
+  /// [{ id, name, description?, prices: [{ currency, amount }] }]
+  ticketTiers      Json?
+  viewCount        Int         @default(0)
+  ticketClicks     Int         @default(0)
+  publishedAt      DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  sponsors   EventSponsor[]
+  dailyStats EventDailyStat[]
+
+  @@index([status, startsAt])
+  @@index([city])
+  @@map("events")
+}
+
+/// Sponsor (logo partenaire existant) rattaché à un événement.
+model EventSponsor {
+  eventId   String
+  sponsorId String
+  /// Niveau affiché (ex. « Platinum », « Partenaire média »)
+  tier      String?
+  position  Int     @default(0)
+
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  sponsor Sponsor @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, sponsorId])
+  @@index([sponsorId])
+  @@map("event_sponsors")
+}
+
+/// Visibilité quotidienne d'un événement (vues fiche, clics billetterie).
+model EventDailyStat {
+  eventId      String
+  /// Jour UTC « YYYY-MM-DD »
+  day          String
+  views        Int    @default(0)
+  ticketClicks Int    @default(0)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, day])
+  @@index([day])
+  @@map("event_daily_stats")
+}
+
+// ─── Offres d’emploi (Jobs) ─────────────────────────────────────────────────
+
+enum JobContractType {
+  CDI
+  CDD
+  INTERNSHIP
+  FREELANCE
+  CONSULTANCY
+  APPRENTICESHIP
+  VOLUNTEER
+  OTHER
+}
+
+enum JobWorkMode {
+  ON_SITE
+  REMOTE
+  HYBRID
+}
+
+enum JobStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/// Offre d’emploi relayée par Fintech Médias (candidature sur le site du recruteur).
+model Job {
+  id             String          @id @default(cuid())
+  slug           String          @unique
+  title          String
+  companyName    String
+  /// Fiche de l’annuaire des entreprises fintech (créée à l’ajout de l’offre)
+  companyId      String?
+  company        JobCompany?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  /// Logo de l’entreprise (clé R2)
+  companyLogoKey String?
+  /// Couleur de fond du logo (#rrggbb), copiée de la fiche entreprise
+  companyLogoBg  String?
+  companyUrl     String?
+  contractType   JobContractType @default(CDI)
+  workMode       JobWorkMode     @default(ON_SITE)
+  status         JobStatus       @default(DRAFT)
+  /// Lieux, un par ligne (« Kinshasa, RDC ») — texte pour filtrer en SQL simple
+  locations      String          @default("")
+  /// Date limite de candidature (fin de journée, Kinshasa) ; null = ouverte
+  deadline       DateTime?
+  description    String?
+  /// Formulaire de candidature externe
+  applyUrl       String?
+  /// Adresse de candidature si pas de formulaire
+  applyEmail     String?
+  viewCount      Int             @default(0)
+  applyClicks    Int             @default(0)
+  publishedAt    DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([status, deadline])
+  @@index([companyId])
+  @@index([status, publishedAt])
+  @@map("jobs")
+}
+
+/// Annuaire des entreprises fintech qui recrutent (alimenté par les offres).
+model JobCompany {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  name         String
+  /// Nom normalisé (minuscules, espaces réduits) — dédoublonnage
+  nameKey      String   @unique
+  /// Logo (clé R2)
+  logoKey      String?
+  /// Couleur de fond détectée sur la bordure du logo (#rrggbb)
+  logoBg       String?
+  url          String?
+  /// Secteur (paiements, banque, assurance…) — voir JOB_COMPANY_SECTORS
+  sector       String?
+  /// Siège (« Kinshasa, RDC »)
+  headquarters String?
+  /// Application mobile (si disponible)
+  appStoreUrl  String?
+  playStoreUrl String?
+  jobs         Job[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("job_companies")
+}
+
+// ─── Statuts (stories) ────────────────────────────────────────────────────────
+// Bulles éphémères (image / vidéo) en tête de l’accueil mobile.
+// Deux sources : l’équipe (admin, gratuit, publié directement) et les abonnés
+// (modéré + payant, comme la publicité : forfait « Statuts » ou paiement à l’acte).
+
+enum StatusSource {
+  ADMIN
+  SUBSCRIBER
+}
+
+enum StatusMediaType {
+  IMAGE
+  VIDEO
+}
+
+enum StatusImageFit {
+  COVER
+  FIT
+}
+
+/// Comment la publication d’un statut abonné est financée.
+enum StatusBilling {
+  /// Statut de l’équipe — aucun paiement
+  NONE
+  /// Décompté sur un forfait « Statuts » actif (StatusPass)
+  PASS
+  /// Publication unique payée à l’acte (Payment purpose STATUS)
+  SINGLE
+}
+
+enum StatusModeration {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum StatusPaymentState {
+  /// Statut admin ou couvert par un forfait
+  FREE
+  PENDING
+  PAID
+}
+
+enum StatusOfferKind {
+  /// Publication unique
+  SINGLE
+  /// Forfait : quota de statuts valable `periodDays` jours
+  PASS
+}
+
+/// Statut éphémère affiché en bulle ; il contient une ou plusieurs diapos.
+model Status {
+  id            String             @id @default(cuid())
+  source        StatusSource       @default(ADMIN)
+  /// Titre court sous la bulle (sinon nom de l’auteur / déduit des diapos)
+  title         String?
+  /// Position dans la rangée de bulles (croissant ; 0 = en tête)
+  sortOrder     Int                @default(0)
+  isPublished   Boolean            @default(false)
+  publishedAt   DateTime?
+  expiresAt     DateTime
+  viewCount     Int                @default(0)
+  /// Auteur équipe (source ADMIN)
+  authorId      String?
+  /// Auteur abonné (source SUBSCRIBER)
+  subscriberId  String?
+  billing       StatusBilling      @default(NONE)
+  paymentState  StatusPaymentState @default(FREE)
+  /// Payment (purpose STATUS) pour une publication unique
+  paymentId     String?            @unique
+  /// Forfait sur lequel la publication est décomptée
+  passId        String?
+  /// Offre choisie (durée de vie, prix) — figée au moment de la commande
+  offerId       String?
+  moderation    StatusModeration   @default(APPROVED)
+  refusalReason String?
+  moderatedById String?
+  moderatedAt   DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  author      AdminUser?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  subscriber  Subscriber?   @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  moderatedBy AdminUser?    @relation("StatusModerator", fields: [moderatedById], references: [id], onDelete: SetNull)
+  pass        StatusPass?   @relation(fields: [passId], references: [id], onDelete: SetNull)
+  offer       StatusOffer?  @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  slides      StatusSlide[]
+
+  @@index([isPublished, expiresAt])
+  @@index([sortOrder])
+  @@index([subscriberId])
+  @@index([moderation])
+  @@map("statuses")
+}
+
+/// Diapo d’un statut : image ou vidéo, texte superposé et/ou raccourci article.
+model StatusSlide {
+  id          String           @id @default(cuid())
+  statusId    String
+  position    Int              @default(0)
+  mediaType   StatusMediaType?
+  mediaKey    String?
+  /// Miniature (vidéo) affichée dans la bulle
+  posterKey   String?
+  imageFit    StatusImageFit   @default(COVER)
+  caption     String?
+  /// Lien externe (statuts abonnés : bouton « En savoir plus »)
+  linkUrl     String?
+  articleId   String?
+  /// Durée d’affichage d’une image (secondes)
+  durationSec Int              @default(6)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  status  Status   @relation(fields: [statusId], references: [id], onDelete: Cascade)
+  article Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+
+  @@index([statusId, position])
+  @@index([articleId])
+  @@map("status_slides")
+}
+
+/// Grille tarifaire des statuts abonnés (gérée depuis l’admin).
+model StatusOffer {
+  id                  String          @id @default(cuid())
+  kind                StatusOfferKind
+  label               String
+  description         String?
+  priceCents          Int
+  currency            String          @default("USD")
+  /// Durée de vie d’un statut publié (heures)
+  statusLifetimeHours Int             @default(24)
+  /// PASS : nombre de statuts inclus sur la période (null = illimité)
+  quota               Int?
+  /// PASS : validité du forfait (jours)
+  periodDays          Int?
+  isActive            Boolean         @default(true)
+  sortOrder           Int             @default(0)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  statuses Status[]
+  passes   StatusPass[]
+
+  @@index([kind, isActive])
+  @@map("status_offers")
+}
+
+/// Forfait « Statuts » souscrit par un abonné (quota sur une période).
+model StatusPass {
+  id           String             @id @default(cuid())
+  subscriberId String
+  offerId      String?
+  /// Payment (purpose STATUS_PLAN)
+  paymentId    String?            @unique
+  paymentState StatusPaymentState @default(PENDING)
+  startsAt     DateTime?
+  expiresAt    DateTime?
+  /// Copie du quota de l’offre à la souscription (null = illimité)
+  quota        Int?
+  usedCount    Int                @default(0)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  subscriber Subscriber   @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  offer      StatusOffer? @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  statuses   Status[]
+
+  @@index([subscriberId, expiresAt])
+  @@map("status_passes")
 }

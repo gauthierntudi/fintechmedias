@@ -2,7 +2,7 @@
  * Configure CORS R2 pour autoriser les PUT navigateur (presigned uploads).
  *
  * Usage:
- *   pnpm --filter @entrevue/api exec tsx scripts/configure-r2-cors.ts
+ *   pnpm --filter @fintechmedias/api exec tsx scripts/configure-r2-cors.ts
  */
 import { config as loadEnv } from 'dotenv';
 import { resolve } from 'path';
@@ -33,10 +33,8 @@ async function main() {
 
   const origins = [
     appUrl,
-    'https://lentrevuemag.com',
-    'https://www.lentrevuemag.com',
-    'https://entrevue.com',
-    'https://www.entrevue.com',
+    'https://fintechmedias.com',
+    'https://www.fintechmedias.com',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     ...extra,

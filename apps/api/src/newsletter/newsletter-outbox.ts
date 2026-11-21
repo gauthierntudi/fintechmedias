@@ -449,7 +449,7 @@ export type CampaignArticle = {
 
 const DEFAULT_CONTACT: CampaignContact = {
   address: '8 Avenue Kalemie, Kinshasa-Gombe',
-  email: 'contact@lentrevuemag.com',
+  email: 'contact@fintechmedias.com',
   phone: '+243 813 212 772',
 };
 
@@ -478,14 +478,14 @@ export async function composeArticleCampaign(
     subjectPrefix?: string;
   },
 ): Promise<{ subject: string; html: string; unsubscribeUrl: string }> {
-  const home = opts.appUrl.replace(/\/$/, '') || 'https://lentrevuemag.com';
+  const home = opts.appUrl.replace(/\/$/, '') || 'https://fintechmedias.com';
   const href = `${home}/article/${encodeURIComponent(article.slug)}`;
   const featured: CampaignStory = {
     category: categoryDisplay(article.category).label,
     title: article.title,
     excerpt:
       article.excerpt?.trim() ||
-      'Un nouvel article vient de paraître sur L’Entrevue.',
+      'Un nouvel article vient de paraître sur Fintech Médias.',
     href,
     imageUrl: mediaUrl(article.coverKey, opts.r2PublicUrl, home) ?? undefined,
   };
@@ -521,7 +521,7 @@ export async function composeArticleCampaign(
 
   const footer = await loadCampaignFooter(prisma);
   const when = article.publishedAt ?? new Date();
-  const subject = `${opts.subjectPrefix ?? ''}${article.title} — L'Entrevue`;
+  const subject = `${opts.subjectPrefix ?? ''}${article.title} — Fintech Médias`;
   const html = buildCampaignMail({
     appUrl: home,
     kind: 'article',
@@ -598,7 +598,7 @@ async function buildArticleCampaignMail(
   unsubscribeUrl: string;
   listUnsubscribeUrl: string;
 }> {
-  const home = mailer.appUrl.replace(/\/$/, '') || 'https://lentrevuemag.com';
+  const home = mailer.appUrl.replace(/\/$/, '') || 'https://fintechmedias.com';
   const unsubscribeUrl = `${home}/newsletter/desinscription?token=${encodeURIComponent(row.subscription.unsubscribeToken)}`;
   const apiHome = mailer.apiUrl.replace(/\/$/, '') || home;
   const listUnsubscribeUrl = `${apiHome}/api/newsletter/unsubscribe?token=${encodeURIComponent(row.subscription.unsubscribeToken)}`;

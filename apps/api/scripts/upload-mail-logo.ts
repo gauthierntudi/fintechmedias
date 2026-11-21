@@ -1,6 +1,6 @@
 /**
  * Publie le logo des e-mails sur R2.
- *   pnpm --filter @entrevue/api exec tsx scripts/upload-mail-logo.ts
+ *   pnpm --filter @fintechmedias/api exec tsx scripts/upload-mail-logo.ts
  */
 import { readFileSync } from 'fs';
 import { resolve } from 'path';

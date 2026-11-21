@@ -131,7 +131,7 @@ async function bootstrap() {
 
   // eslint-disable-next-line no-console
   console.log(
-    `ENTREVUE worker started — pages urgent×${urgentConcurrency} + bulk×${bulkConcurrency} · video×${videoConcurrency} · newsletter 70/j`,
+    `Fintech Médias worker started — pages urgent×${urgentConcurrency} + bulk×${bulkConcurrency} · video×${videoConcurrency} · newsletter 70/j`,
   );
 
   const shutdown = async (signal: string) => {

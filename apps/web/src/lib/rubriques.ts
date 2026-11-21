@@ -1,4 +1,16 @@
-export type RubriqueTone = "red" | "blue" | "gold" | "teal" | "dark";
+export type RubriqueTone =
+  | "green"
+  | "gray"
+  | "black"
+  | "blue"
+  | "teal"
+  | "violet"
+  | "orange"
+  | "rose"
+  | "gold"
+  | "cyan"
+  | "red"
+  | "dark";
 
 export type Rubrique = {
   slug: string;
@@ -25,14 +37,14 @@ export const RUBRIQUES: readonly Rubrique[] = [
     href: "/rubrique/actualites",
     label: "Actualités",
     blurb: "L’actualité économique et fintech, au jour le jour.",
-    tone: "red",
+    tone: "green",
   },
   {
     slug: "interview",
     href: "/rubrique/interview",
     label: "Interview",
     blurb: "Entretiens avec celles et ceux qui font la fintech africaine.",
-    tone: "gold",
+    tone: "gray",
   },
   {
     slug: "economie",
@@ -53,28 +65,21 @@ export const RUBRIQUES: readonly Rubrique[] = [
     href: "/rubrique/international",
     label: "Int’l",
     blurb: "Ce qui se joue hors des frontières et pèse sur le continent.",
-    tone: "dark",
+    tone: "violet",
   },
   {
     slug: "portrait",
     href: "/rubrique/portrait",
     label: "Édito",
     blurb: "La voix de la rédaction sur l’actualité finance et fintech.",
-    tone: "gold",
+    tone: "orange",
   },
   {
     slug: "entreprise",
     href: "/rubrique/entreprise",
     label: "Entreprise",
     blurb: "Sociétés, levées, produits et stratégies.",
-    tone: "red",
-  },
-  {
-    slug: "events",
-    href: "/rubrique/events",
-    label: "Events",
-    blurb: "Forums, lancements et rendez-vous du secteur.",
-    tone: "teal",
+    tone: "rose",
   },
 ] as const;
 
@@ -84,7 +89,7 @@ export const SHORT_RUBRIQUE: Rubrique = {
   label: "SHORT",
   blurb:
     "Formats courts verticaux, à feuilleter comme TikTok — visibles uniquement dans l’app.",
-  tone: "gold",
+  tone: "cyan",
   format: "video",
 };
 
@@ -129,7 +134,9 @@ const LEGACY_CATEGORY_SLUGS: Record<string, string> = {
   entreprise: "entreprise",
   entreprendre: "entreprise",
   innovation: "entreprise",
-  events: "events",
+  // Ancienne rubrique Events → Actualités
+  events: "actualites",
+  evenements: "actualites",
   "stu-talk": "interview",
   "stu-stories": "interview",
   "stu-news": "entreprise",

@@ -6,9 +6,9 @@
  * Une ligne désinscrite n’est pas réactivée.
  *
  * Usage (depuis la racine) :
- *   pnpm --filter @entrevue/api import:newsletter -- --dry-run
- *   pnpm --filter @entrevue/api import:newsletter
- *   pnpm --filter @entrevue/api import:newsletter -- --file ../../docs/BDD.xlsx
+ *   pnpm --filter @fintechmedias/api import:newsletter -- --dry-run
+ *   pnpm --filter @fintechmedias/api import:newsletter
+ *   pnpm --filter @fintechmedias/api import:newsletter -- --file ../../docs/BDD.xlsx
  *
  * Env : DATABASE_URL
  */

@@ -8,7 +8,7 @@ export const BRAND = {
   legalName: "Fintech Médias",
   /** Titre du magazine (kiosque). */
   magazineName: "Fintech Médias",
-  tagline: "Guide dans l’univers de la FinTech en Afrique.",
+  tagline: "Premier média Africain spécialisé dans la FinTech.",
   taglineShort: "La FinTech en Afrique",
   description:
     "Fintech Médias — information économique, fintech et magazines numériques.",

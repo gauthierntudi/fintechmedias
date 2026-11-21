@@ -64,7 +64,7 @@ export function sampleCampaign(
   kind: CampaignKind,
   appUrl: string,
 ): CampaignMailInput {
-  const home = appUrl.replace(/\/$/, '') || 'https://lentrevuemag.com';
+  const home = appUrl.replace(/\/$/, '') || 'https://fintechmedias.com';
   const unsub = `${home}/newsletter/desinscription`;
 
   const pme: CampaignStory = {
@@ -114,7 +114,7 @@ export function sampleCampaign(
     return {
       appUrl: home,
       kind,
-      subject: `${pme.title} — L'Entrevue`,
+      subject: `${pme.title} — Fintech Médias`,
       preheader: pme.excerpt,
       kicker: 'Nouvel article',
       dateLabel: 'Octobre 2026',
@@ -130,7 +130,7 @@ export function sampleCampaign(
     return {
       appUrl: home,
       kind,
-      subject: "Le nouveau numéro de L'Entrevue est en kiosque",
+      subject: "Le nouveau numéro de Fintech Médias est en kiosque",
       preheader: 'Éditos, analyses et outils pour diriger autrement.',
       kicker: 'Kiosque',
       dateLabel: 'Nouveau numéro',
@@ -145,7 +145,7 @@ export function sampleCampaign(
   return {
     appUrl: home,
     kind: 'digest',
-    subject: "L'Entrevue — ce que les PME doivent lire maintenant",
+    subject: "Fintech Médias — ce que les PME doivent lire maintenant",
     preheader:
       'La une, puis trois autres textes pour piloter sans attendre.',
     kicker: 'La newsletter',
@@ -153,7 +153,7 @@ export function sampleCampaign(
     headline: 'Ce que les PME doivent lire maintenant',
     lead: 'Une lecture en une, trois autres en bas de page — le nécessaire, sans noyer la boîte mail.',
     stories,
-    cta: { label: "Lire L'Entrevue", href: home },
+    cta: { label: "Lire Fintech Médias", href: home },
     unsubscribeUrl: unsub,
   };
 }
@@ -187,7 +187,7 @@ export function buildCampaignMail(input: CampaignMailInput): string {
               <a href="${esc(home)}" style="text-decoration:none;">
                 ${mailLogoImg(232)}
               </a>
-              <p style="margin:12px 0 0;font-family:${FONT};font-size:12px;line-height:1.4;color:rgba(255,255,255,0.72);">Guide dans l’univers de la FinTech en Afrique.</p>
+              <p style="margin:12px 0 0;font-family:${FONT};font-size:12px;line-height:1.4;color:rgba(255,255,255,0.72);">Premier média Africain spécialisé dans la FinTech.</p>
             </td>
           </tr>
           <tr>
@@ -310,7 +310,7 @@ function magazineMark(): string {
         <tr>
           <td align="center" style="padding:36px 24px;">
             <p style="margin:0 0 8px;font-family:${FONT};font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:${RED};">Magazine</p>
-            <p style="margin:0;font-family:${DISPLAY};font-size:32px;line-height:1.15;color:${WHITE};">L'Entrevue</p>
+            <p style="margin:0;font-family:${DISPLAY};font-size:32px;line-height:1.15;color:${WHITE};">Fintech Médias</p>
             <p style="margin:10px 0 0;font-family:${FONT};font-size:13px;color:rgba(255,255,255,0.62);">Autour de l’entrepreneuriat</p>
           </td>
         </tr>
@@ -405,7 +405,7 @@ function footerBlock(
       <a href="${esc(home)}" style="text-decoration:none;">
         ${mailLogoImg(180)}
       </a>
-      <p style="margin:12px 0 0;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.72);">Guide dans l’univers de la FinTech en Afrique.</p>
+      <p style="margin:12px 0 0;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.72);">Premier média Africain spécialisé dans la FinTech.</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0 0;">
         <tr>
           <td style="border-top:1px solid #2a2a2a;font-size:0;line-height:0;height:1px;">&nbsp;</td>

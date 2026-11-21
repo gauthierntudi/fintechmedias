@@ -34,39 +34,33 @@ export function articleHref(story: {
   return `/article/${encodeURIComponent(String(story.slug ?? story.id))}`;
 }
 
+const TONES = new Set([
+  "green",
+  "gray",
+  "black",
+  "blue",
+  "teal",
+  "violet",
+  "orange",
+  "rose",
+  "gold",
+  "cyan",
+  "red",
+  "dark",
+]);
+
 function tone(
   value: string | undefined,
 ): TopStory["categoryTone"] {
-  switch (value) {
-    case "red":
-    case "blue":
-    case "teal":
-    case "dark":
-    case "gold":
-      return value;
-    case "orange":
-    case "yellow":
-      return "gold";
-    default:
-      return "teal";
-  }
+  if (value && TONES.has(value)) return value as TopStory["categoryTone"];
+  return "green";
 }
 
 function tagTone(
   value: string | undefined,
 ): RubriqueStory["tagTone"] {
-  switch (value) {
-    case "red":
-    case "blue":
-    case "teal":
-    case "dark":
-    case "gold":
-    case "orange":
-    case "yellow":
-      return value;
-    default:
-      return "teal";
-  }
+  if (value && TONES.has(value)) return value as RubriqueStory["tagTone"];
+  return "green";
 }
 
 export function toTopStory(a: PublicArticleCard): TopStory {
@@ -142,7 +136,6 @@ const FOR_YOU_CATEGORIES = [
   "international",
   "portrait",
   "entreprise",
-  "events",
 ] as const;
 
 function seededOrder<T>(items: readonly T[], seed: number): T[] {
@@ -177,7 +170,6 @@ export function selectForYou(
     international: feed.international ?? feed.expert ?? [],
     portrait: feed.portrait ?? feed.femme ?? [],
     entreprise: feed.entreprise ?? [],
-    events: feed.events ?? [],
   };
 
   const chosen = seededOrder(FOR_YOU_CATEGORIES, safeSeed).slice(0, 4);
@@ -224,7 +216,6 @@ export type HomeArticlesView = {
   femmeGrid: RubriqueStory[];
   femmeSlides: RubriqueSplitStory[];
   innovationStories: RubriqueStory[];
-  eventsStories: RubriqueStory[];
   aNePasManquerFeatured: RubriqueStory;
   aNePasManquerList: RubriqueStory[];
 };
@@ -252,7 +243,6 @@ export function buildHomeArticlesView(
   const expert = internationalSource.map(toRubriqueStory);
   const femme = portraitSource.map(toSplitStory);
   const innovationStories = economieSource.map(toRubriqueStory);
-  const events = (feed?.events ?? []).map(toRubriqueStory);
   const miss = (feed?.aNePasManquer ?? []).map(toRubriqueStory);
   const seen = new Set<string>();
   const forYouLive = [
@@ -319,17 +309,6 @@ export function buildHomeArticlesView(
         author: "Fintech Médias",
         dateLabel: "",
         tagTone: "gold" as const,
-      })),
-      1,
-    ),
-    eventsStories: pick(
-      events,
-      DEMO_DOSSIERS.map((s) => ({
-        ...s,
-        category: "Events",
-        author: "Fintech Médias",
-        dateLabel: "",
-        tagTone: "teal" as const,
       })),
       1,
     ),

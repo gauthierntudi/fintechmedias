@@ -43,7 +43,7 @@ function MagazineCard({
     <Link href={magazineHref(mag.id)} className="opt-rsplit__mag">
       <span className="opt-rsplit__mag-cover">
         <CoverImage src={mag.cover} />
-        <span className="opt-rsplit__mag-badge">L&apos;Entrevue</span>
+        <span className="opt-rsplit__mag-badge">Fintech Médias</span>
         {latest ? (
           <span className="opt-rsplit__mag-tag">Nouveau</span>
         ) : null}
@@ -64,10 +64,10 @@ function MagazineCard({
 }
 
 /**
- * Rayon L'Entrevue — couvertures magazine (3:4) dans la colonne principale.
+ * Rayon Fintech Médias — couvertures magazine (3:4) dans la colonne principale.
  */
 export function HomeRubriqueSplit({
-  title = "L'Entrevue",
+  title = "Fintech Médias",
   href = "/kiosque",
   accentClass,
   moreLabel = "Tous les numéros",

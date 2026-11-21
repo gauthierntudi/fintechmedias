@@ -284,7 +284,7 @@ export class NewsletterService {
   async previewCampaign() {
     const appUrl =
       this.config.get<string>('APP_URL')?.replace(/\/$/, '') ||
-      'https://lentrevuemag.com';
+      'https://fintechmedias.com';
     const article = await findLatestPublicArticle(this.prisma);
     if (!article) {
       throw new NotFoundException(
@@ -315,7 +315,7 @@ export class NewsletterService {
       NEWSLETTER_TEST_EMAIL;
     const appUrl =
       this.config.get<string>('APP_URL')?.replace(/\/$/, '') ||
-      'https://lentrevuemag.com';
+      'https://fintechmedias.com';
     const article = await findLatestPublicArticle(this.prisma);
     if (!article) {
       throw new BadRequestException(
@@ -370,7 +370,7 @@ export class NewsletterService {
     return {
       ok: true as const,
       alreadyUnsubscribed: false as const,
-      message: 'Vous êtes désinscrit de la newsletter L’Entrevue.',
+      message: 'Vous êtes désinscrit de la newsletter Fintech Médias.',
     };
   }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "@entrevue/api",
+  "name": "@fintechmedias/api",
   "version": "0.0.1",
-  "description": "ENTREVUE API",
+  "description": "Fintech Médias API",
   "author": "",
   "private": true,
   "license": "UNLICENSED",

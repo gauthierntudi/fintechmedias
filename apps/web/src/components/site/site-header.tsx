@@ -21,6 +21,7 @@ import { libraryApi } from "@/lib/api";
 import { EmailVerifyBanner } from "./email-verify-banner";
 import { HeaderLiveSearch } from "./header-live-search";
 import { BrandLogo } from "./brand-logo";
+import { useSiteTheme } from "./theme-provider";
 import { ThemeToggle } from "./theme-toggle";
 import { BRAND } from "@/lib/brand";
 import { SUBSCRIPTIONS_ENABLED } from "@/lib/features";
@@ -51,6 +52,7 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
   const [accountOpen, setAccountOpen] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [compactBrand, setCompactBrand] = useState(false);
+  const { theme } = useSiteTheme();
   const accountRef = useRef<HTMLDivElement>(null);
 
   const loggedIn = !loading && Boolean(user);
@@ -216,7 +218,7 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
             <span className="opt-header__vsep" aria-hidden />
 
             <Link href="/" className="opt-header__brand" aria-label={`${BRAND.name} — Accueil`}>
-              {compactBrand ? (
+              {compactBrand && theme !== "dark" ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={BRAND.icon}
@@ -227,7 +229,11 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
                   aria-hidden
                 />
               ) : (
-                <BrandLogo height={42} />
+                // Mode sombre : toujours le logo complet (logo-fintech.png), réduit sur petit écran
+                <BrandLogo
+                  height={compactBrand ? 30 : 42}
+                  className={compactBrand ? "opt-header__brand-logo--compact" : undefined}
+                />
               )}
             </Link>
           </div>
@@ -331,7 +337,12 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
                 ) : null}
               </div>
             ) : (
-              <Link href={authHref} className="opt-header__action opt-header__login">
+              <Link
+                href={authHref}
+                className="opt-header__action opt-header__login"
+                aria-label={authLabel}
+                title={authLabel}
+              >
                 <UserRound {...ICON} aria-hidden />
                 <span>{authLabel}</span>
               </Link>
@@ -402,6 +413,26 @@ export function SiteHeader({ showNav = true }: { showNav?: boolean } = {}) {
                 </li>
               );
             })}
+            <li>
+              <Link
+                href="/evenements"
+                className={navIsActive(pathname, "/evenements") ? "is-active" : undefined}
+                aria-current={navIsActive(pathname, "/evenements") ? "page" : undefined}
+                onClick={() => setMenuOpen(false)}
+              >
+                Événements
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/jobs"
+                className={navIsActive(pathname, "/jobs") ? "is-active" : undefined}
+                aria-current={navIsActive(pathname, "/jobs") ? "page" : undefined}
+                onClick={() => setMenuOpen(false)}
+              >
+                Jobs
+              </Link>
+            </li>
             <li>
               <Link
                 href="/kiosque"

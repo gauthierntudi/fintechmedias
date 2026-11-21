@@ -3,8 +3,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../theme/app_theme.dart';
 import 'studrc_logo.dart';
 
-class EntrevueMasthead extends StatelessWidget {
-  const EntrevueMasthead({
+class FintechMasthead extends StatelessWidget {
+  const FintechMasthead({
     super.key,
     required this.onSearch,
     required this.onNotify,
@@ -33,7 +33,7 @@ class EntrevueMasthead extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: Center(child: EntrevueLogo(height: 26, onDark: dark)),
+              child: Center(child: FintechLogo(height: 26, onDark: dark)),
             ),
             SizedBox(
               width: 48,

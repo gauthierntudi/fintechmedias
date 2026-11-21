@@ -4,6 +4,7 @@ import '../../core/api.dart';
 import '../../core/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/article_tile.dart';
+import '../../widgets/skeleton.dart';
 
 const kCategoryPageSize = 12;
 
@@ -145,7 +146,6 @@ bool showRubriqueExcerpt(String slug) {
       slug == 'politique' ||
       slug == 'entreprise' ||
       slug == 'portrait' ||
-      slug == 'events' ||
       slug == 'international' ||
       slug.isEmpty;
 }
@@ -202,7 +202,7 @@ class _CategoryFeedViewState extends ConsumerState<CategoryFeedView> {
     final scheme = Theme.of(context).colorScheme;
 
     if (state.loading && state.items.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return CategoryFeedSkeleton(padding: widget.padding);
     }
 
     if (state.error != null && state.items.isEmpty) {

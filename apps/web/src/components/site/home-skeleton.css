@@ -124,7 +124,7 @@
   display: grid;
   gap: 0.7rem;
   padding: 1.35rem 1.4rem 1.15rem;
-  background: var(--entrevue-red, #4ed319);
+  background: var(--brand-red, #4ed319);
 }
 
 .opt-home-skel__card-media {
@@ -398,7 +398,7 @@
 }
 
 .opt-home-skel__portrait-dots span.is-active {
-  background: var(--entrevue-red, #4ed319);
+  background: var(--brand-red, #4ed319);
 }
 
 .opt-home-skel__portrait {

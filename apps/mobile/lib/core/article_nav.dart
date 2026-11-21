@@ -14,8 +14,7 @@ void rememberArticleTone(String slug, String? tone) {
 String? rememberedArticleTone(String slug) => _toneBySlug[slug];
 
 String articleToneOf(ArticleCard article) {
-  final tone = article.categoryTone.trim();
-  if (tone.isNotEmpty) return tone;
+  // Toujours dériver du slug rubrique → une couleur unique (ignore les anciens tones API).
   return toneFromCategory(article.category, article.categoryLabel);
 }
 

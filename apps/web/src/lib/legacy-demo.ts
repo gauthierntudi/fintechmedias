@@ -7,7 +7,19 @@ export type TopStory = {
   excerpt?: string;
   cover: string;
   category: string;
-  categoryTone: "red" | "blue" | "teal" | "dark" | "gold";
+  categoryTone:
+    | "green"
+    | "gray"
+    | "black"
+    | "blue"
+    | "teal"
+    | "violet"
+    | "orange"
+    | "rose"
+    | "gold"
+    | "cyan"
+    | "red"
+    | "dark";
   author: string;
   authorAvatarUrl?: string | null;
   dateLabel: string;
@@ -340,7 +352,20 @@ export type RubriqueStory = {
   author: string;
   authorAvatarUrl?: string | null;
   dateLabel: string;
-  tagTone?: "red" | "blue" | "teal" | "dark" | "gold" | "orange" | "yellow";
+  tagTone?:
+    | "green"
+    | "gray"
+    | "black"
+    | "blue"
+    | "teal"
+    | "violet"
+    | "orange"
+    | "rose"
+    | "gold"
+    | "cyan"
+    | "red"
+    | "dark"
+    | "yellow";
   videoHlsUrl?: string | null;
   videoPosterUrl?: string | null;
   videoStatus?: "NONE" | "PENDING" | "PROCESSING" | "READY" | "FAILED";

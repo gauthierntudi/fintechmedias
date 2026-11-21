@@ -4,7 +4,7 @@
   --renc-ink: var(--site-ink, #111111);
   --renc-muted: var(--site-muted, #6b6b6b);
   --renc-soft: #6f6f6f;
-  --renc-red: var(--entrevue-red, #4ed319);
+  --renc-red: var(--brand-red, #4ed319);
   --renc-line: var(--site-line, #ececec);
   background: #f3f3f3;
   color: var(--renc-ink);

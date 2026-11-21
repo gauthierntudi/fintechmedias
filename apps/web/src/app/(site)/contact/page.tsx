@@ -6,7 +6,7 @@ import "./contact.css";
 
 export const metadata: Metadata = {
   title: "Nous contactez",
-  description: `Écrire à ${BRAND.name} — ${BRAND.tagline}.`,
+  description: `Écrire à ${BRAND.name} — ${BRAND.tagline}`,
 };
 
 export default function ContactPage() {

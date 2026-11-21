@@ -15,7 +15,7 @@ void main() {
   testWidgets('returning user sees the tab shell', (tester) async {
     await setPhoneSurface(tester);
     await tester.pumpWidget(
-      const ProviderScope(child: EntrevueApp(showSplash: false)),
+      const ProviderScope(child: FintechApp()),
     );
     expect(find.text('Accueil'), findsOneWidget);
     await tester.pump(const Duration(seconds: 21));
@@ -28,7 +28,7 @@ void main() {
         overrides: [
           onboardingProvider.overrideWith((ref) => OnboardingController(false)),
         ],
-        child: const EntrevueApp(showSplash: false),
+        child: const FintechApp(),
       ),
     );
     await tester.pumpAndSettle();
@@ -44,7 +44,7 @@ void main() {
         overrides: [
           onboardingProvider.overrideWith((ref) => OnboardingController(false)),
         ],
-        child: const EntrevueApp(showSplash: false),
+        child: const FintechApp(),
       ),
     );
     await tester.pumpAndSettle();

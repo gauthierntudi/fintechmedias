@@ -34,6 +34,14 @@ Turnstile de secours si `/settings/app` n’est pas encore en ligne :
 
 `--dart-define=TURNSTILE_SITE_KEY=…` (clé *site* publique, jamais le secret).
 
+**Google Sign-In**
+
+- Bundle / package : `com.fintechmedias.app`
+- iOS : `ios/Flutter/GoogleSignIn.xcconfig` (`GOOGLE_IOS_CLIENT_ID` + reversed URL scheme)
+- Android : client OAuth lié au SHA-1 + `com.fintechmedias.app`
+- `serverClientId` = client OAuth **Web** (via `GET /settings/app` → `googleClientId`)
+- Variables racine `.env` : `GOOGLE_CLIENT_ID_IOS`, `GOOGLE_CLIENT_ID_ANDROID` (aussi lues par l’API)
+
 L’admin et les abonnements restent sur le site web.
 
 Régénérer icône / splash après changement d’assets marque :

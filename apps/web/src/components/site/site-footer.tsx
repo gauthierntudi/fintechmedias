@@ -16,6 +16,8 @@ const QUICK = [
     : []),
   { href: "/kiosque", label: BRAND.magazineName },
   { href: "/actualites", label: "Actualités" },
+  { href: "/evenements", label: "Événements" },
+  { href: "/jobs", label: "Jobs" },
   { href: "/qui-sommes-nous", label: "Qui sommes-nous" },
   { href: "/contact", label: "Nous contactez" },
 ];

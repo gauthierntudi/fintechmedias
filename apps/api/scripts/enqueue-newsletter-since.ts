@@ -7,8 +7,8 @@
  * seulement si les envois sont activés en admin.
  *
  * Usage :
- *   pnpm --filter @entrevue/api enqueue:newsletter-since
- *   pnpm --filter @entrevue/api enqueue:newsletter-since -- --dry-run
+ *   pnpm --filter @fintechmedias/api enqueue:newsletter-since
+ *   pnpm --filter @fintechmedias/api enqueue:newsletter-since -- --dry-run
  */
 import { config as loadEnv } from 'dotenv';
 import { resolve } from 'path';

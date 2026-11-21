@@ -2,13 +2,13 @@
 # Premier run sur un VPS vide : Docker, UFW, certs Let’s Encrypt, stack Compose.
 # Usage (depuis /opt/magazine, en sudo ou root) :
 #   sudo -E bash deploy/bootstrap-vps.sh
-# Prérequis : DNS A lentrevuemag.com / www / api → ce serveur, et un .env prod.
+# Prérequis : DNS A fintechmedias.com / www / api → ce serveur, et un .env prod.
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/opt/magazine}"
-REPO_URL="${REPO_URL:-git@github.com:gauthierntudi/entrevue.git}"
-LETSENCRYPT_EMAIL="${LETSENCRYPT_EMAIL:-contact@lentrevuemag.com}"
-DOMAINS=(lentrevuemag.com www.lentrevuemag.com api.lentrevuemag.com)
+REPO_URL="${REPO_URL:-git@github.com:gauthierntudi/fintechmedias.git}"
+LETSENCRYPT_EMAIL="${LETSENCRYPT_EMAIL:-contact@fintechmedias.com}"
+DOMAINS=(fintechmedias.com www.fintechmedias.com api.fintechmedias.com)
 
 compose() {
   docker compose -f docker-compose.yml -f docker-compose.data.yml "$@"
@@ -78,7 +78,7 @@ set_nginx_conf() {
 
 issue_certs() {
   cd "$APP_DIR"
-  local live="$APP_DIR/deploy/certbot/conf/live/lentrevuemag.com/fullchain.pem"
+  local live="$APP_DIR/deploy/certbot/conf/live/fintechmedias.com/fullchain.pem"
   if [[ -f "$live" ]]; then
     echo "==> Certificat déjà présent"
     return
@@ -141,9 +141,9 @@ migrate() {
 }
 
 install_renew_cron() {
-  local cronf=/etc/cron.d/entrevue-certbot
+  local cronf=/etc/cron.d/fintechmedias-certbot
   cat > "$cronf" <<EOF
-# Renouvellement Let’s Encrypt — L'Entrevue
+# Renouvellement Let’s Encrypt — Fintech Médias
 0 3 * * * root docker run --rm -v $APP_DIR/deploy/certbot/conf:/etc/letsencrypt -v $APP_DIR/deploy/certbot/www:/var/www/certbot certbot/certbot renew --quiet && cd $APP_DIR && docker compose -f docker-compose.yml -f docker-compose.data.yml exec -T nginx nginx -s reload
 EOF
   chmod 644 "$cronf"
@@ -159,4 +159,4 @@ enable_tls
 migrate
 install_renew_cron
 
-echo "OK — stack en ligne. Vérifier https://lentrevuemag.com et https://api.lentrevuemag.com/api/health"
+echo "OK — stack en ligne. Vérifier https://fintechmedias.com et https://api.fintechmedias.com/api/health"

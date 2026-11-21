@@ -8,8 +8,8 @@
  * Les nouveaux comptes reçoivent le mot de passe par défaut 0000.
  *
  * Usage (depuis fintech-next) :
- *   pnpm --filter @entrevue/api import:users
- *   pnpm --filter @entrevue/api import:users -- --dry-run
+ *   pnpm --filter @fintechmedias/api import:users
+ *   pnpm --filter @fintechmedias/api import:users -- --dry-run
  */
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';

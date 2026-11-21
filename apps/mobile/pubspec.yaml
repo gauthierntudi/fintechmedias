@@ -49,6 +49,7 @@ dependencies:
   lucide_icons_flutter: ^3.1.19
   google_sign_in: ^7.2.0
   google_fonts: ^8.2.1
+  image_picker: ^1.2.4
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +81,8 @@ flutter:
     - assets/brand/splash-logo.png
     - assets/brand/splash-logo-light.png
     - assets/brand/splash-logo-dark.png
+    - assets/brand/splash-android12-light.png
+    - assets/brand/splash-android12-dark.png
     - assets/brand/icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -94,7 +97,7 @@ flutter:
         - asset: fonts/FamiljenGrotesk.ttf
 
 flutter_native_splash:
-  # Mode clair
+  # Mode clair — wordmark (pré-Android 12 / iOS)
   color: "#FFFFFF"
   image: assets/brand/splash-logo-light.png
   # Mode sombre
@@ -102,17 +105,19 @@ flutter_native_splash:
   image_dark: assets/brand/splash-logo-dark.png
   ios_content_mode: center
   android_gravity: center
+  # Android 12+ : cercle système — logo pré-paddé (évite le flash trop grand)
   android_12:
     color: "#FFFFFF"
-    image: assets/brand/splash-logo-light.png
+    image: assets/brand/splash-android12-light.png
     icon_background_color: "#FFFFFF"
     color_dark: "#111111"
-    image_dark: assets/brand/splash-logo-dark.png
+    image_dark: assets/brand/splash-android12-dark.png
     icon_background_color_dark: "#111111"
   ios: true
   android: true
   web: false
-  fullscreen: true
+  # false : évite le saut barre de statut qui re-scale le logo au lancement
+  fullscreen: false
 
 flutter_launcher_icons:
   android: true

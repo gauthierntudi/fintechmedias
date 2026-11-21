@@ -31,10 +31,10 @@ html[data-theme="dark"] .opt-header {
   --opt-h-muted: var(--site-muted);
   --opt-h-line: var(--site-line);
   --opt-h-soft: var(--site-bg-soft);
-  --opt-h-cta: var(--entrevue-red, #4ed319);
+  --opt-h-cta: var(--brand-red, #4ed319);
   --opt-h-cta-hover: #3aaa12;
-  --opt-h-bg: var(--entrevue-navy, #111111);
-  background: var(--entrevue-navy, #111111);
+  --opt-h-bg: var(--brand-navy, #111111);
+  background: var(--brand-navy, #111111);
   color: var(--site-ink);
 }
 
@@ -228,7 +228,7 @@ html[data-theme="dark"] .opt-kiosque a.opt-kiosque__all {
 }
 
 html[data-theme="dark"] .opt-kiosque a.opt-kiosque__all:hover {
-  color: var(--entrevue-red, #4ed319);
+  color: var(--brand-red, #4ed319);
 }
 
 html[data-theme="dark"] .opt-kiosque__nav-btn {
@@ -502,7 +502,7 @@ html[data-theme="dark"] .opt-notif__pager-btn.is-active {
 }
 
 html[data-theme="dark"] .opt-mags__btn--primary:hover {
-  background: var(--entrevue-red, #4ed319);
+  background: var(--brand-red, #4ed319);
   color: #111111;
 }
 

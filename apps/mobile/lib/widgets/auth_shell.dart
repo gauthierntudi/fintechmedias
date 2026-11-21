@@ -147,7 +147,7 @@ class _AuthBackdrop extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         Image.asset(
-          'assets/onboarding/1.jpg',
+          'assets/onboarding/01.jpg',
           fit: BoxFit.cover,
           alignment: const Alignment(0, -0.25),
         ),
@@ -156,7 +156,11 @@ class _AuthBackdrop extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0xB8D63026), Color(0xCCD63026), Color(0xE6111111)],
+              colors: [
+                Color(0x994ED319),
+                Color(0xBB111111),
+                Color(0xF2111111),
+              ],
               stops: [0, 0.55, 1],
             ),
           ),
@@ -273,11 +277,13 @@ class AuthPrimaryButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.busy = false,
+    this.borderRadius = 12,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool busy;
+  final double borderRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -295,7 +301,7 @@ class AuthPrimaryButton extends StatelessWidget {
           foregroundColor: fg,
           disabledBackgroundColor: bg.withValues(alpha: 0.45),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(borderRadius),
           ),
         ),
         child: busy

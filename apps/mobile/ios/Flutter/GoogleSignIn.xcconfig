@@ -1,9 +1,8 @@
-// Clients OAuth Google (pas un secret). Remplir après création
-// dans Google Cloud Console :
-// - iOS : bundle com.entrevue.entrevue
-// - Web : même GOOGLE_CLIENT_ID que l’API
-// GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.{prefix-ios}
+// Clients OAuth Google Fintech Médias (pas un secret).
+// - iOS : bundle com.fintechmedias.app
+// - serverClientId : Client OAuth Web (id_token aud)
+// GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.{prefix-sans-.apps.googleusercontent.com}
 
-GOOGLE_IOS_CLIENT_ID=683113674830-glu7hbluoa4st5valeo8rvj3kfki2acu.apps.googleusercontent.com
-GOOGLE_REVERSED_CLIENT_ID=com.googleusercontent.apps.683113674830-glu7hbluoa4st5valeo8rvj3kfki2acu
-GOOGLE_SERVER_CLIENT_ID=683113674830-tmimgosp7l46eclec5fupvk79m4f6lv9.apps.googleusercontent.com
+GOOGLE_IOS_CLIENT_ID=773749541861-c5pojqagt93dv9fpodggkpgc0gluta0t.apps.googleusercontent.com
+GOOGLE_REVERSED_CLIENT_ID=com.googleusercontent.apps.773749541861-c5pojqagt93dv9fpodggkpgc0gluta0t
+GOOGLE_SERVER_CLIENT_ID=773749541861-b6rm42jlrtt6icd3mprgjomsan5nk80s.apps.googleusercontent.com

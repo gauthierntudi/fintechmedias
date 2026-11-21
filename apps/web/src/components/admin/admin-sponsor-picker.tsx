@@ -36,11 +36,23 @@ export function AdminSponsorPicker({
   linked,
   disabled,
   onChange,
+  excludeIds,
+  allowNone = true,
+  placeholder = "Aucun sponsor",
+  createdMessage = "Sponsor enregistré — réutilisable sur les prochains articles",
+  onCreated,
 }: {
   value: string;
   linked?: AdminArticleSponsor | null;
   disabled?: boolean;
   onChange: (id: string) => void;
+  /** Sponsors masqués de la liste (déjà associés). */
+  excludeIds?: string[];
+  /** Affiche l’option « Aucun sponsor » (sélection unique). */
+  allowNone?: boolean;
+  placeholder?: string;
+  createdMessage?: string;
+  onCreated?: (sponsor: AdminSponsor) => void;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -119,9 +131,12 @@ export function AdminSponsorPicker({
 
   const selected = sponsors.find((s) => s.id === value) ?? null;
   const query = normalizeQuery(search);
-  const filtered = query
-    ? sponsors.filter((s) => normalizeQuery(s.name).includes(query))
+  const visible = excludeIds?.length
+    ? sponsors.filter((s) => !excludeIds.includes(s.id))
     : sponsors;
+  const filtered = query
+    ? visible.filter((s) => normalizeQuery(s.name).includes(query))
+    : visible;
 
   function closePanel() {
     setOpen(false);
@@ -212,9 +227,10 @@ export function AdminSponsorPicker({
           a.name.localeCompare(b.name, "fr"),
         );
       });
+      onCreated?.(withLogo);
       onChange(withLogo.id);
       closePanel();
-      toast.success("Sponsor enregistré — réutilisable sur les prochains articles");
+      toast.success(createdMessage);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Impossible d’enregistrer le sponsor",
@@ -256,7 +272,7 @@ export function AdminSponsorPicker({
             </span>
           </>
         ) : (
-          <span className="admin-mag-picker__placeholder">Aucun sponsor</span>
+          <span className="admin-mag-picker__placeholder">{placeholder}</span>
         )}
         <ChevronDown
           size={16}
@@ -354,6 +370,7 @@ export function AdminSponsorPicker({
                 role="listbox"
                 aria-label="Choisir un sponsor"
               >
+                {allowNone ? (
                 <li role="option" aria-selected={!value}>
                   <button
                     type="button"
@@ -377,8 +394,11 @@ export function AdminSponsorPicker({
                     ) : null}
                   </button>
                 </li>
+                ) : null}
                 {filtered.length === 0 ? (
-                  <li className="admin-mag-picker__empty">Aucun résultat</li>
+                  <li className="admin-mag-picker__empty">
+                    {query ? "Aucun résultat" : "Aucun sponsor disponible"}
+                  </li>
                 ) : (
                   filtered.map((s) => {
                     const selectedRow = value === s.id;

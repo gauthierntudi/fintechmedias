@@ -6,7 +6,7 @@
  * pour que le reçu puisse s’y rattacher. Relancer n’écrit pas deux fois la même référence.
  *
  * Usage (depuis fintech-next) :
- *   pnpm --filter @entrevue/api import:payments
+ *   pnpm --filter @fintechmedias/api import:payments
  */
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';

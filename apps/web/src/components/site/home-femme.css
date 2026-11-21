@@ -1,7 +1,7 @@
 /* Femme — héros photo + bandeau d’inscription */
 
 .opt-femme {
-  --femme-red: var(--entrevue-red, #4ed319);
+  --femme-red: var(--brand-red, #4ed319);
   background: #111;
   color: #fff;
   width: 100%;
@@ -71,7 +71,7 @@
 }
 
 .opt-femme__bullet.is-active {
-  background: var(--entrevue-red, #4ed319);
+  background: var(--brand-red, #4ed319);
 }
 
 .opt-femme__media {

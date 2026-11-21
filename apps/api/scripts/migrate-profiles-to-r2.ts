@@ -3,8 +3,8 @@
  * and rewrite Subscriber.avatarKey filename → profil/filename.
  *
  * Usage:
- *   pnpm --filter @entrevue/api migrate:profiles-r2
- *   pnpm --filter @entrevue/api migrate:profiles-r2 -- --dry-run
+ *   pnpm --filter @fintechmedias/api migrate:profiles-r2
+ *   pnpm --filter @fintechmedias/api migrate:profiles-r2 -- --dry-run
  */
 import { readdir, readFile, stat } from 'fs/promises';
 import { extname, join, resolve } from 'path';

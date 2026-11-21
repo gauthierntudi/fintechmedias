@@ -6,8 +6,8 @@
   --opt-h-line: #e6e6e6;
   --opt-h-soft: #f2f2f2;
   --opt-h-bg: #fff;
-  --opt-h-red: var(--entrevue-red, #4ed319);
-  --opt-h-cta: var(--entrevue-red, #4ed319);
+  --opt-h-red: var(--brand-red, #4ed319);
+  --opt-h-cta: var(--brand-red, #4ed319);
   --opt-h-cta-hover: #3aaa12;
   --opt-h-font: var(--opt-font-sans);
   --opt-h-display: var(--opt-font-display);
@@ -470,8 +470,8 @@ html[data-theme="dark"] .opt-header__brand .opt-header__brand-icon {
   letter-spacing: 0.01em;
   background-image: linear-gradient(
     90deg,
-    var(--entrevue-red, #4ed319) 0,
-    var(--entrevue-red, #4ed319) 94%
+    var(--brand-red, #4ed319) 0,
+    var(--brand-red, #4ed319) 94%
   );
   background-repeat: no-repeat;
   background-position: 0 100%;
@@ -569,7 +569,7 @@ html[data-theme="light"] .opt-mega {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1.35;
-  border-bottom: 2px solid var(--entrevue-red, #4ed319);
+  border-bottom: 2px solid var(--brand-red, #4ed319);
 }
 
 .opt-mega__title {
@@ -595,7 +595,7 @@ html[data-theme="light"] .opt-mega {
   --opt-h-muted: var(--site-muted, #6b6b6b);
   --opt-h-line: var(--site-line, #e6e6e6);
   --opt-h-soft: var(--site-bg-soft, #f2f2f2);
-  --opt-h-red: var(--entrevue-red, #4ed319);
+  --opt-h-red: var(--brand-red, #4ed319);
   --opt-h-display: var(--opt-font-display);
 
   position: fixed;
@@ -1145,5 +1145,24 @@ html[data-theme="light"] .opt-mega {
   .opt-header__cta,
   .opt-header__nav {
     transition: none;
+  }
+}
+
+/* Petit écran + mode sombre : logo complet réduit à la place de l’icône */
+.opt-header__brand img.opt-header__brand-logo--compact {
+  height: 30px !important;
+  max-width: 96px;
+  object-fit: contain;
+}
+
+/* Très petit écran en mode sombre : le logo complet prend la place du libellé
+   « Se connecter » (l’icône reste, avec aria-label). */
+@media (max-width: 390px) {
+  html[data-theme="dark"] .opt-header a.opt-header__login span {
+    display: none;
+  }
+
+  html[data-theme="dark"] .opt-header a.opt-header__login {
+    padding: 0.45rem;
   }
 }

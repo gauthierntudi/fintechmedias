@@ -8,8 +8,8 @@ import { getSiteUrl } from "@/lib/site-url";
 import { isSiteTheme, SITE_THEME_KEY } from "@/lib/site-theme";
 import "./globals.css";
 
-/** Identité typographique L'Entrevue — corps et titres. */
-const fontEntrevue = Familjen_Grotesk({
+/** Identité typographique Fintech Médias — corps et titres. */
+const fontBrand = Familjen_Grotesk({
   subsets: ["latin", "latin-ext"],
   variable: "--font-familjen",
   display: "swap",
@@ -64,19 +64,19 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  preconnect("https://cdn.entrevue.com", { crossOrigin: "anonymous" });
+  preconnect("https://cdn.fintechmedias.com", { crossOrigin: "anonymous" });
   const raw = (await cookies()).get(SITE_THEME_KEY)?.value;
   const theme = isSiteTheme(raw) ? raw : "light";
 
   return (
     <html
       lang="fr"
-      className={fontEntrevue.variable}
+      className={fontBrand.variable}
       data-theme={theme}
       style={{ colorScheme: theme }}
       suppressHydrationWarning
     >
-      <body className={fontEntrevue.className} suppressHydrationWarning>
+      <body className={fontBrand.className} suppressHydrationWarning>
         <Providers initialTheme={theme}>{children}</Providers>
       </body>
     </html>

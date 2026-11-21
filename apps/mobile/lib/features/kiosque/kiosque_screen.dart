@@ -6,6 +6,7 @@ import '../../core/api.dart';
 import '../../core/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/cover.dart';
+import '../../widgets/skeleton.dart';
 import '../../widgets/studrc_logo.dart';
 
 final kiosqueProvider = FutureProvider((ref) {
@@ -129,7 +130,7 @@ class _MagHero extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const EntrevueLogo(height: 20, onDark: true),
+                  const FintechLogo(height: 20, onDark: true),
                   const Spacer(),
                   Text(
                     'Nouveau numéro',
@@ -392,7 +393,10 @@ class _KiosqueLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: CircularProgressIndicator(color: AppTheme.gold));
+    return const ColoredBox(
+      color: AppTheme.navy,
+      child: KiosqueSkeleton(),
+    );
   }
 }
 

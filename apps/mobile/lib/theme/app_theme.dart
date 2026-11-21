@@ -246,20 +246,32 @@ class AppTheme {
     );
   }
 
+  /// Couleur de rubrique — une teinte distincte par tone (pas de doublon).
   static Color toneColor(String? tone) {
     switch (tone) {
-      case 'red':
-        return red;
+      case 'green':
+      case 'red': // legacy API
+        return const Color(0xFF4ED319);
+      case 'gray':
+      case 'black': // legacy
+        return const Color(0xFF6B7280);
       case 'blue':
-        return blue;
-      case 'gold':
-        return gold;
+        return const Color(0xFF2563EB);
       case 'teal':
-        return navy;
-      case 'dark':
-        return red;
+        return const Color(0xFF0F766E);
+      case 'violet':
+      case 'dark': // legacy → Int’l
+        return const Color(0xFF7C3AED);
+      case 'orange':
+        return const Color(0xFFEA580C);
+      case 'rose':
+        return const Color(0xFFDB2777);
+      case 'gold':
+        return const Color(0xFFCA8A04);
+      case 'cyan':
+        return const Color(0xFF0891B2);
       default:
-        return red;
+        return const Color(0xFF4ED319);
     }
   }
 }

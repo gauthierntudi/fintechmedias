@@ -23,8 +23,8 @@
 }
 
 .opt-notif__search:focus-within {
-  border-color: rgba(2, 208, 209, 0.65);
-  box-shadow: 0 0 0 3px rgba(2, 208, 209, 0.12);
+  border-color: rgba(78, 211, 25, 0.65);
+  box-shadow: 0 0 0 3px rgba(78, 211, 25, 0.12);
 }
 
 .opt-notif__search input {
@@ -95,8 +95,8 @@
 
 .opt-notif__filters select:focus {
   outline: none;
-  border-color: rgba(2, 208, 209, 0.65);
-  box-shadow: 0 0 0 3px rgba(2, 208, 209, 0.12);
+  border-color: rgba(78, 211, 25, 0.65);
+  box-shadow: 0 0 0 3px rgba(78, 211, 25, 0.12);
 }
 
 .opt-notif__reset {
@@ -306,12 +306,12 @@
 }
 
 .opt-notif__item.is-unread {
-  background: rgba(2, 208, 209, 0.04);
-  border-color: rgba(2, 208, 209, 0.28);
+  background: rgba(78, 211, 25, 0.04);
+  border-color: rgba(78, 211, 25, 0.28);
 }
 
 .opt-notif__item:hover {
-  border-color: rgba(2, 208, 209, 0.45);
+  border-color: rgba(78, 211, 25, 0.45);
   box-shadow: 0 8px 24px rgba(13, 32, 61, 0.08);
 }
 
@@ -342,7 +342,7 @@
 }
 
 .opt-notif__icon--ok {
-  background: rgba(2, 208, 209, 0.14);
+  background: rgba(78, 211, 25, 0.14);
   color: #0a7a7b;
 }
 
@@ -404,7 +404,7 @@
 }
 
 .opt-notif__chip--teal {
-  background: rgba(2, 208, 209, 0.15);
+  background: rgba(78, 211, 25, 0.15);
   color: #0a7a7b;
 }
 

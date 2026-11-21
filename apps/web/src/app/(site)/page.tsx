@@ -127,17 +127,6 @@ async function HomeContent() {
       />
       <AdSlot format="paysage_small" emplacement="pub-body-3" rotateMs={25000} />
       <HomeFemme stories={articles.femmeSlides} />
-      <HomeKiosque
-        rubriqueSlug="events"
-        items={articles.eventsStories.map((s) => ({
-          id: s.id,
-          slug: s.slug,
-          titre: s.titre,
-          cover: s.cover,
-          dateLabel: s.dateLabel,
-          sponsor: s.sponsor,
-        }))}
-      />
       {latestMagazine ? (
         <MagazinePromoFloat
           magazine={latestMagazine}

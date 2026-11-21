@@ -358,7 +358,7 @@ export function wrapTransactionalMail(input: {
               <a href="${escapeHtml(home)}" style="text-decoration:none;">
                 ${mailLogoImg(232)}
               </a>
-              <p style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.72);">Guide dans l’univers de la FinTech en Afrique.</p>
+              <p style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.72);">Premier média Africain spécialisé dans la FinTech.</p>
             </td>
           </tr>
           <tr>

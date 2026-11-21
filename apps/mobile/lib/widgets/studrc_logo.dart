@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 /// Lockup Fintech Médias — même mapping que le site et le splash :
 /// - mode clair → [logoLightAsset]
 /// - mode sombre / fond sombre → [logoDarkAsset]
-class EntrevueLogo extends StatelessWidget {
-  const EntrevueLogo({
+class FintechLogo extends StatelessWidget {
+  const FintechLogo({
     super.key,
     this.height = 40,
     this.onDark,

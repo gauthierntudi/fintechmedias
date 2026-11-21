@@ -15,7 +15,8 @@ function makeKey() {
 
 /**
  * Un clic ouvre la page en haut. Précédent et suivant retrouvent
- * la position de défilement de la page quittée.
+ * la position de défilement de la page quittée. Un pushState portant
+ * `{ __keepScroll: true }` ne fait pas défiler.
  */
 export function ScrollRestoration() {
   const [nav, setNav] = useState<Nav>({ id: 0, kind: "init" });
@@ -48,7 +49,11 @@ export function ScrollRestoration() {
       stamp();
       const result = origPush(state, title, url);
       const after = location.pathname + location.search;
-      if (after !== before) {
+      // `{ __keepScroll: true }` : mise à jour d’URL sur place (filtres…),
+      // la position de défilement ne bouge pas.
+      const keep =
+        !!state && typeof state === "object" && "__keepScroll" in state;
+      if (after !== before && !keep) {
         setNav((current) => ({ id: current.id + 1, kind: "push" }));
       }
       return result;

@@ -12,34 +12,38 @@ const kTurnstileSiteKey = String.fromEnvironment('TURNSTILE_SITE_KEY');
 /// Client OAuth Web (serverClientId) — même valeur que GOOGLE_CLIENT_ID.
 const kGoogleServerClientId = String.fromEnvironment('GOOGLE_CLIENT_ID');
 
-/// Client OAuth iOS (Info.plist / GIDClientID), optionnel au runtime.
-const kGoogleIosClientId = String.fromEnvironment('GOOGLE_IOS_CLIENT_ID');
+/// Client OAuth iOS (Info.plist / GIDClientID).
+/// Accepte GOOGLE_CLIENT_ID_IOS ou GOOGLE_IOS_CLIENT_ID via --dart-define.
+const kGoogleIosClientId = String.fromEnvironment(
+  'GOOGLE_CLIENT_ID_IOS',
+  defaultValue: String.fromEnvironment('GOOGLE_IOS_CLIENT_ID'),
+);
 
 const kBrandBlack = 0xFF111111;
 const kBrandRed = 0xFF4ED319;
 const kBrandWhite = 0xFFFFFFFF;
-/// Alias — anciens tokens navy / or / bleu.
+/// Alias — anciens tokens navy / or / bleu (chrome UI, pas les tones rubrique).
 const kBrandNavy = kBrandBlack;
 const kBrandGold = kBrandRed;
 const kBrandBlue = kBrandBlack;
 
 const kMagazineName = "Fintech Médias";
-const kBrandTagline = "Guide dans l’univers de la FinTech en Afrique.";
+const kBrandTagline = "Premier média Africain spécialisé dans la FinTech.";
 
+/// Une couleur unique par rubrique (vert charte + noir + palette distincte).
 const kRubriques = <({String slug, String label, String tone})>[
-  (slug: 'actualites', label: 'Actualités', tone: 'red'),
-  (slug: 'interview', label: 'Interview', tone: 'gold'),
+  (slug: 'actualites', label: 'Actualités', tone: 'green'),
+  (slug: 'interview', label: 'Interview', tone: 'gray'),
   (slug: 'economie', label: 'Économie', tone: 'blue'),
   (slug: 'politique', label: 'Politique', tone: 'teal'),
-  (slug: 'international', label: 'Int’l', tone: 'dark'),
-  (slug: 'portrait', label: 'Édito', tone: 'gold'),
-  (slug: 'entreprise', label: 'Entreprise', tone: 'red'),
-  (slug: 'events', label: 'Events', tone: 'teal'),
+  (slug: 'international', label: 'Int’l', tone: 'violet'),
+  (slug: 'portrait', label: 'Édito', tone: 'orange'),
+  (slug: 'entreprise', label: 'Entreprise', tone: 'rose'),
 ];
 
 const kNewsRubriques = <({String slug, String label, String tone})>[
   ...kRubriques,
-  (slug: 'stu-short', label: 'Shorts', tone: 'gold'),
+  (slug: 'stu-short', label: 'Shorts', tone: 'cyan'),
 ];
 
 String capitalizeLabel(String value) {
@@ -57,39 +61,44 @@ String toneFromCategory(String? category, [String? label]) {
   );
 
   const aliases = <String, String>{
-    'actualites': 'red',
-    'interview': 'gold',
+    'actualites': 'green',
+    'interview': 'gray',
     'economie': 'blue',
     'politique': 'teal',
-    'international': 'dark',
-    'portrait': 'gold',
-    'entreprise': 'red',
-    'events': 'teal',
-    'stu-short': 'gold',
-    'rencontre-avec': 'gold',
-    'qu-en-dit-l-expert': 'gold',
+    'international': 'violet',
+    'portrait': 'orange',
+    'entreprise': 'rose',
+    // Ancienne rubrique Events → Actualités
+    'events': 'green',
+    'stu-short': 'cyan',
+    // Legacy API tones → couleurs uniques
+    'red': 'green',
+    'dark': 'violet',
+    'black': 'gray',
+    'rencontre-avec': 'gray',
+    'qu-en-dit-l-expert': 'gray',
     'ecosysteme-pme': 'blue',
-    'femme': 'gold',
-    'entreprendre': 'red',
-    'innovation': 'red',
-    'stu-talk': 'teal',
-    'stu-stories': 'gold',
-    'stu-news': 'red',
+    'femme': 'orange',
+    'entreprendre': 'rose',
+    'innovation': 'rose',
+    'stu-talk': 'gray',
+    'stu-stories': 'gray',
+    'stu-news': 'rose',
     'stu-data': 'blue',
-    'stu-mag': 'dark',
-    'edito': 'gold',
-    'édito': 'gold',
-    'start-up': 'red',
-    'vus-sur-le-net': 'red',
-    'zoom': 'red',
+    'stu-mag': 'violet',
+    'edito': 'orange',
+    'édito': 'orange',
+    'start-up': 'rose',
+    'vus-sur-le-net': 'rose',
+    'zoom': 'rose',
     'decryptages': 'blue',
     'decryptage': 'blue',
-    'inspirationnel': 'gold',
-    'game-changers': 'gold',
-    'game-changer': 'gold',
-    'grandes-entrevues': 'teal',
-    'grande-entrevue': 'teal',
-    'entrevue-croisee': 'teal',
+    'inspirationnel': 'gray',
+    'game-changers': 'gray',
+    'game-changer': 'gray',
+    'grandes-entrevues': 'gray',
+    'grande-entrevue': 'gray',
+    'entrevue-croisee': 'gray',
   };
 
   for (final key in candidates) {
@@ -100,7 +109,7 @@ String toneFromCategory(String? category, [String? label]) {
       if (key == r.slug) return r.tone;
     }
   }
-  return 'red';
+  return 'green';
 }
 
 /// Ancienne grille « portrait » réservée aux rubriques 100 % vidéo.
