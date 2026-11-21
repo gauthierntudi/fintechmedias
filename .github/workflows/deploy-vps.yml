@@ -1,0 +1,68 @@
+# Déploiement prod Fintech Médias sur le VPS (Postgres) à chaque push sur main.
+# Réutilise deploy/vps/deploy.sh (rsync → /opt/fintechmedias, build Compose,
+# prisma migrate deploy, healthcheck).
+#
+# Secrets requis (repo Settings → Secrets and variables → Actions) :
+#   VPS_SSH_KEY  clé privée autorisée sur le VPS (root)
+#   VPS_HOST     IP / hôte du VPS
+#   VPS_USER     utilisateur SSH (défaut : root)
+#   VPS_PORT     port SSH (optionnel, défaut : 22)
+
+name: Deploy VPS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "apps/mobile/**"
+      - "docs/**"
+      - "**/*.md"
+      - ".claude/**"
+
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH (alias kadi)
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${VPS_SSH_KEY:-}" || -z "${VPS_HOST:-}" ]]; then
+            echo "::error::Secrets VPS_SSH_KEY et VPS_HOST requis."
+            exit 1
+          fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          PORT="${VPS_PORT:-22}"
+          ssh-keyscan -p "$PORT" -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          cat > ~/.ssh/config <<EOF
+          Host kadi
+            HostName ${VPS_HOST}
+            User ${VPS_USER:-root}
+            Port ${PORT}
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            ServerAliveInterval 30
+          EOF
+          chmod 600 ~/.ssh/config
+          ssh kadi 'echo "SSH OK: $(hostname)"'
+
+      - name: Deploy
+        run: |
+          chmod +x deploy/vps/deploy.sh
+          SSH_HOST=kadi ./deploy/vps/deploy.sh

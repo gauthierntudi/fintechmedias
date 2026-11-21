@@ -1,15 +1,10 @@
-name: Deploy Cloudflare
+# Ancien déploiement Cloudflare (D1) — prod migrée sur le VPS (deploy-vps.yml).
+# Plus déclenché au push ; lancement manuel uniquement.
+
+name: Deploy Cloudflare (legacy)
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "apps/web/**"
-      - "apps/api/**"
-      - "deploy/cloudflare/**"
-      - "pnpm-lock.yaml"
-      - ".github/workflows/deploy-cloudflare.yml"
 
 concurrency:
   group: deploy-cloudflare
